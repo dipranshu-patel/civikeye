@@ -1,15 +1,7 @@
 import React from "react";
 import { FileText, User, AlertTriangle } from "lucide-react";
 
-type StepType = "reporter" | "uncertain";
-
-interface LifecycleStep {
-    number: string;
-    label: string;
-    type: StepType;
-}
-
-const lifecycleSteps: LifecycleStep[] = [
+const lifecycleSteps = [
     { number: "01", label: "Reported", type: "reporter" },
     { number: "02", label: "Routed", type: "reporter" },
     { number: "03", label: "Internal queue", type: "reporter" },
@@ -17,13 +9,7 @@ const lifecycleSteps: LifecycleStep[] = [
     { number: "05", label: "Citizen?", type: "uncertain" },
 ];
 
-const stepConfig: Record<StepType, {
-    icon: typeof FileText;
-    boxClass: string;
-    iconClass: string;
-    numberClass: string;
-    labelClass: string;
-}> = {
+const stepConfig = {
     reporter: {
         icon: User,
         boxClass: "bg-amber-50 border-amber-100",

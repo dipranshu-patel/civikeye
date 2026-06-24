@@ -29,9 +29,9 @@ const faqData = [
 ];
 
 export default function FAQSection() {
-    const [openIndex, setOpenIndex] = useState<number>(0);
+    const [openIndex, setOpenIndex] = useState(0);
 
-    const toggleFAQ = (index: number) => {
+    const toggleFAQ = (index) => {
         setOpenIndex(openIndex === index ? -1 : index);
     };
 

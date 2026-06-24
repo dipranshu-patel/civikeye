@@ -2,21 +2,9 @@ import { Link } from "react-router-dom";
 import { SiGithub, SiX, SiLinkerd } from "@icons-pack/react-simple-icons";
 import logo from "../../assets/logo.svg";
 
-// ─── Types ───────────────────────────────────────────────────────────────────
-
-interface FooterLink {
-    label: string;
-    to: string;
-}
-
-interface FooterColumn {
-    heading: string;
-    links: FooterLink[];
-}
-
 // ─── Data ────────────────────────────────────────────────────────────────────
 
-const columns: FooterColumn[] = [
+const columns = [
     {
         heading: "PRODUCT",
         links: [
@@ -63,7 +51,7 @@ const socialLinks = [
 
 // ─── Sub-components ──────────────────────────────────────────────────────────
 
-function LinkColumn({ heading, links }: FooterColumn) {
+function LinkColumn({ heading, links }) {
     return (
         <div className="flex flex-col gap-4">
             <h3 className="font-[var(--font-inter)] font-medium text-[11px] tracking-widest text-[#71717a] uppercase">
