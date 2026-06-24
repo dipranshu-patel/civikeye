@@ -33,94 +33,62 @@ class EmailError extends Error {
 function buildOtpEmailHtml(otp, ttlMinutes) {
     return `<!DOCTYPE html>
 <html lang="en">
+
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Your CivikEye Verification Code</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Your CivikEye Verification Code</title>
 </head>
-<body style="margin:0;padding:0;background-color:#0f172a;font-family:'Segoe UI',Roboto,Arial,sans-serif;">
-  <table role="presentation" width="100%" cellspacing="0" cellpadding="0"
-         style="background-color:#0f172a;padding:40px 16px;">
-    <tr>
-      <td align="center">
-        <table role="presentation" width="100%" style="max-width:520px;background-color:#1e293b;
-               border-radius:12px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.4);">
 
-          <!-- Header -->
-          <tr>
-            <td style="background:linear-gradient(135deg,#3b82f6 0%,#6366f1 100%);
-                       padding:32px 40px;text-align:center;">
-              <h1 style="margin:0;color:#ffffff;font-size:22px;font-weight:700;
-                         letter-spacing:-0.3px;">
-                🏛 CivikEye
-              </h1>
-              <p style="margin:6px 0 0;color:#bfdbfe;font-size:13px;font-weight:400;">
-                Civic Issue Reporting Platform
-              </p>
+<body style="margin:0;padding:0;background-color:#f4f6f8;font-family:'Segoe UI',Roboto,Arial,sans-serif;">
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0"
+        style="background-color:#f4f6f8;padding:48px 16px;">
+        <tr>
+            <td align="center">
+                <table role="presentation" width="100%"
+                    style="max-width:480px;background-color:#ffffff;border-radius:8px;overflow:hidden;border:1px solid #e2e8f0;">
+
+                    <!-- Body -->
+                    <tr>
+                        <td style="padding:36px 40px 32px;">
+                            <h2
+                                style="margin:0 0 10px;color:#1a202c;font-size:17px;font-weight:600;letter-spacing:-0.2px;">
+                                Verify your email address
+                            </h2>
+                            <p style="margin:0 0 30px;color:#718096;font-size:14px;line-height:1.65;">
+                                Use the code below to complete your CivikEye account setup. Do not share this code with
+                                anyone.
+                            </p>
+
+                            <!-- OTP box -->
+                            <div style="background-color:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;
+                          padding:24px 20px;text-align:center;margin:0 0 30px;">
+                                <p style="margin:0 0 10px;color:#a0aec0;font-size:11px;
+                           letter-spacing:1.8px;text-transform:uppercase;font-weight:600;">
+                                    Verification Code
+                                </p>
+                                <p style="margin:0;color:#2b6cb0;font-size:36px;font-weight:700;
+                           letter-spacing:14px;font-variant-numeric:tabular-nums;">
+                                    ${otp}
+                                </p>
+                                <p style="margin:12px 0 0;color:#a0aec0;font-size:12px;">
+                                    Expires in <span style="color:#4a5568;font-weight:600;">${ttlMinutes} minutes</span>
+                                </p>
+                            </div>
+
+                            <p style="margin:0;color:#718096;font-size:13px;line-height:1.65;">
+                                If you did not request this code, you can safely ignore this email. Your account will
+                                not be affected.
+                            </p>
+                        </td>
+                    </tr>
+
+                </table>
             </td>
-          </tr>
-
-          <!-- Body -->
-          <tr>
-            <td style="padding:36px 40px;">
-              <h2 style="margin:0 0 8px;color:#f1f5f9;font-size:18px;font-weight:600;">
-                Verify your email address
-              </h2>
-              <p style="margin:0 0 28px;color:#94a3b8;font-size:14px;line-height:1.6;">
-                Use the code below to verify your email address and complete your
-                CivikEye account setup.
-              </p>
-
-              <!-- OTP box -->
-              <div style="background-color:#0f172a;border:1px solid #334155;
-                          border-radius:10px;padding:24px;text-align:center;margin:0 0 28px;">
-                <p style="margin:0 0 8px;color:#64748b;font-size:12px;
-                           letter-spacing:1.5px;text-transform:uppercase;font-weight:600;">
-                  Verification Code
-                </p>
-                <p style="margin:0;color:#60a5fa;font-size:40px;font-weight:800;
-                           letter-spacing:12px;font-variant-numeric:tabular-nums;">
-                  ${otp}
-                </p>
-                <p style="margin:12px 0 0;color:#64748b;font-size:12px;">
-                  Valid for <strong style="color:#94a3b8;">${ttlMinutes} minutes</strong>
-                </p>
-              </div>
-
-              <p style="margin:0 0 24px;color:#94a3b8;font-size:13px;line-height:1.6;">
-                Enter this code on the CivikEye website to verify your email. If you
-                did not request this code, you can safely ignore this email.
-              </p>
-
-              <!-- Security notice -->
-              <div style="background-color:#1a0a00;border:1px solid #92400e;
-                          border-radius:8px;padding:14px 18px;">
-                <p style="margin:0;color:#fbbf24;font-size:12px;line-height:1.6;">
-                  <strong>⚠ Security notice:</strong> CivikEye will never ask you to
-                  share this code over the phone, chat, or email. If someone is asking
-                  for it, it is a scam.
-                </p>
-              </div>
-            </td>
-          </tr>
-
-          <!-- Footer -->
-          <tr>
-            <td style="padding:20px 40px 32px;border-top:1px solid #1e293b;">
-              <p style="margin:0;color:#475569;font-size:11px;line-height:1.6;text-align:center;">
-                This email was sent by CivikEye — the civic issue reporting platform.<br/>
-                If you have questions, contact support at
-                <a href="mailto:support@civikeye.online"
-                   style="color:#60a5fa;text-decoration:none;">support@civikeye.online</a>.
-              </p>
-            </td>
-          </tr>
-
-        </table>
-      </td>
-    </tr>
-  </table>
+        </tr>
+    </table>
 </body>
+
 </html>`;
 }
 

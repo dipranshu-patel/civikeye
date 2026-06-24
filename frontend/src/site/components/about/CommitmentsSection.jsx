@@ -1,13 +1,6 @@
 import { Eye, Shield, CheckCircle, SquarePen, Scale, Globe } from "lucide-react";
 
-interface Commitment {
-    number: string;
-    icon: typeof Eye;
-    title: string;
-    description: string;
-}
-
-const commitments: Commitment[] = [
+const commitments = [
     {
         number: "01",
         icon: Eye,

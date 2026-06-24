@@ -1,14 +1,6 @@
 import { TrendingUp } from "lucide-react";
 
-interface Issue {
-    title: string;
-    subtitle: string;
-    votes: string;
-    change: string;
-    highlighted: boolean;
-}
-
-const issues: Issue[] = [
+const issues = [
     {
         title: "Broken streetlight cluster",
         subtitle: "Sector 45",

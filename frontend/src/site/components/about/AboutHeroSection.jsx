@@ -6,14 +6,7 @@ const closedComplaints = [
     { id: "#4823" },
 ];
 
-interface PublicComplaint {
-    id: string;
-    status: string;
-    statusClass: string;
-    iconClass: string;
-}
-
-const publicComplaints: PublicComplaint[] = [
+const publicComplaints = [
     { id: "#4821", status: "Resolved", statusClass: "text-emerald-600", iconClass: "text-emerald-500" },
     { id: "#4822", status: "In progress", statusClass: "text-blue-600", iconClass: "text-blue-500" },
     { id: "#4823", status: "Overdue", statusClass: "text-orange-600", iconClass: "text-orange-500" },

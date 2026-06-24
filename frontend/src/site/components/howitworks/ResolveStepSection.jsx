@@ -6,13 +6,7 @@ const countdownUnits = [
     { value: "58", label: "Minutes" },
 ];
 
-interface TimelineItem {
-    label: string;
-    meta: string;
-    status: "done" | "active" | "pending";
-}
-
-const timeline: TimelineItem[] = [
+const timeline = [
     { label: "Reported", meta: "2 days ago", status: "done" },
     { label: "Assigned", meta: "1 day ago", status: "done" },
     { label: "In Progress", meta: "Current", status: "active" },

@@ -1,12 +1,6 @@
 import { AlertTriangle, CheckCircle2, FileText, Upload, Clock3 } from "lucide-react";
 
-interface AuditEntry {
-    time: string;
-    text: string;
-    icon: typeof FileText;
-}
-
-const auditLog: AuditEntry[] = [
+const auditLog = [
     { time: "09:45", text: "Resolution submitted by PWD", icon: FileText },
     { time: "09:46", text: "Proof images uploaded (2)", icon: Upload },
     { time: "09:47", text: "Status changed to pending_verification", icon: Clock3 },

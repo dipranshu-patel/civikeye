@@ -1,13 +1,6 @@
 import { Eye, Shield, Scale } from "lucide-react";
 
-interface Principle {
-    number: string;
-    icon: typeof Eye;
-    title: string;
-    description: string;
-}
-
-const principles: Principle[] = [
+const principles = [
     {
         number: "01",
         icon: Eye,
