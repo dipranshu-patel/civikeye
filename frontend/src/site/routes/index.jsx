@@ -3,6 +3,8 @@ import MainLayout from "../components/layout/MainLayout";
 import HomePage from "../pages/public/HomePage";
 import HowItWorksPage from "../pages/public/HowItWorksPage";
 import AboutPage from "../pages/public/AboutPage";
+import RegisterPage from "../pages/auth/RegisterPage";
+import LoginPage from "../pages/auth/LoginPage";
 
 /**
  * Application route tree.
@@ -13,6 +15,14 @@ import AboutPage from "../pages/public/AboutPage";
  * shared shell without needing to import Navbar/Footer themselves.
  */
 const router = createBrowserRouter([
+    {
+        path: "/register",
+        element: <RegisterPage />,
+    },
+    {
+        path: "/login",
+        element: <LoginPage />,
+    },
     {
         element: <MainLayout />,
         children: [

@@ -15,7 +15,7 @@ function makeHandler(code, message) {
 
 const sendOtpLimiter = rateLimit({
     windowMs: ONE_HOUR_MS,
-    max: 5,
+    max: 100,           // for pruduction - 5
     standardHeaders: true,
     legacyHeaders: false,
     handler: makeHandler(
@@ -26,7 +26,7 @@ const sendOtpLimiter = rateLimit({
 
 const verifyOtpLimiter = rateLimit({
     windowMs: ONE_HOUR_MS,
-    max: 10,
+    max: 100,            // for pruduction - 10
     standardHeaders: true,
     legacyHeaders: false,
     handler: makeHandler(
@@ -37,7 +37,7 @@ const verifyOtpLimiter = rateLimit({
 
 const loginLimiter = rateLimit({
     windowMs: ONE_HOUR_MS,
-    max: 10,
+    max: 100,           // for pruduction - 10
     standardHeaders: true,
     legacyHeaders: false,
     handler: makeHandler(
@@ -48,7 +48,7 @@ const loginLimiter = rateLimit({
 
 const registerLimiter = rateLimit({
     windowMs: ONE_HOUR_MS,
-    max: 5,
+    max: 100,             // for pruduction - 5
     standardHeaders: true,
     legacyHeaders: false,
     handler: makeHandler(
