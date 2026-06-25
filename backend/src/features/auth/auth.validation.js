@@ -206,6 +206,42 @@ function validateVerifyOtp(body) {
     return errors;
 }
 
+function validateForgotPassword(body) {
+    const errors = [];
+    const { email } = body ?? {};
+
+    if (!isNonEmptyString(email)) {
+        errors.push({ field: "email", message: "Email address is required." });
+    } else if (!isValidEmail(email)) {
+        errors.push({
+            field: "email",
+            message: "Please provide a valid email address.",
+        });
+    }
+
+    return errors;
+}
+
+function validateResetPassword(body) {
+    const errors = [];
+    const { token, password } = body ?? {};
+
+    if (!isNonEmptyString(token)) {
+        errors.push({ field: "token", message: "Reset token is required." });
+    }
+
+    if (!isNonEmptyString(password)) {
+        errors.push({ field: "password", message: "Password is required." });
+    } else {
+        const result = checkPassword(password);
+        if (!result.valid) {
+            errors.push({ field: "password", message: result.reason });
+        }
+    }
+
+    return errors;
+}
+
 module.exports = {
     validateRegister,
     validateLogin,
@@ -213,6 +249,8 @@ module.exports = {
     validateLogout,
     validateSendOtp,
     validateVerifyOtp,
+    validateForgotPassword,
+    validateResetPassword,
 
     CONSTRAINTS,
 };

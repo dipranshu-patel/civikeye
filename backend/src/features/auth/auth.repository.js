@@ -165,6 +165,66 @@ async function findVerifiedEmailVerification(email) {
     return rows[0] ?? null;
 }
 
+// ── Password Reset Tokens ─────────────────────────────────────────────────
+
+async function createPasswordResetToken({ userId, tokenHash, expiresAt }) {
+    const sql = `
+    INSERT INTO password_reset_tokens (user_id, token_hash, expires_at)
+    VALUES ($1, $2, $3)
+    RETURNING id, user_id, token_hash, expires_at, used, created_at;
+  `;
+
+    const { rows } = await pool.query(sql, [userId, tokenHash, expiresAt]);
+    return rows[0];
+}
+
+async function findPasswordResetToken(tokenHash) {
+    const sql = `
+    SELECT
+      id,
+      user_id,
+      token_hash,
+      expires_at,
+      used,
+      created_at
+    FROM  password_reset_tokens
+    WHERE token_hash = $1
+    LIMIT 1;
+  `;
+
+    const { rows } = await pool.query(sql, [tokenHash]);
+    return rows[0] ?? null;
+}
+
+// Delete every reset token for a user so all outstanding reset links
+// become invalid immediately after a successful password change.
+async function deleteAllPasswordResetTokensForUser(userId) {
+    const result = await pool.query(
+        "DELETE FROM password_reset_tokens WHERE user_id = $1",
+        [userId],
+    );
+    return result.rowCount;
+}
+
+async function updateUserPassword(userId, passwordHash) {
+    const sql = `
+    UPDATE users
+    SET    password_hash = $2
+    WHERE  id = $1
+    RETURNING id, email, role;
+  `;
+
+    const { rows } = await pool.query(sql, [userId, passwordHash]);
+    return rows[0] ?? null;
+}
+
+async function deleteExpiredPasswordResetTokens() {
+    const result = await pool.query(
+        "DELETE FROM password_reset_tokens WHERE expires_at < NOW()",
+    );
+    return result.rowCount;
+}
+
 module.exports = {
     findUserByEmail,
     insertUser,
@@ -179,4 +239,10 @@ module.exports = {
     findLatestEmailVerification,
     markEmailAsVerified,
     findVerifiedEmailVerification,
+
+    createPasswordResetToken,
+    findPasswordResetToken,
+    deleteAllPasswordResetTokensForUser,
+    updateUserPassword,
+    deleteExpiredPasswordResetTokens,
 };

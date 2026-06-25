@@ -8,6 +8,8 @@ const {
     validateLogout,
     validateSendOtp,
     validateVerifyOtp,
+    validateForgotPassword,
+    validateResetPassword,
 } = require("./auth.validation");
 
 function refreshExpiryMs() {
@@ -143,6 +145,37 @@ async function verifyOtp(req, res, next) {
     }
 }
 
+async function forgotPassword(req, res, next) {
+    try {
+        if (rejectIfInvalid(validateForgotPassword, req.body, res)) return;
+
+        await service.forgotPassword(req.body);
+
+        // Always return the same generic message — do not reveal if the email exists.
+        res.status(200).json({
+            success: true,
+            message: "If an account exists, a password reset link has been sent.",
+        });
+    } catch (err) {
+        next(err);
+    }
+}
+
+async function resetPassword(req, res, next) {
+    try {
+        if (rejectIfInvalid(validateResetPassword, req.body, res)) return;
+
+        await service.resetPassword(req.body);
+
+        res.status(200).json({
+            success: true,
+            message: "Password has been reset successfully. Please log in with your new password.",
+        });
+    } catch (err) {
+        next(err);
+    }
+}
+
 module.exports = {
     sendOtp,
     verifyOtp,
@@ -150,4 +183,6 @@ module.exports = {
     login,
     refresh,
     logout,
+    forgotPassword,
+    resetPassword,
 };

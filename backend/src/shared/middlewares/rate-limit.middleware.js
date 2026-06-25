@@ -57,9 +57,33 @@ const registerLimiter = rateLimit({
     ),
 });
 
+const forgotPasswordLimiter = rateLimit({
+    windowMs: ONE_HOUR_MS,
+    max: 100,             // for production - 5
+    standardHeaders: true,
+    legacyHeaders: false,
+    handler: makeHandler(
+        "TOO_MANY_FORGOT_PASSWORD_REQUESTS",
+        "Too many password reset requests from this IP. Please try again after an hour.",
+    ),
+});
+
+const resetPasswordLimiter = rateLimit({
+    windowMs: ONE_HOUR_MS,
+    max: 100,             // for production - 10
+    standardHeaders: true,
+    legacyHeaders: false,
+    handler: makeHandler(
+        "TOO_MANY_RESET_PASSWORD_ATTEMPTS",
+        "Too many password reset attempts from this IP. Please try again after an hour.",
+    ),
+});
+
 module.exports = {
     sendOtpLimiter,
     verifyOtpLimiter,
     loginLimiter,
     registerLimiter,
+    forgotPasswordLimiter,
+    resetPasswordLimiter,
 };
