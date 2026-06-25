@@ -2,13 +2,13 @@
 
 const { Router } = require("express");
 const controller = require("./auth.controller");
-//test require
-const { requireAuth } = require("../../shared/middlewares/auth.middleware");
 const {
     sendOtpLimiter,
     verifyOtpLimiter,
     loginLimiter,
     registerLimiter,
+    forgotPasswordLimiter,
+    resetPasswordLimiter,
 } = require("../../shared/middlewares/rate-limit.middleware");
 
 const router = Router();
@@ -22,9 +22,7 @@ router.post("/login", loginLimiter, controller.login);
 router.post("/refresh", controller.refresh);
 router.post("/logout", controller.logout);
 
-//test route
-router.get("/me", requireAuth, (req, res) => {
-    res.json({ success: true, data: { user: req.user } });
-});
+router.post("/forgot-password", forgotPasswordLimiter, controller.forgotPassword);
+router.post("/reset-password", resetPasswordLimiter, controller.resetPassword);
 
 module.exports = router;

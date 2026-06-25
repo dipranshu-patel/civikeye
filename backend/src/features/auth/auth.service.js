@@ -307,6 +307,125 @@ async function verifyOtp({ email, otp }) {
     return { success: true, email: normalisedEmail };
 }
 
+const RESET_TTL_MS = (function () {
+    const expiry = process.env.PASSWORD_RESET_TOKEN_EXPIRY ?? "15m";
+    const match = expiry.match(/^(\d+)([smhd])$/);
+    if (!match) return 15 * 60 * 1000;
+    const value = parseInt(match[1], 10);
+    const multipliers = { s: 1_000, m: 60_000, h: 3_600_000, d: 86_400_000 };
+    return value * multipliers[match[2]];
+})();
+
+async function forgotPassword({ email }) {
+    const { sendPasswordResetEmail, EmailError } = require("../../shared/utils/email");
+
+    const normalisedEmail = email.trim().toLowerCase();
+
+    const user = await repo.findUserByEmail(normalisedEmail);
+
+    // Return generic success regardless of whether the email exists —
+    // never reveal which addresses are registered.
+    if (!user) {
+        return { success: true };
+    }
+
+    // Generate a cryptographically secure raw token (256 bits of entropy).
+    const rawToken = crypto.randomBytes(32).toString("hex");
+    // Only the hash is stored; the raw token is never persisted.
+    const tokenHash = sha256(rawToken);
+    const expiresAt = new Date(Date.now() + RESET_TTL_MS);
+
+    await repo.createPasswordResetToken({ userId: user.id, tokenHash, expiresAt });
+
+    const frontendUrl = process.env.FRONTEND_URL ?? "https://civikeye.online";
+    const resetUrl = `${frontendUrl}/reset-password?token=${rawToken}`;
+
+    if (process.env.SKIP_EMAIL === "true") {
+        console.warn(
+            `[forgotPassword] SKIP_EMAIL=true — reset URL for ${normalisedEmail}: ${resetUrl}  ` +
+                "(remove SKIP_EMAIL before deploying to production)",
+        );
+        return { success: true };
+    }
+
+    try {
+        await sendPasswordResetEmail(normalisedEmail, resetUrl);
+    } catch (emailErr) {
+        // Roll back the token row so it cannot be abused if the email never arrived.
+        await repo.deleteAllPasswordResetTokensForUser(user.id).catch(() => {
+            console.error(
+                "[forgotPassword] Failed to clean up password_reset_tokens for user:",
+                user.id,
+            );
+        });
+
+        if (emailErr instanceof EmailError) {
+            const isConfig =
+                emailErr.code === "EMAIL_API_KEY_INVALID" ||
+                emailErr.code === "EMAIL_DOMAIN_INVALID";
+
+            throw new AppError(
+                isConfig
+                    ? "Email service is misconfigured. Please contact support."
+                    : "Failed to send password reset email. Please try again in a moment.",
+                503,
+                emailErr.code,
+            );
+        }
+
+        throw new AppError(
+            "An unexpected error occurred while sending the password reset email.",
+            503,
+            "EMAIL_SEND_FAILED",
+        );
+    }
+
+    return { success: true };
+}
+
+async function resetPassword({ token, password }) {
+    const tokenHash = sha256(token);
+    const record = await repo.findPasswordResetToken(tokenHash);
+
+    if (!record) {
+        throw new AppError(
+            "Password reset token is invalid.",
+            404,
+            "TOKEN_NOT_FOUND",
+        );
+    }
+
+    // Guard against token reuse.
+    if (record.used) {
+        throw new AppError(
+            "This password reset link has already been used. Please request a new one.",
+            410,
+            "TOKEN_ALREADY_USED",
+        );
+    }
+
+    if (new Date(record.expires_at) < new Date()) {
+        throw new AppError(
+            "This password reset link has expired. Please request a new one.",
+            410,
+            "TOKEN_EXPIRED",
+        );
+    }
+
+    const passwordHash = await hashPassword(password);
+
+    await repo.updateUserPassword(record.user_id, passwordHash);
+
+    // Delete ALL reset tokens for this user so any older reset emails
+    // sent earlier are immediately invalidated.
+    await repo.deleteAllPasswordResetTokensForUser(record.user_id);
+
+    // Revoke all active sessions — the password change should force a fresh login.
+    await repo.revokeAllRefreshTokensForUser(record.user_id);
+
+    return { success: true };
+}
+
 module.exports = {
     sendOtp,
     verifyOtp,
@@ -314,5 +433,7 @@ module.exports = {
     login,
     refresh,
     logout,
-    AppError, 
+    forgotPassword,
+    resetPassword,
+    AppError,
 };
