@@ -1,4 +1,5 @@
 import { ArrowRight } from "lucide-react";
+import { Link } from "react-router-dom";
 
 export default function CTASection() {
     return (
@@ -29,13 +30,13 @@ export default function CTASection() {
 
                         {/* Buttons */}
                         <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4 w-full sm:w-auto">
-                            <button className="font-[var(--font-inter)] w-full sm:w-auto inline-flex justify-center items-center gap-2 bg-white hover:bg-gray-100 text-gray-900 px-8 py-3.5 rounded-full font-medium transition-colors duration-200">
+                            <Link to="/register" className="font-[var(--font-inter)] w-full sm:w-auto inline-flex justify-center items-center gap-2 bg-white hover:bg-gray-100 text-gray-900 px-8 py-3.5 rounded-full font-medium transition-colors duration-200">
                                 Report your first issue
                                 <ArrowRight className="w-4 h-4" />
-                            </button>
-                            <button className="font-[var(--font-inter)] w-full sm:w-auto inline-flex justify-center items-center border border-white/20 hover:bg-white/10 text-white px-8 py-3.5 rounded-full font-medium transition-colors duration-200">
+                            </Link>
+                            <Link to="/register" className="font-[var(--font-inter)] w-full sm:w-auto inline-flex justify-center items-center border border-white/20 hover:bg-white/10 text-white px-8 py-3.5 rounded-full font-medium transition-colors duration-200">
                                 Become a volunteer
-                            </button>
+                            </Link>
                         </div>
 
                     </div>

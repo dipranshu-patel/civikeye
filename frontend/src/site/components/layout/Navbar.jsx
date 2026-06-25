@@ -61,13 +61,13 @@ export default function Navbar() {
                     {/* ── Right: Actions (desktop) ── */}
                     <div className="hidden md:flex items-center gap-4">
                         <Link
-                            to="/sign-in"
+                            to="/login"
                             className="font-[var(--font-inter)] text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors duration-150"
                         >
                             Sign in
                         </Link>
                         <Link
-                            to="/report"
+                            to="/register"
                             className="font-[var(--font-inter)] inline-flex items-center gap-1.5 bg-gray-900 text-white text-sm font-medium px-4 py-2 rounded-full hover:bg-gray-700 transition-colors duration-150"
                         >
                             Report an issue
@@ -125,14 +125,14 @@ export default function Navbar() {
                         <hr className="my-2 border-gray-100" />
 
                         <Link
-                            to="/sign-in"
+                            to="/login"
                             onClick={() => setMobileOpen(false)}
                             className="font-[var(--font-inter)] text-sm font-medium px-3 py-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-colors duration-150"
                         >
                             Sign in
                         </Link>
                         <Link
-                            to="/report"
+                            to="/register"
                             onClick={() => setMobileOpen(false)}
                             className="font-[var(--font-inter)] inline-flex items-center justify-center gap-1.5 bg-gray-900 text-white text-sm font-medium px-4 py-2.5 rounded-lg hover:bg-gray-700 transition-colors duration-150 mt-1"
                         >
