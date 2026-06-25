@@ -40,7 +40,7 @@ export default function AboutCTASection() {
                 {/* Buttons */}
                 <div className="flex flex-col sm:flex-row items-center gap-3 mb-8">
                     <Link
-                        to="/report"
+                        to="/register"
                         className="inline-flex items-center gap-2 bg-white text-gray-900 font-[var(--font-inter)] text-[14px] font-semibold px-6 py-3 rounded-full hover:bg-gray-100 transition-colors duration-150"
                     >
                         Report your first issue

@@ -5,6 +5,8 @@ import HowItWorksPage from "../pages/public/HowItWorksPage";
 import AboutPage from "../pages/public/AboutPage";
 import RegisterPage from "../pages/auth/RegisterPage";
 import LoginPage from "../pages/auth/LoginPage";
+import ForgotPasswordPage from "../pages/auth/ForgotPassword";
+import ResetPasswordPage from "../pages/auth/ResetPassword";
 
 /**
  * Application route tree.
@@ -22,6 +24,14 @@ const router = createBrowserRouter([
     {
         path: "/login",
         element: <LoginPage />,
+    },
+    {
+        path: "/forgot-password",
+        element: <ForgotPasswordPage />,
+    },
+    {
+        path: "/reset-password",
+        element: <ResetPasswordPage />,
     },
     {
         element: <MainLayout />,

@@ -159,19 +159,6 @@ function buildPasswordResetEmailHtml(resetUrl, ttlMinutes) {
             <td align="center">
                 <table role="presentation" width="100%"
                     style="max-width:480px;background-color:#ffffff;border-radius:8px;overflow:hidden;border:1px solid #e2e8f0;">
-
-                    <!-- Header -->
-                    <tr>
-                        <td style="background-color:#1a365d;padding:28px 40px;text-align:center;">
-                            <p style="margin:0;color:#ffffff;font-size:20px;font-weight:700;letter-spacing:-0.3px;">
-                                CivikEye
-                            </p>
-                            <p style="margin:6px 0 0;color:#90cdf4;font-size:12px;letter-spacing:0.5px;">
-                                SECURE ACCOUNT SERVICES
-                            </p>
-                        </td>
-                    </tr>
-
                     <!-- Body -->
                     <tr>
                         <td style="padding:36px 40px 32px;">
@@ -210,28 +197,8 @@ function buildPasswordResetEmailHtml(resetUrl, ttlMinutes) {
                                 If you did not request a password reset, you can safely ignore this email.
                                 Your password will remain unchanged.
                             </p>
-
-                            <!-- Divider -->
-                            <hr style="border:none;border-top:1px solid #e2e8f0;margin:0 0 20px;" />
-
-                            <!-- Security warning -->
-                            <p style="margin:0;color:#e53e3e;font-size:12px;line-height:1.65;">
-                                <strong>Security notice:</strong> CivikEye will never ask for your password
-                                by email or phone. If you did not make this request, please contact our
-                                support team immediately.
-                            </p>
                         </td>
                     </tr>
-
-                    <!-- Footer -->
-                    <tr>
-                        <td style="background-color:#f8fafc;padding:18px 40px;border-top:1px solid #e2e8f0;text-align:center;">
-                            <p style="margin:0;color:#a0aec0;font-size:11px;">
-                                &copy; ${new Date().getFullYear()} CivikEye. All rights reserved.
-                            </p>
-                        </td>
-                    </tr>
-
                 </table>
             </td>
         </tr>
@@ -249,7 +216,10 @@ async function sendPasswordResetEmail(to, resetUrl) {
             from: EMAIL_FROM,
             to: [to],
             subject: "Reset your CivikEye password",
-            html: buildPasswordResetEmailHtml(resetUrl, RESET_EMAIL_TTL_MINUTES),
+            html: buildPasswordResetEmailHtml(
+                resetUrl,
+                RESET_EMAIL_TTL_MINUTES,
+            ),
         });
     } catch (sdkErr) {
         throw new EmailError(

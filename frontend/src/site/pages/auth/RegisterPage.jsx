@@ -10,7 +10,7 @@ import LogoSVG from "../../assets/logo.svg";
 export default function RegisterPage() {
     const navigate = useNavigate();
     const [step, setStep] = useState(1); // 1: Email, 2: OTP, 3: Password & Consent
-    const [loading, setLoading] = useState(false);
+    const [loadingAction, setLoadingAction] = useState(null);
     const [error, setError] = useState(null);
 
     // Form Data
@@ -98,7 +98,7 @@ export default function RegisterPage() {
         }
 
         setError(null);
-        setLoading(true);
+        setLoadingAction("sendOtp");
         try {
             await authService.sendOtp(email);
             setStep(2);
@@ -111,7 +111,7 @@ export default function RegisterPage() {
                     "Failed to send OTP.",
             );
         } finally {
-            setLoading(false);
+            setLoadingAction(null);
         }
     };
 
@@ -122,7 +122,7 @@ export default function RegisterPage() {
         }
 
         setError(null);
-        setLoading(true);
+        setLoadingAction("verifyOtp");
         try {
             await authService.verifyOtp(email, otp);
             setStep(3);
@@ -134,7 +134,7 @@ export default function RegisterPage() {
             );
             setOtp("");
         } finally {
-            setLoading(false);
+            setLoadingAction(null);
         }
     };
 
@@ -164,7 +164,7 @@ export default function RegisterPage() {
         }
 
         setError(null);
-        setLoading(true);
+        setLoadingAction("register");
         try {
             await authService.register(fullName, email, password);
             // Registration successful, navigate to login or dashboard
@@ -176,7 +176,7 @@ export default function RegisterPage() {
                     "Registration failed.",
             );
         } finally {
-            setLoading(false);
+            setLoadingAction(null);
         }
     };
 
@@ -285,10 +285,10 @@ export default function RegisterPage() {
                                         <Button
                                             variant="primary"
                                             onClick={handleSendOtp}
-                                            isLoading={loading}
-                                            disabled={!email}
+                                            isLoading={loadingAction === "sendOtp"}
+                                            disabled={!email || loadingAction !== null}
                                         >
-                                            {loading ? "Verifying..." : "Verify"}
+                                            {loadingAction === "sendOtp" ? "Verifying..." : "Verify"}
                                         </Button>
                                     )}
                                 </div>
@@ -321,20 +321,20 @@ export default function RegisterPage() {
                                             <Button
                                                 variant="secondary"
                                                 onClick={handleVerifyOtp}
-                                                isLoading={loading}
-                                                disabled={otp.length !== 6}
+                                                isLoading={loadingAction === "verifyOtp"}
+                                                disabled={otp.length !== 6 || loadingAction !== null}
                                             >
-                                                {loading ? "Verifying..." : "Verify OTP"}
+                                                {loadingAction === "verifyOtp" ? "Verifying..." : "Verify OTP"}
                                             </Button>
 
                                             <button
                                                 onClick={handleSendOtp}
-                                                disabled={timer > 0 || loading}
+                                                disabled={timer > 0 || loadingAction !== null}
                                                 className="text-sm text-blue-600 hover:text-blue-700 disabled:text-gray-400 font-medium"
                                             >
                                                 {timer > 0
                                                     ? `Resend in ${timer}s`
-                                                    : loading ? "Sending..." : "Resend OTP"}
+                                                    : loadingAction === "sendOtp" ? "Sending..." : "Resend OTP"}
                                             </button>
                                         </div>
                                     )}
@@ -440,9 +440,10 @@ export default function RegisterPage() {
                                 className="w-full"
                                 size="lg"
                                 onClick={handleRegister}
-                                isLoading={loading}
+                                isLoading={loadingAction === "register"}
+                                disabled={loadingAction !== null}
                             >
-                                {loading ? "Creating account..." : (
+                                {loadingAction === "register" ? "Creating account..." : (
                                     <span className="flex items-center gap-2">
                                         Create account <MoveRight className="w-5 h-5" />
                                     </span>

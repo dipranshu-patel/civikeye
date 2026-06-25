@@ -337,7 +337,7 @@ async function forgotPassword({ email }) {
 
     await repo.createPasswordResetToken({ userId: user.id, tokenHash, expiresAt });
 
-    const frontendUrl = process.env.FRONTEND_URL ?? "https://civikeye.online";
+    const frontendUrl = (process.env.FRONTEND_URL ?? "https://civikeye.online").replace(/\/$/, "");
     const resetUrl = `${frontendUrl}/reset-password?token=${rawToken}`;
 
     if (process.env.SKIP_EMAIL === "true") {

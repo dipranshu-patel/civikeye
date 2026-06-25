@@ -1,4 +1,5 @@
 import { ArrowRight } from "lucide-react";
+import { Link } from "react-router-dom";
 
 export default function HeroSection() {
     return (
@@ -26,13 +27,13 @@ export default function HeroSection() {
 
                 {/* ── CTA Buttons ── */}
                 <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4 w-full sm:w-auto">
-                    <button className="font-[var(--font-inter)] w-full sm:w-auto inline-flex justify-center items-center gap-2 bg-gray-900 hover:bg-gray-800 text-white px-8 py-3.5 rounded-full font-medium transition-colors duration-200">
+                    <Link to="/register" className="font-[var(--font-inter)] w-full sm:w-auto inline-flex justify-center items-center gap-2 bg-gray-900 hover:bg-gray-800 text-white px-8 py-3.5 rounded-full font-medium transition-colors duration-200">
                         Report an issue
                         <ArrowRight className="w-4 h-4" />
-                    </button>
-                    <button className="font-[var(--font-inter)] w-full sm:w-auto inline-flex justify-center items-center bg-white hover:bg-gray-50 text-gray-900 border border-gray-200 px-8 py-3.5 rounded-full font-medium transition-colors duration-200 shadow-sm">
+                    </Link>
+                    <Link to="/how-it-works" className="font-[var(--font-inter)] w-full sm:w-auto inline-flex justify-center items-center bg-white hover:bg-gray-50 text-gray-900 border border-gray-200 px-8 py-3.5 rounded-full font-medium transition-colors duration-200 shadow-sm">
                         See how it works
-                    </button>
+                    </Link>
                 </div>
             </div>
         </section>

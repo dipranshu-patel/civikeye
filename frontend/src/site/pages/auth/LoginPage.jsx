@@ -134,13 +134,12 @@ export default function LoginPage() {
                                     <label className="block text-sm font-medium text-gray-700">
                                         Password
                                     </label>
-                                    <button
-                                        type="button"
-                                        onClick={() => {}}
+                                    <Link
+                                        to="/forgot-password"
                                         className="text-sm font-medium text-gray-900 hover:underline"
                                     >
                                         Forgot password?
-                                    </button>
+                                    </Link>
                                 </div>
                                 <div className="relative">
                                     <Input
