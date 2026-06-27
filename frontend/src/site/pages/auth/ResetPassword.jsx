@@ -14,13 +14,11 @@ export default function ResetPasswordPage() {
     const [loading, setLoading] = useState(false);
     const [success, setSuccess] = useState(false);
     
-    // Form Data
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-    // Errors
     const [fieldErrors, setFieldErrors] = useState({});
     const [globalError, setGlobalError] = useState(null);
 
@@ -64,7 +62,6 @@ export default function ResetPasswordPage() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         
-        // Reset errors
         setFieldErrors({});
         setGlobalError(null);
         

@@ -56,8 +56,8 @@ async function register(req, res, next) {
     try {
         if (rejectIfInvalid(validateRegister, req.body, res)) return;
 
-        const { fullName, email, password } = req.body;
-        const user = await service.register({ fullName, email, password });
+        const { fullName, email, password, latitude, longitude } = req.body;
+        const user = await service.register({ fullName, email, password, latitude, longitude });
 
         res.status(201).json({ success: true, data: { user } });
     } catch (err) {
@@ -151,7 +151,6 @@ async function forgotPassword(req, res, next) {
 
         await service.forgotPassword(req.body);
 
-        // Always return the same generic message — do not reveal if the email exists.
         res.status(200).json({
             success: true,
             message: "If an account exists, a password reset link has been sent.",

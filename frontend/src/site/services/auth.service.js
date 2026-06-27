@@ -11,8 +11,8 @@ export const authService = {
         return response.data;
     },
 
-    async register(fullName, email, password) {
-        const response = await api.post('/auth/register', { fullName, email, password });
+    async register(fullName, email, password, latitude, longitude) {
+        const response = await api.post('/auth/register', { fullName, email, password, latitude, longitude });
         return response.data;
     },
 
@@ -29,5 +29,5 @@ export const authService = {
     async resetPassword(token, password) {
         const response = await api.post('/auth/reset-password', { token, password });
         return response.data;
-    }
+    },
 };
