@@ -4,12 +4,14 @@ const pool = require("../../config/db");
 
 async function findUserByEmail(email) {
     const sql = `
-    SELECT                                  
+    SELECT
       id,
       full_name,
       email,
       password_hash,
       role,
+      latitude,
+      longitude,
       created_at
     FROM users
     WHERE email = $1
@@ -20,11 +22,11 @@ async function findUserByEmail(email) {
     return rows[0] ?? null;
 }
 
-async function insertUser({ fullName, email, passwordHash, role = "citizen" }) {
+async function insertUser({ fullName, email, passwordHash, role = "citizen", latitude = null, longitude = null }) {
     const sql = `
-    INSERT INTO users (full_name, email, password_hash, role)
-    VALUES ($1, $2, $3, $4)
-    RETURNING id, full_name, email, role, created_at;
+    INSERT INTO users (full_name, email, password_hash, role, latitude, longitude)
+    VALUES ($1, $2, $3, $4, $5, $6)
+    RETURNING id, full_name, email, role, latitude, longitude, created_at;
   `;
 
     const { rows } = await pool.query(sql, [
@@ -32,6 +34,8 @@ async function insertUser({ fullName, email, passwordHash, role = "citizen" }) {
         email,
         passwordHash,
         role,
+        latitude,
+        longitude,
     ]);
     return rows[0];
 }
@@ -165,8 +169,6 @@ async function findVerifiedEmailVerification(email) {
     return rows[0] ?? null;
 }
 
-// ── Password Reset Tokens ─────────────────────────────────────────────────
-
 async function createPasswordResetToken({ userId, tokenHash, expiresAt }) {
     const sql = `
     INSERT INTO password_reset_tokens (user_id, token_hash, expires_at)
@@ -196,8 +198,6 @@ async function findPasswordResetToken(tokenHash) {
     return rows[0] ?? null;
 }
 
-// Delete every reset token for a user so all outstanding reset links
-// become invalid immediately after a successful password change.
 async function deleteAllPasswordResetTokensForUser(userId) {
     const result = await pool.query(
         "DELETE FROM password_reset_tokens WHERE user_id = $1",

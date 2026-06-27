@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Eye, EyeOff, CheckCircle2, ShieldCheck, Users, X, User, Mail, Lock, MoveRight } from "lucide-react";
+import { Eye, EyeOff, CheckCircle2, ShieldCheck, Users, X, User, Mail, Lock, MoveRight, MapPin } from "lucide-react";
 import { authService } from "../../services/auth.service";
 import { Input } from "../../components/ui/Input";
 import { Button } from "../../components/ui/Button";
@@ -9,11 +9,10 @@ import LogoSVG from "../../assets/logo.svg";
 
 export default function RegisterPage() {
     const navigate = useNavigate();
-    const [step, setStep] = useState(1); // 1: Email, 2: OTP, 3: Password & Consent
+    const [step, setStep] = useState(1); 
     const [loadingAction, setLoadingAction] = useState(null);
     const [error, setError] = useState(null);
 
-    // Form Data
     const [fullName, setFullName] = useState("");
     const [email, setEmail] = useState("");
     const [otp, setOtp] = useState("");
@@ -76,7 +75,6 @@ export default function RegisterPage() {
 
     const fieldErrors = getValidationErrors();
 
-    // OTP Timer
     const [timer, setTimer] = useState(0);
 
     useEffect(() => {
@@ -102,7 +100,7 @@ export default function RegisterPage() {
         try {
             await authService.sendOtp(email);
             setStep(2);
-            setTimer(60); // 60 seconds resend timer
+            setTimer(60);
             setOtp("");
         } catch (err) {
             setError(
@@ -163,24 +161,71 @@ export default function RegisterPage() {
             return;
         }
 
-        setError(null);
-        setLoadingAction("register");
-        try {
-            await authService.register(fullName, email, password);
-            // Registration successful, navigate to login or dashboard
-            navigate("/login?registered=true");
-        } catch (err) {
+        if (!("geolocation" in navigator)) {
             setError(
-                err.response?.data?.error?.message ||
-                    err.response?.data?.errors?.[0]?.message ||
-                    "Registration failed.",
+                "Your browser does not support location access. Please use a modern browser to register.",
             );
-        } finally {
-            setLoadingAction(null);
+            return;
         }
+
+        setError(null);
+        setLoadingAction("locating");
+
+        navigator.geolocation.getCurrentPosition(
+            async (position) => {
+                const { latitude, longitude } = position.coords;
+
+                setLoadingAction("register");
+                try {
+                    await authService.register(fullName, email, password, latitude, longitude);
+                    navigate("/login?registered=true");
+                } catch (err) {
+                    setError(
+                        err.response?.data?.error?.message ||
+                            err.response?.data?.errors?.[0]?.message ||
+                            "Registration failed.",
+                    );
+                } finally {
+                    setLoadingAction(null);
+                }
+            },
+            (geoError) => {
+                setLoadingAction(null);
+                if (geoError.code === geoError.PERMISSION_DENIED) {
+                    setError(
+                        "CivikEye requires your location to report nearby civic issues, prevent duplicate reports, and verify completed work. Please enable location access to create your account.",
+                    );
+                } else if (geoError.code === geoError.POSITION_UNAVAILABLE) {
+                    setError(
+                        "Your location is currently unavailable. Please check your device settings and try again.",
+                    );
+                } else {
+                    setError(
+                        "Location request timed out. Please try again.",
+                    );
+                }
+            },
+            {
+                enableHighAccuracy: true,
+                timeout: 15000,
+                maximumAge: 0,
+            },
+        );
     };
 
     const [showPassword, setShowPassword] = useState(false);
+
+    const isLoading = loadingAction !== null;
+    const buttonLabel =
+        loadingAction === "locating"
+            ? "Getting your location..."
+            : loadingAction === "register"
+              ? "Creating account..."
+              : (
+                    <span className="flex items-center gap-2">
+                        Create account <MoveRight className="w-5 h-5" />
+                    </span>
+                );
 
     return (
         <div className="flex min-h-screen">
@@ -238,7 +283,6 @@ export default function RegisterPage() {
                     </p>
 
                     <div className="space-y-6">
-                        {/* Step 1: Basic Info */}
                         <div className="space-y-4">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1.5">
@@ -295,7 +339,6 @@ export default function RegisterPage() {
                             </div>
                         </div>
 
-                        {/* Step 2: OTP */}
                         {step === 2 && (
                             <div className="space-y-4 animate-in fade-in slide-in-from-top-4 duration-500">
                                 <div>
@@ -342,7 +385,6 @@ export default function RegisterPage() {
                             </div>
                         )}
 
-                        {/* Password & Consent */}
                         <div className="space-y-6">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1.5">
@@ -431,24 +473,30 @@ export default function RegisterPage() {
                             </div>
 
                             {error && (
-                                <p className="text-sm text-red-500 font-medium text-center">
-                                    {error}
-                                </p>
+                                <div className="flex items-start gap-2 py-1">
+                                    <X className="w-4 h-4 text-red-500 shrink-0 mt-0.5 stroke-[3]" />
+                                    <p className="text-sm text-red-600 leading-relaxed">
+                                        {error}
+                                    </p>
+                                </div>
                             )}
 
                             <Button
                                 className="w-full"
                                 size="lg"
                                 onClick={handleRegister}
-                                isLoading={loadingAction === "register"}
+                                isLoading={loadingAction === "locating" || loadingAction === "register"}
                                 disabled={loadingAction !== null}
                             >
-                                {loadingAction === "register" ? "Creating account..." : (
-                                    <span className="flex items-center gap-2">
-                                        Create account <MoveRight className="w-5 h-5" />
-                                    </span>
-                                )}
+                                {buttonLabel}
                             </Button>
+
+                            <div className="flex items-start gap-3 bg-blue-50 p-4 rounded-lg border border-blue-100">
+                                <MapPin className="h-5 w-5 text-blue-500 shrink-0 mt-0.5" />
+                                <p className="text-sm text-blue-700 leading-relaxed">
+                                    When you click <span className="font-semibold">Create account</span>, your browser will ask for your location to verify your home address for nearby civic issues. Once registered, you can safely turn off location access until you report an issue.
+                                </p>
+                            </div>
                         </div>
                     </div>
 

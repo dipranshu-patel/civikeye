@@ -9,15 +9,8 @@ const {
     signRefreshToken,
     verifyRefreshToken,
 } = require("../../shared/utils/jwt");
-
-class AppError extends Error {
-    constructor(message, statusCode, code) {
-        super(message);
-        this.name = "AppError";
-        this.statusCode = statusCode;
-        this.code = code;
-    }
-}
+const AppError = require("../../shared/utils/app-error");
+const config = require("../../config");
 
 function sha256(rawToken) {
     return crypto.createHash("sha256").update(rawToken).digest("hex");
@@ -33,7 +26,7 @@ function makeRefreshToken(payload) {
 }
 
 function refreshTokenExpiryDate() {
-    const expiry = process.env.JWT_REFRESH_EXPIRY ?? "30d";
+    const expiry = config.jwt.refreshExpiry;
     const match = expiry.match(/^(\d+)([smhd])$/);
 
     if (!match) return new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
@@ -45,24 +38,35 @@ function refreshTokenExpiryDate() {
     return new Date(Date.now() + value * multipliers[unit]);
 }
 
-async function register({ fullName, email, password }) {
+async function register({ fullName, email, password, latitude, longitude }) {
     const normalisedEmail = email.trim().toLowerCase();
+
+    const lat = parseFloat(latitude);
+    const lng = parseFloat(longitude);
+
+    if (isNaN(lat) || isNaN(lng) || lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+        throw new AppError(
+            "INVALID_COORDINATES",
+            "The provided location coordinates are invalid.",
+            422,
+        );
+    }
 
     const verified = await repo.findVerifiedEmailVerification(normalisedEmail);
     if (!verified) {
         throw new AppError(
+            "EMAIL_NOT_VERIFIED",
             "Please verify your email address before registering.",
             403,
-            "EMAIL_NOT_VERIFIED",
         );
     }
 
     const existing = await repo.findUserByEmail(normalisedEmail);
     if (existing) {
         throw new AppError(
+            "EMAIL_TAKEN",
             "An account with this email already exists.",
             409,
-            "EMAIL_TAKEN",
         );
     }
 
@@ -73,6 +77,8 @@ async function register({ fullName, email, password }) {
         email: normalisedEmail,
         passwordHash,
         role: "citizen",
+        latitude: lat,
+        longitude: lng,
     });
 
     return {
@@ -80,6 +86,10 @@ async function register({ fullName, email, password }) {
         fullName: user.full_name,
         email: user.email,
         role: user.role,
+        location: {
+            latitude: parseFloat(user.latitude),
+            longitude: parseFloat(user.longitude),
+        },
         createdAt: user.created_at,
     };
 }
@@ -90,18 +100,18 @@ async function login({ email, password }) {
     const user = await repo.findUserByEmail(normalisedEmail);
     if (!user) {
         throw new AppError(
+            "INVALID_CREDENTIALS",
             "Invalid email or password.",
             401,
-            "INVALID_CREDENTIALS",
         );
     }
 
     const passwordMatch = await comparePassword(password, user.password_hash);
     if (!passwordMatch) {
         throw new AppError(
+            "INVALID_CREDENTIALS",
             "Invalid email or password.",
             401,
-            "INVALID_CREDENTIALS",
         );
     }
 
@@ -126,6 +136,12 @@ async function login({ email, password }) {
             fullName: user.full_name,
             email: user.email,
             role: user.role,
+            location: user.latitude
+                ? {
+                      latitude: parseFloat(user.latitude),
+                      longitude: parseFloat(user.longitude),
+                  }
+                : null,
         },
     };
 }
@@ -136,9 +152,9 @@ async function refresh(rawRefreshToken) {
         payload = verifyRefreshToken(rawRefreshToken);
     } catch {
         throw new AppError(
+            "INVALID_REFRESH_TOKEN",
             "Refresh token is invalid or has expired.",
             401,
-            "INVALID_REFRESH_TOKEN",
         );
     }
 
@@ -147,26 +163,26 @@ async function refresh(rawRefreshToken) {
 
     if (!tokenRow) {
         throw new AppError(
+            "TOKEN_NOT_FOUND",
             "Refresh token not recognised.",
             401,
-            "TOKEN_NOT_FOUND",
         );
     }
 
     if (tokenRow.revoked) {
         await repo.revokeAllRefreshTokensForUser(payload.userId);
         throw new AppError(
+            "TOKEN_REUSE_DETECTED",
             "Refresh token has already been used. All sessions have been revoked for your security.",
             401,
-            "TOKEN_REUSE_DETECTED",
         );
     }
 
     if (new Date(tokenRow.expires_at) < new Date()) {
         throw new AppError(
+            "TOKEN_EXPIRED",
             "Refresh token has expired. Please log in again.",
             401,
-            "TOKEN_EXPIRED",
         );
     }
 
@@ -197,9 +213,9 @@ async function logout(rawRefreshToken) {
 
     if (!tokenRow) {
         throw new AppError(
+            "TOKEN_NOT_FOUND",
             "Refresh token not recognised.",
             401,
-            "TOKEN_NOT_FOUND",
         );
     }
 
@@ -253,18 +269,18 @@ async function sendOtp({ email }) {
                 emailErr.code === "EMAIL_DOMAIN_INVALID";
 
             throw new AppError(
+                emailErr.code,
                 isConfig
                     ? "Email service is misconfigured. Please contact support."
                     : "Failed to send verification email. Please try again in a moment.",
                 503,
-                emailErr.code,
             );
         }
 
         throw new AppError(
+            "EMAIL_SEND_FAILED",
             "An unexpected error occurred while sending the verification email.",
             503,
-            "EMAIL_SEND_FAILED",
         );
     }
 
@@ -278,17 +294,17 @@ async function verifyOtp({ email, otp }) {
 
     if (!record) {
         throw new AppError(
+            "OTP_NOT_FOUND",
             "No pending OTP found for this email. Please request a new one.",
             404,
-            "OTP_NOT_FOUND",
         );
     }
 
     if (record.attempts >= OTP_MAX_ATTEMPTS) {
         throw new AppError(
+            "OTP_MAX_ATTEMPTS",
             "Too many incorrect attempts. Please request a new OTP.",
             429,
-            "OTP_MAX_ATTEMPTS",
         );
     }
 
@@ -298,9 +314,9 @@ async function verifyOtp({ email, otp }) {
         const attemptsLeft =
             OTP_MAX_ATTEMPTS - (updated?.attempts ?? OTP_MAX_ATTEMPTS);
         throw new AppError(
+            "OTP_INVALID",
             `Invalid OTP. ${attemptsLeft} attempt${attemptsLeft === 1 ? "" : "s"} remaining.`,
             400,
-            "OTP_INVALID",
         );
     }
 
@@ -323,15 +339,11 @@ async function forgotPassword({ email }) {
 
     const user = await repo.findUserByEmail(normalisedEmail);
 
-    // Return generic success regardless of whether the email exists —
-    // never reveal which addresses are registered.
     if (!user) {
         return { success: true };
     }
 
-    // Generate a cryptographically secure raw token (256 bits of entropy).
     const rawToken = crypto.randomBytes(32).toString("hex");
-    // Only the hash is stored; the raw token is never persisted.
     const tokenHash = sha256(rawToken);
     const expiresAt = new Date(Date.now() + RESET_TTL_MS);
 
@@ -351,7 +363,6 @@ async function forgotPassword({ email }) {
     try {
         await sendPasswordResetEmail(normalisedEmail, resetUrl);
     } catch (emailErr) {
-        // Roll back the token row so it cannot be abused if the email never arrived.
         await repo.deleteAllPasswordResetTokensForUser(user.id).catch(() => {
             console.error(
                 "[forgotPassword] Failed to clean up password_reset_tokens for user:",
@@ -365,18 +376,18 @@ async function forgotPassword({ email }) {
                 emailErr.code === "EMAIL_DOMAIN_INVALID";
 
             throw new AppError(
+                emailErr.code,
                 isConfig
                     ? "Email service is misconfigured. Please contact support."
                     : "Failed to send password reset email. Please try again in a moment.",
                 503,
-                emailErr.code,
             );
         }
 
         throw new AppError(
+            "EMAIL_SEND_FAILED",
             "An unexpected error occurred while sending the password reset email.",
             503,
-            "EMAIL_SEND_FAILED",
         );
     }
 
@@ -389,26 +400,25 @@ async function resetPassword({ token, password }) {
 
     if (!record) {
         throw new AppError(
+            "TOKEN_NOT_FOUND",
             "Password reset token is invalid.",
             404,
-            "TOKEN_NOT_FOUND",
         );
     }
 
-    // Guard against token reuse.
     if (record.used) {
         throw new AppError(
+            "TOKEN_ALREADY_USED",
             "This password reset link has already been used. Please request a new one.",
             410,
-            "TOKEN_ALREADY_USED",
         );
     }
 
     if (new Date(record.expires_at) < new Date()) {
         throw new AppError(
+            "TOKEN_EXPIRED",
             "This password reset link has expired. Please request a new one.",
             410,
-            "TOKEN_EXPIRED",
         );
     }
 
@@ -416,11 +426,8 @@ async function resetPassword({ token, password }) {
 
     await repo.updateUserPassword(record.user_id, passwordHash);
 
-    // Delete ALL reset tokens for this user so any older reset emails
-    // sent earlier are immediately invalidated.
     await repo.deleteAllPasswordResetTokensForUser(record.user_id);
 
-    // Revoke all active sessions — the password change should force a fresh login.
     await repo.revokeAllRefreshTokensForUser(record.user_id);
 
     return { success: true };
@@ -435,5 +442,4 @@ module.exports = {
     logout,
     forgotPassword,
     resetPassword,
-    AppError,
 };
