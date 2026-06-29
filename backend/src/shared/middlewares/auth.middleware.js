@@ -2,6 +2,7 @@
 
 const { verifyAccessToken } = require("../utils/jwt");
 const AppError = require("../utils/app-error");
+const pool     = require("../../config/db");
 
 
 function requireAuth(req, _res, next) {
@@ -168,10 +169,28 @@ function ensureDepartmentOwner(departmentRepository) {
     }, "department");
 }
 
+// Loads lat/lon from users table into req.user for location-sensitive endpoints
+async function requireUserLocation(req, _res, next) {
+    try {
+        const { rows } = await pool.query(
+            `SELECT latitude, longitude FROM users WHERE id = $1 LIMIT 1`,
+            [req.user.userId],
+        );
+        if (rows[0]) {
+            req.user.latitude  = rows[0].latitude  ? parseFloat(rows[0].latitude)  : null;
+            req.user.longitude = rows[0].longitude ? parseFloat(rows[0].longitude) : null;
+        }
+        next();
+    } catch (err) {
+        next(err);
+    }
+}
+
 module.exports = {
     requireAuth,
     requireRole,
     requireDepartment,
+    requireUserLocation,
     ensureComplaintOwner,
     ensureVolunteerOwner,
     ensureDepartmentOwner,

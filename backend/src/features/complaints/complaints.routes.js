@@ -31,9 +31,13 @@ const authRouter = Router();
 
 authRouter.use(requireAuth, requireRole("citizen"));
 
+const { requireUserLocation } = require("../../shared/middlewares/auth.middleware");
+const verifyController = require("../verifications/verifications.controller");
+
 authRouter.post("/",              uploadPhotos, handleUploadError, controller.createComplaint);
 authRouter.post("/:id/upvote",    controller.addUpvote);
 authRouter.delete("/:id/upvote",  controller.removeUpvote);
+authRouter.post("/:id/verify",    requireUserLocation, verifyController.castVote);
 
 // ─── /api/me routes (citizen dashboard + my complaints) ──────────────────────
 const meRouter = Router();
