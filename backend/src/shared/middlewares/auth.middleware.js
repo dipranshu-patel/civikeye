@@ -54,8 +54,9 @@ function requireAuth(req, _res, next) {
     }
 
     req.user = {
-        userId: payload.userId,
-        role: payload.role,
+        userId:       payload.userId,
+        role:         payload.role,
+        departmentId: payload.deptId ?? null,
     };
 
     next();

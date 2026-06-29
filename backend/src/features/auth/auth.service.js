@@ -115,12 +115,19 @@ async function login({ email, password }) {
         );
     }
 
-    const accessToken = signAccessToken({ userId: user.id, role: user.role });
+    // For department officials, embed their deptId in the token
+    let deptId = null;
+    if (user.role === "official") {
+        const dept = await repo.findDepartmentByUserId(user.id);
+        deptId = dept?.id ?? null;
+    }
 
-    const { refreshToken, tokenHash } = makeRefreshToken({
-        userId: user.id,
-        role: user.role,
-    });
+    const tokenPayload = { userId: user.id, role: user.role };
+    if (deptId) tokenPayload.deptId = deptId;
+
+    const accessToken = signAccessToken(tokenPayload);
+
+    const { refreshToken, tokenHash } = makeRefreshToken(tokenPayload);
 
     await repo.insertRefreshToken({
         userId: user.id,
@@ -136,6 +143,7 @@ async function login({ email, password }) {
             fullName: user.full_name,
             email: user.email,
             role: user.role,
+            deptId,
             location: user.latitude
                 ? {
                       latitude: parseFloat(user.latitude),

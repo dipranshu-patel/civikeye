@@ -22,6 +22,7 @@ const SAFE_COLUMNS = `
     d.code,
     d.description,
     d.is_active,
+    d.user_id,
     d.created_at,
     d.updated_at
 `;
