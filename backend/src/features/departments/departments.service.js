@@ -1,11 +1,20 @@
 "use strict";
 
-const repo = require("./departments.repository");
-const { hashPassword } = require("../../shared/utils/hash");
-const AppError = require("../../shared/utils/app-error");
+const repo                   = require("./departments.repository");
+const { hashPassword }       = require("../../shared/utils/hash");
+const AppError               = require("../../shared/utils/app-error");
+const { withTransaction }    = require("../../shared/db/query");
+const { insertUser, findDepartmentByUserId } = require("../auth/auth.repository");
 
 async function createDepartment({ name, email, category, description, password }) {
     const trimmedName = name.trim();
+
+    if (!email || !email.trim()) {
+        throw new AppError("MISSING_EMAIL", "Department email is required.", 422);
+    }
+    if (!password) {
+        throw new AppError("MISSING_PASSWORD", "Department password is required.", 422);
+    }
 
     // Prevent slug collisions
     const slug = repo.slugify(trimmedName);
@@ -20,12 +29,39 @@ async function createDepartment({ name, email, category, description, password }
 
     const passwordHash = await hashPassword(password);
 
-    const dept = await repo.insertDepartment({
-        name: trimmedName,
-        email: email?.trim() || null,
-        category: category?.trim() || null,
-        description,
-        passwordHash,
+    // Transaction: create official user → create department linked to that user
+    const { dept } = await withTransaction(async (client) => {
+        const user = await insertUser({
+            fullName:     trimmedName,
+            email:        email.trim().toLowerCase(),
+            passwordHash,
+            role:         "official",
+        });
+
+        const slug2 = repo.slugify(trimmedName);
+        const insertSQL = `
+            INSERT INTO departments (name, slug, email, category, code, description, password_hash, is_active, user_id)
+            VALUES (
+                $1, $2, $3, $4,
+                'DEP-' || LPAD(nextval('dept_code_seq')::TEXT, 3, '0'),
+                $5, $6, TRUE, $7
+            )
+            RETURNING
+                id, name, slug, email, category, code,
+                description, is_active, user_id, created_at, updated_at;
+        `;
+
+        const { rows } = await client.query(insertSQL, [
+            trimmedName,
+            slug2,
+            email.trim().toLowerCase(),
+            category?.trim() || null,
+            description ?? null,
+            passwordHash,
+            user.id,
+        ]);
+
+        return { dept: rows[0], user };
     });
 
     return formatDepartment(dept);
@@ -38,7 +74,20 @@ async function resetDepartmentPassword(id, newPassword) {
     }
 
     const passwordHash = await hashPassword(newPassword);
-    await repo.updateDepartmentPassword(id, passwordHash);
+
+    // Update both the department's own password_hash AND the linked user's password_hash
+    await withTransaction(async (client) => {
+        await client.query(
+            `UPDATE departments SET password_hash = $2 WHERE id = $1`,
+            [id, passwordHash],
+        );
+        if (existing.user_id) {
+            await client.query(
+                `UPDATE users SET password_hash = $2 WHERE id = $1`,
+                [existing.user_id, passwordHash],
+            );
+        }
+    });
 
     return { success: true };
 }
@@ -76,17 +125,18 @@ async function toggleDepartmentActive(id) {
 
 function formatDepartment(row) {
     return {
-        id: row.id,
-        code: row.code ?? null,
-        name: row.name,
-        slug: row.slug,
-        email: row.email ?? null,
-        category: row.category ?? null,
+        id:          row.id,
+        code:        row.code ?? null,
+        name:        row.name,
+        slug:        row.slug,
+        email:       row.email ?? null,
+        category:    row.category ?? null,
         description: row.description ?? null,
-        isActive: row.is_active ?? true,
-        slaCount: row.sla_count ?? undefined,
-        createdAt: row.created_at,
-        updatedAt: row.updated_at ?? undefined,
+        isActive:    row.is_active ?? true,
+        userId:      row.user_id ?? null,
+        slaCount:    row.sla_count ?? undefined,
+        createdAt:   row.created_at,
+        updatedAt:   row.updated_at ?? undefined,
     };
 }
 

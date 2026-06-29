@@ -225,9 +225,21 @@ async function deleteExpiredPasswordResetTokens() {
     return result.rowCount;
 }
 
+async function findDepartmentByUserId(userId) {
+    const sql = `
+        SELECT id, name, code
+        FROM departments
+        WHERE user_id = $1
+        LIMIT 1;
+    `;
+    const { rows } = await pool.query(sql, [userId]);
+    return rows[0] ?? null;
+}
+
 module.exports = {
     findUserByEmail,
     insertUser,
+    findDepartmentByUserId,
 
     insertRefreshToken,
     findRefreshTokenByHash,
@@ -246,3 +258,4 @@ module.exports = {
     updateUserPassword,
     deleteExpiredPasswordResetTokens,
 };
+
