@@ -13,6 +13,11 @@ const {
     adminRouter: slaAdminRoutes,
     publicRouter: slaPublicRoutes,
 } = require("./features/sla/sla.routes");
+const {
+    publicRouter: complaintsPublicRoutes,
+    authRouter:   complaintsAuthRoutes,
+    meRouter:     complaintsMeRoutes,
+} = require("./features/complaints/complaints.routes");
 const errorMiddleware = require("./shared/middlewares/error.middleware");
 const {
     globalLimiter,
@@ -26,10 +31,13 @@ app.use(cookieParser());
 app.use("/api", globalLimiter);
 app.use("/api/auth", authRoutes);
 app.use("/api/me", meRoutes);
+app.use("/api/me", complaintsMeRoutes);
 app.use("/api/admin/departments", deptAdminRoutes);
 app.use("/api/admin/sla-categories", slaAdminRoutes);
 app.use("/api/departments", deptCitizenRoutes);
 app.use("/api/sla-categories", slaPublicRoutes);
+app.use("/api/complaints", complaintsPublicRoutes);
+app.use("/api/complaints", complaintsAuthRoutes);
 app.use((_req, res) => {
     res.status(404).json({
         success: false,
