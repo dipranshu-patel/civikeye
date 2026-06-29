@@ -129,10 +129,11 @@ function errorMiddleware(err, req, res, next) {
         return;
     }
 
-    res.status(statusCode).json({
-        success: false,
-        error: { code, message },
-    });
+    const body = { success: false, error: { code, message } };
+    if (err.name === "AppError" && err.details != null) {
+        body.error.details = err.details;
+    }
+    res.status(statusCode).json(body);
 }
 
 module.exports = errorMiddleware;
