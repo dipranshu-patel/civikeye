@@ -21,4 +21,9 @@ const updateLocation = asyncHandler(async (req, res) => {
     return sendSuccess(res, { user: updated });
 });
 
-module.exports = { getProfile, updateLocation };
+const togglePrivacy = asyncHandler(async (req, res) => {
+    const result = await service.togglePrivacy(req.user.userId);
+    return sendSuccess(res, result);
+});
+
+module.exports = { getProfile, updateLocation, togglePrivacy };

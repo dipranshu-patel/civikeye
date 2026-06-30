@@ -144,9 +144,11 @@ async function createComplaint({ reporterId, title, description, categoryId, iss
         return { complaint, photos };
     });
 
-    // Phase 6 stub
+    const volunteerRepo = require("../volunteer/volunteer.repository");
+
+    // Auto-create volunteer task for community_fixable complaints (Phase 6)
     if (issueType === "community_fixable") {
-        // TODO: create volunteer_task
+        await volunteerRepo.createVolunteerTask(null, result.complaint.id);
     }
 
     return {

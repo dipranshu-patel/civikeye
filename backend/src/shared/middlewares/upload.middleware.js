@@ -37,7 +37,8 @@ const _multer = multer({
     },
 });
 
-const uploadPhotos = _multer.array("photos", MAX_FILES);
+const uploadPhotos  = _multer.array("photos", MAX_FILES);
+const uploadSingle  = (fieldName) => _multer.single(fieldName);
 
 // ─── Multer error handler (use after uploadPhotos in route) ───────────────────
 
@@ -113,6 +114,7 @@ async function deleteFromCloudinary(publicId) {
 
 module.exports = {
     uploadPhotos,
+    uploadSingle,
     handleUploadError,
     uploadBufferToCloudinary,
     deleteFromCloudinary,
