@@ -274,8 +274,7 @@ async function castVoteAndResolve({ complaintId, verifierId, vote, comment }) {
                 await client.query(
                     `INSERT INTO complaint_status_history
                          (complaint_id, from_status, to_status, actor_role, note)
-                     VALUES ($1, 'pending_verification', $2, 'system',
-                             $3)`,
+                     VALUES ($1, 'pending_verification', $2, 'system', $3)`,
                     [
                         complaintId,
                         newStatus,
@@ -284,8 +283,40 @@ async function castVoteAndResolve({ complaintId, verifierId, vote, comment }) {
                             : `Community rejected: ${confirms}/${total} confirmed (${Math.round(ratio * 100)}%). Re-opened.`,
                     ],
                 );
+
+                if (newStatus === "resolved") {
+                    const volRepo = require("../volunteer/volunteer.repository");
+
+                    // Award +10 community_fix points to the volunteer who fixed it
+                    await volRepo.finalizeTaskOnResolution(client, complaintId);
+
+                    // Award +10 report points to the citizen who originally reported this complaint
+                    const { rows: reporterRows } = await client.query(
+                        `SELECT reporter_id FROM complaints WHERE id = $1`,
+                        [complaintId],
+                    );
+                    if (reporterRows[0]?.reporter_id) {
+                        await volRepo.awardPoints(client, {
+                            userId:      reporterRows[0].reporter_id,
+                            complaintId,
+                            taskId:      null,
+                            points:      volRepo.POINTS.report,
+                            type:        "report",
+                        });
+                    }
+                }
             }
         }
+
+        // Award +5 verification points to voter (Phase 6)
+        const volRepo = require("../volunteer/volunteer.repository");
+        await volRepo.awardPoints(client, {
+            userId:      verifierId,
+            complaintId,
+            taskId:      null,
+            points:      volRepo.POINTS.verification,
+            type:        "verification",
+        });
 
         return {
             vote:       newVote,

@@ -58,4 +58,13 @@ async function getProfile(userId) {
     };
 }
 
-module.exports = { updateLocation, getProfile };
+async function togglePrivacy(userId) {
+    const volunteerRepo = require("../volunteer/volunteer.repository");
+    const showRealName  = await volunteerRepo.togglePrivacy(userId);
+    if (showRealName === null) {
+        throw new AppError("USER_NOT_FOUND", "User not found.", 404);
+    }
+    return { showRealName };
+}
+
+module.exports = { updateLocation, getProfile, togglePrivacy };
