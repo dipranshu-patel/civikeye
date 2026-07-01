@@ -1,12 +1,16 @@
 "use strict";
 
-const { query, withTransaction }              = require("../../shared/db/query");
-const { minVotes, confirmThreshold, radiusKm } = require("../../config/verification");
+const { query, withTransaction }                      = require("../../shared/db/query");
+const { minVotesCommunity, minVotesAuthority,
+        confirmThreshold, radiusKm }                  = require("../../config/verification");
+const { notify, notifyPriorVerifiers,
+        notifyNearbyCitizens }                        = require("../../shared/utils/notify");
 
 // Re-export so service can reference them in response payloads
-const MIN_VOTES        = minVotes;
-const CONFIRM_THRESHOLD = confirmThreshold;
-const RADIUS_KM        = radiusKm;
+const MIN_VOTES_COMMUNITY = minVotesCommunity;
+const MIN_VOTES_AUTHORITY = minVotesAuthority;
+const CONFIRM_THRESHOLD   = confirmThreshold;
+const RADIUS_KM           = radiusKm;
 
 // Haversine distance expression (SQL, in km)
 // u_lat / u_lon = verifier's registered location
@@ -228,18 +232,26 @@ async function castVoteAndResolve({ complaintId, verifierId, vote, comment }) {
         );
         const newVote = voteRows[0];
 
-        // Tally current votes
+        // Tally current votes + fetch complaint type in one query
         const { rows: tally } = await client.query(
             `SELECT
                 COUNT(*)::INT                                    AS total,
                 COUNT(*) FILTER (WHERE vote = 'confirm')::INT   AS confirms,
-                COUNT(*) FILTER (WHERE vote = 'reject')::INT    AS rejects
-             FROM complaint_verifications
-             WHERE complaint_id = $1`,
+                COUNT(*) FILTER (WHERE vote = 'reject')::INT    AS rejects,
+                c.issue_type
+             FROM complaint_verifications cv
+             JOIN complaints c ON c.id = cv.complaint_id
+             WHERE cv.complaint_id = $1
+             GROUP BY c.issue_type`,
             [complaintId],
         );
-        const { total, confirms } = tally[0];
+        const { total, confirms, issue_type } = tally[0];
         const ratio = total > 0 ? confirms / total : 0;
+
+        // Pick threshold based on who fixed the complaint
+        const MIN_VOTES = issue_type === "community_fixable"
+            ? MIN_VOTES_COMMUNITY
+            : MIN_VOTES_AUTHORITY;
 
         let resolution = null;
 
@@ -292,7 +304,7 @@ async function castVoteAndResolve({ complaintId, verifierId, vote, comment }) {
 
                     // Award +10 report points to the citizen who originally reported this complaint
                     const { rows: reporterRows } = await client.query(
-                        `SELECT reporter_id FROM complaints WHERE id = $1`,
+                        `SELECT reporter_id, title, public_code FROM complaints WHERE id = $1`,
                         [complaintId],
                     );
                     if (reporterRows[0]?.reporter_id) {
@@ -303,6 +315,142 @@ async function castVoteAndResolve({ complaintId, verifierId, vote, comment }) {
                             points:      volRepo.POINTS.report,
                             type:        "report",
                         });
+
+                        const { reporter_id, title, public_code } = reporterRows[0];
+
+                        // Event 5: COMPLAINT_RESOLVED → reporter
+                        await notify(client, {
+                            userId:     reporter_id,
+                            type:       "COMPLAINT_RESOLVED",
+                            title:      "🎉 Your complaint has been resolved!",
+                            body:       `Your complaint "${title}" has been successfully resolved by the community.`,
+                            data:       { publicCode: public_code, complaintId },
+                            entityType: "complaint",
+                            entityId:   complaintId,
+                        });
+
+                        // Event 7: REPORT_POINTS_EARNED → reporter
+                        await notify(client, {
+                            userId:     reporter_id,
+                            type:       "REPORT_POINTS_EARNED",
+                            title:      `+${volRepo.POINTS.report} points for your report!`,
+                            body:       `Your complaint "${title}" was resolved. You earned ${volRepo.POINTS.report} points.`,
+                            data:       { points: volRepo.POINTS.report, publicCode: public_code, complaintId },
+                            entityType: "complaint",
+                            entityId:   complaintId,
+                        });
+                    }
+
+                    // Event 17: COMPLAINT_YOU_VERIFIED_RESOLVED → prior verifiers (bulk)
+                    await notifyPriorVerifiers(client, {
+                        complaintId, excludeVerifierId: verifierId,
+                        type:       "COMPLAINT_YOU_VERIFIED_RESOLVED",
+                        title:      "A complaint you verified is resolved",
+                        body:       "A complaint you helped verify has been successfully resolved by the community.",
+                        data:       { complaintId },
+                        entityType: "complaint",
+                        entityId:   complaintId,
+                    });
+
+                } else {
+                    // newStatus === 'reopened'
+
+                    // Get reporter + location details for notifications
+                    const { rows: compRows } = await client.query(
+                        `SELECT reporter_id, title, public_code, latitude, longitude, issue_type
+                         FROM complaints WHERE id = $1`,
+                        [complaintId],
+                    );
+
+                    if (compRows[0]?.reporter_id) {
+                        // Event 6: COMPLAINT_REOPENED → reporter
+                        await notify(client, {
+                            userId:     compRows[0].reporter_id,
+                            type:       "COMPLAINT_REOPENED",
+                            title:      "Your complaint has been reopened",
+                            body:       `The community rejected the fix for "${compRows[0].title}". It has been reopened for re-review.`,
+                            data:       { publicCode: compRows[0].public_code, complaintId },
+                            entityType: "complaint",
+                            entityId:   complaintId,
+                        });
+                    }
+
+                    // Event 13: FIX_REJECTED → volunteer + reset task so it can be claimed again
+                    const { rows: assignRows } = await client.query(
+                        `SELECT vta.volunteer_id, vta.id AS assignment_id, vt.id AS task_id
+                         FROM volunteer_tasks vt
+                         JOIN volunteer_task_assignments vta ON vta.task_id = vt.id
+                         WHERE vt.complaint_id = $1 AND vta.status = 'pending_verification'
+                         LIMIT 1`,
+                        [complaintId],
+                    );
+                    if (assignRows[0]) {
+                        const { volunteer_id, assignment_id, task_id } = assignRows[0];
+
+                        // Cancel the rejected assignment
+                        await client.query(
+                            `UPDATE volunteer_task_assignments
+                             SET status = 'cancelled', completed_at = NOW()
+                             WHERE id = $1`,
+                            [assignment_id],
+                        );
+
+                        // Reset the task back to open so a volunteer can try again
+                        await client.query(
+                            `UPDATE volunteer_tasks SET status = 'open' WHERE id = $1`,
+                            [task_id],
+                        );
+
+                        // Clear any existing verification votes so fresh count starts
+                        await client.query(
+                            `DELETE FROM complaint_verifications WHERE complaint_id = $1`,
+                            [complaintId],
+                        );
+
+                        await notify(client, {
+                            userId:     volunteer_id,
+                            type:       "FIX_REJECTED",
+                            title:      "Your fix was rejected",
+                            body:       "The community rejected your fix. The complaint has been reopened — another volunteer can now try.",
+                            data:       { complaintId },
+                            entityType: "complaint",
+                            entityId:   complaintId,
+                        });
+                    }
+
+                    // Event 18: COMPLAINT_YOU_VERIFIED_REOPENED → prior verifiers
+                    // Must run BEFORE deleting votes (uses complaint_verifications to find who voted)
+                    await notifyPriorVerifiers(client, {
+                        complaintId, excludeVerifierId: verifierId,
+                        type:       "COMPLAINT_YOU_VERIFIED_REOPENED",
+                        title:      "A complaint you verified was reopened",
+                        body:       "The community rejected the fix. A complaint you helped verify has been reopened.",
+                        data:       { complaintId },
+                        entityType: "complaint",
+                        entityId:   complaintId,
+                    });
+
+                    // Now safe to clear votes — fresh verification round after next fix attempt
+                    if (assignRows[0]) {
+                        await client.query(
+                            `DELETE FROM complaint_verifications WHERE complaint_id = $1`,
+                            [complaintId],
+                        );
+
+                        // Re-notify nearby citizens so they know a task is available again
+                        if (compRows[0]?.issue_type === "community_fixable") {
+                            await notifyNearbyCitizens(client, {
+                                excludeUserId: compRows[0]?.reporter_id ?? verifierId,
+                                lat:  parseFloat(compRows[0].latitude),
+                                lon:  parseFloat(compRows[0].longitude),
+                                type:       "NEW_TASK_NEARBY",
+                                title:      "Volunteer task reopened near you",
+                                body:       `A community task near you was reopened and needs a new volunteer: "${compRows[0].title}".`,
+                                data:       { publicCode: compRows[0].public_code, complaintId },
+                                entityType: "complaint",
+                                entityId:   complaintId,
+                            });
+                        }
                     }
                 }
             }
@@ -316,6 +464,17 @@ async function castVoteAndResolve({ complaintId, verifierId, vote, comment }) {
             taskId:      null,
             points:      volRepo.POINTS.verification,
             type:        "verification",
+        });
+
+        // Event 16: VERIFICATION_POINTS_EARNED → verifier
+        await notify(client, {
+            userId:     verifierId,
+            type:       "VERIFICATION_POINTS_EARNED",
+            title:      `+${volRepo.POINTS.verification} points for verifying!`,
+            body:       "Thanks for helping your community. You earned points for your verification vote.",
+            data:       { points: volRepo.POINTS.verification, complaintId, vote },
+            entityType: "complaint",
+            entityId:   complaintId,
         });
 
         return {
@@ -333,6 +492,7 @@ module.exports = {
     findVerificationHistory,
     checkEligibility,
     castVoteAndResolve,
-    MIN_VOTES,
+    MIN_VOTES_COMMUNITY,
+    MIN_VOTES_AUTHORITY,
     CONFIRM_THRESHOLD,
 };

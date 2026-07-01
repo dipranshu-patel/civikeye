@@ -18,9 +18,10 @@ const {
     authRouter:   complaintsAuthRoutes,
     meRouter:     complaintsMeRoutes,
 } = require("./features/complaints/complaints.routes");
-const deptRoutes = require("./features/dept/dept.routes");
-const volunteerRoutes = require("./features/volunteer/volunteer.routes");
-const errorMiddleware = require("./shared/middlewares/error.middleware");
+const deptRoutes           = require("./features/dept/dept.routes");
+const volunteerRoutes       = require("./features/volunteer/volunteer.routes");
+const notificationRoutes    = require("./features/notifications/notifications.routes");
+const errorMiddleware       = require("./shared/middlewares/error.middleware");
 const {
     globalLimiter,
 } = require("./shared/middlewares/global-rate-limit.middleware");
@@ -40,8 +41,9 @@ app.use("/api/departments", deptCitizenRoutes);
 app.use("/api/sla-categories", slaPublicRoutes);
 app.use("/api/complaints", complaintsPublicRoutes);
 app.use("/api/complaints", complaintsAuthRoutes);
-app.use("/api/dept",       deptRoutes);
-app.use("/api/volunteer",  volunteerRoutes);
+app.use("/api/dept",          deptRoutes);
+app.use("/api/volunteer",     volunteerRoutes);
+app.use("/api/notifications", notificationRoutes);
 app.use((_req, res) => {
     res.status(404).json({
         success: false,
