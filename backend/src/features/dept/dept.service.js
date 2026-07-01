@@ -2,6 +2,7 @@
 
 const repo     = require("./dept.repository");
 const AppError = require("../../shared/utils/app-error");
+const { notify, notifyNearbyCitizens } = require("../../shared/utils/notify");
 
 // ─── Valid state machine transitions (from department role) ───────────────────
 // reported     → in_progress          (Start Progress)
@@ -162,12 +163,24 @@ async function updateComplaintStatus({ complaintId, departmentId, actorId, toSta
         throw new AppError("COMPLAINT_NOT_FOUND", "Complaint not found in your department.", 404);
     }
 
+    // community_fixable complaints are handled exclusively by volunteers — not by departments
+    if (complaint.issue_type === "community_fixable") {
+        throw new AppError(
+            "COMMUNITY_FIXABLE_NOT_DEPT",
+            "This complaint is community-fixable and must be handled by a volunteer, not a department official.",
+            403,
+        );
+    }
+
     assertValidTransition(complaint.status, toStatus);
 
-    // Require note + photos when submitting resolution proof
+    // Require note AND at least 1 work photo when submitting resolution proof
     if (toStatus === "pending_verification") {
         if (!note?.trim()) {
             throw new AppError("NOTE_REQUIRED", "A resolution note is required when submitting proof.", 422);
+        }
+        if (!workPhotos?.length) {
+            throw new AppError("PHOTO_REQUIRED", "At least one work photo is required as proof of resolution.", 422);
         }
     }
 
@@ -179,6 +192,63 @@ async function updateComplaintStatus({ complaintId, departmentId, actorId, toSta
         note,
         workPhotos,
     });
+
+    // ── Notifications (best-effort, fire-and-forget) ───────────────────────────
+    const reporterId = complaint.reporter_id;
+    const publicCode = complaint.public_code;
+
+    // Status-specific notification to reporter
+    if (toStatus === "in_progress" && reporterId) {
+        notify(null, {
+            userId:     reporterId,
+            type:       "COMPLAINT_IN_PROGRESS",
+            title:      "Department is working on your complaint",
+            body:       `A department official has started working on "${complaint.title}".`,
+            data:       { publicCode, complaintId, newStatus: "in_progress" },
+            entityType: "complaint",
+            entityId:   complaintId,
+        });
+    }
+
+    if (toStatus === "pending_verification" && reporterId) {
+        notify(null, {
+            userId:     reporterId,
+            type:       "COMPLAINT_DEPT_PENDING_VERIFICATION",
+            title:      "Fix submitted — community verifying",
+            body:       `The department has submitted a resolution for "${complaint.title}". Community is now verifying.`,
+            data:       { publicCode, complaintId, newStatus: "pending_verification" },
+            entityType: "complaint",
+            entityId:   complaintId,
+        });
+        // Notify nearby citizens to verify
+        notifyNearbyCitizens(null, {
+            excludeUserId: reporterId,
+            lat: parseFloat(complaint.latitude),
+            lon: parseFloat(complaint.longitude),
+            type:       "VERIFICATION_NEEDED",
+            title:      "Verification needed near you",
+            body:       `A complaint near you needs community verification: "${complaint.title}"`,
+            data:       { publicCode, complaintId },
+            entityType: "complaint",
+            entityId:   complaintId,
+        });
+    }
+
+    // Activity notification whenever a progress note is added
+    if (note?.trim() && reporterId) {
+        const preview = note.trim().length > 100
+            ? note.trim().slice(0, 100) + "…"
+            : note.trim();
+        notify(null, {
+            userId:     reporterId,
+            type:       "COMPLAINT_ACTIVITY",
+            title:      "New update on your complaint",
+            body:       `An official left an update: “${preview}”`,
+            data:       { publicCode, complaintId, note: note.trim(), actorRole: "official", newStatus: toStatus },
+            entityType: "complaint",
+            entityId:   complaintId,
+        });
+    }
 
     return {
         id:                    updated.id,

@@ -67,7 +67,8 @@ async function getDeptSummaryCounts(departmentId) {
             )                                                        ::INT  AS overdue,
             COUNT(*) FILTER (WHERE status = 'reopened')              ::INT  AS reopened
         FROM complaints
-        WHERE department_id = $1;
+        WHERE department_id = $1
+          AND issue_type = 'authority_required';
     `;
     const { rows } = await query(sql, [departmentId]);
     return rows[0];
@@ -81,6 +82,7 @@ async function findUrgentComplaints(departmentId) {
                (SELECT url FROM complaint_photos WHERE complaint_id = c.id ORDER BY position ASC LIMIT 1) AS cover_photo
         ${COMPLAINT_JOINS}
         WHERE c.department_id = $1
+          AND c.issue_type    = 'authority_required'
           AND c.status IN ('reported', 'in_progress', 'reopened')
           AND c.sla_deadline IS NOT NULL
           AND c.sla_deadline < NOW()
@@ -140,6 +142,7 @@ async function findDeptComplaints({ departmentId, tab, search, page, limit }) {
 
     const conditions = [
         `c.department_id = $1`,
+        `c.issue_type    = 'authority_required'`,
         `c.status = ANY($2::text[])`,
     ];
     const values = [departmentId, statuses];
@@ -190,7 +193,9 @@ async function findDeptComplaintById(id, departmentId) {
     const sql = `
         SELECT ${COMPLAINT_COLS}
         ${COMPLAINT_JOINS}
-        WHERE c.id = $1 AND c.department_id = $2
+        WHERE c.id = $1
+          AND c.department_id = $2
+          AND c.issue_type    = 'authority_required'
         LIMIT 1;
     `;
     const { rows } = await query(sql, [id, departmentId]);

@@ -1,10 +1,16 @@
 "use strict";
 
-const { withTransaction }          = require("../../shared/db/query");
-const { uploadBufferToCloudinary } = require("../../shared/middlewares/upload.middleware");
-const repo                         = require("./complaints.repository");
-const slaRepo                      = require("../sla/sla.repository");
-const AppError                     = require("../../shared/utils/app-error");
+const { query, withTransaction }      = require("../../shared/db/query");
+const { uploadBufferToCloudinary }    = require("../../shared/middlewares/upload.middleware");
+const repo                            = require("./complaints.repository");
+const slaRepo                         = require("../sla/sla.repository");
+const AppError                        = require("../../shared/utils/app-error");
+const { notify, notifyNearbyCitizens } = require("../../shared/utils/notify");
+
+// Upvote milestones that trigger reporter notifications
+const UPVOTE_REPORTER_MILESTONES = [5, 10, 25, 50, 100];
+// Milestones that also alert the dept official
+const UPVOTE_DEPT_MILESTONES     = [10, 25, 50, 100];
 
 // ─── Formatters ───────────────────────────────────────────────────────────────
 
@@ -151,6 +157,53 @@ async function createComplaint({ reporterId, title, description, categoryId, iss
         await volunteerRepo.createVolunteerTask(null, result.complaint.id);
     }
 
+    // ── Notifications (best-effort, fire-and-forget) ──────────────────────────
+    const c = result.complaint;
+
+    // Event 1: reporter gets confirmation
+    notify(null, {
+        userId:     reporterId,
+        type:       "COMPLAINT_SUBMITTED",
+        title:      "Complaint submitted",
+        body:       `Your complaint "${title.trim()}" has been submitted. We'll keep you updated.`,
+        data:       { publicCode: c.public_code, complaintId: c.id },
+        entityType: "complaint",
+        entityId:   c.id,
+    });
+
+    // Event 8: dept official gets new complaint alert — authority_required only
+    // community_fixable complaints are NOT visible in the dept dashboard so skip.
+    if (issueType === "authority_required") {
+        const { rows: deptRows } = await query(
+            "SELECT user_id FROM departments WHERE id = $1", [departmentId],
+        );
+        if (deptRows[0]?.user_id) {
+            notify(null, {
+                userId:     deptRows[0].user_id,
+                type:       "NEW_COMPLAINT_DEPT",
+                title:      "New complaint in your department",
+                body:       `New complaint: "${title.trim()}" (${c.public_code})`,
+                data:       { publicCode: c.public_code, complaintId: c.id, issueType },
+                entityType: "complaint",
+                entityId:   c.id,
+            });
+        }
+    }
+
+    // Event 19: notify nearby citizens about new volunteer task
+    if (issueType === "community_fixable") {
+        notifyNearbyCitizens(null, {
+            excludeUserId: reporterId,
+            lat: latitude, lon: longitude,
+            type:       "NEW_TASK_NEARBY",
+            title:      "New volunteer task near you",
+            body:       `A community task needs fixing near you: "${title.trim()}"`,
+            data:       { publicCode: c.public_code, complaintId: c.id },
+            entityType: "complaint",
+            entityId:   c.id,
+        });
+    }
+
     return {
         id:         result.complaint.id,
         publicCode: result.complaint.public_code,
@@ -267,6 +320,38 @@ async function addUpvote(complaintId, userId) {
     if (alreadyUpvoted) throw new AppError("ALREADY_UPVOTED", "You have already upvoted this complaint.", 409);
 
     const newCount = await withTransaction((client) => repo.insertUpvote(client, complaintId, userId));
+
+    // ── Notifications (best-effort) ──────────────────────────────────────────
+    if (UPVOTE_REPORTER_MILESTONES.includes(newCount)) {
+        // Event 2: reporter milestone
+        notify(null, {
+            userId:     complaint.reporter_id,
+            type:       "COMPLAINT_UPVOTE_MILESTONE",
+            title:      `${newCount} people support your complaint!`,
+            body:       `Your complaint "${complaint.title}" has reached ${newCount} upvotes. It's gaining attention!`,
+            data:       { upvoteCount: newCount, publicCode: complaint.public_code, complaintId },
+            entityType: "complaint",
+            entityId:   complaintId,
+        });
+    }
+    // Event 9: dept official surge alert — authority_required only
+    if (UPVOTE_DEPT_MILESTONES.includes(newCount) && complaint.issue_type === "authority_required") {
+        const { rows: deptRows } = await query(
+            "SELECT user_id FROM departments WHERE id = $1", [complaint.department_id],
+        );
+        if (deptRows[0]?.user_id) {
+            notify(null, {
+                userId:     deptRows[0].user_id,
+                type:       "COMPLAINT_UPVOTE_SURGE",
+                title:      `Complaint gaining traction — ${newCount} upvotes`,
+                body:       `"${complaint.title}" (${complaint.public_code}) now has ${newCount} community upvotes.`,
+                data:       { upvoteCount: newCount, publicCode: complaint.public_code, complaintId },
+                entityType: "complaint",
+                entityId:   complaintId,
+            });
+        }
+    }
+
     return { upvoteCount: newCount };
 }
 

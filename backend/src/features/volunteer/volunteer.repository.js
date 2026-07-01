@@ -1,11 +1,12 @@
 "use strict";
 
-const { query, withTransaction } = require("../../shared/db/query");
-const { uploadBufferToCloudinary } = require("../../shared/middlewares/upload.middleware");
+const { query, withTransaction }                            = require("../../shared/db/query");
+const { uploadBufferToCloudinary }                          = require("../../shared/middlewares/upload.middleware");
+const { notify, notifyNearbyCitizens }                      = require("../../shared/utils/notify");
 
 // ─── Points constants ─────────────────────────────────────────────────────────
 const POINTS = {
-    community_fix: parseInt(process.env.POINTS_COMMUNITY_FIX ?? "10", 10),
+    community_fix: parseInt(process.env.POINTS_COMMUNITY_FIX ?? "25", 10),
     verification:  parseInt(process.env.POINTS_VERIFICATION  ?? "5",  10),
     report:        parseInt(process.env.POINTS_REPORT        ?? "10", 10),
 };
@@ -130,6 +131,17 @@ async function claimTask({ taskId, volunteerId }) {
             [taskId, volunteerId],
         );
 
+        // Event 10: TASK_CLAIMED → volunteer
+        await notify(client, {
+            userId:     volunteerId,
+            type:       "TASK_CLAIMED",
+            title:      "Task claimed!",
+            body:       "You've claimed a volunteer task. Head to the location and fix it!",
+            data:       { taskId, complaintId: task.complaint_id },
+            entityType: "task",
+            entityId:   taskId,
+        });
+
         return { task, assignment: assignRows[0] };
     });
 }
@@ -199,6 +211,67 @@ async function submitTaskCompletion({ taskId, volunteerId, note, proofFile }) {
              VALUES ($1, 'reported', 'pending_verification', $2, 'citizen', $3)`,
             [assignment.complaint_id, volunteerId, note ?? "Volunteer submitted resolution proof."],
         );
+
+        // Fetch complaint details for notifications
+        const { rows: cRows } = await client.query(
+            `SELECT reporter_id, title, latitude, longitude, public_code
+             FROM complaints WHERE id = $1`, [assignment.complaint_id],
+        );
+        const comp = cRows[0];
+
+        // Event 11: TASK_SUBMITTED → volunteer
+        await notify(client, {
+            userId:     volunteerId,
+            type:       "TASK_SUBMITTED",
+            title:      "Fix submitted for verification",
+            body:       "Your resolution has been submitted. Community verification has started.",
+            data:       { taskId, complaintId: assignment.complaint_id },
+            entityType: "task",
+            entityId:   taskId,
+        });
+
+        if (comp) {
+            // COMPLAINT_PENDING_VERIFICATION → reporter
+            await notify(client, {
+                userId:     comp.reporter_id,
+                type:       "COMPLAINT_PENDING_VERIFICATION",
+                title:      "Community is verifying your complaint",
+                body:       `A volunteer has submitted a fix for "${comp.title}". Community is now verifying it.`,
+                data:       { publicCode: comp.public_code, complaintId: assignment.complaint_id },
+                entityType: "complaint",
+                entityId:   assignment.complaint_id,
+            });
+
+            // COMPLAINT_ACTIVITY → reporter (if volunteer left a note)
+            if (note?.trim()) {
+                const preview = note.trim().length > 100
+                    ? note.trim().slice(0, 100) + "…"
+                    : note.trim();
+                await notify(client, {
+                    userId:     comp.reporter_id,
+                    type:       "COMPLAINT_ACTIVITY",
+                    title:      "New update on your complaint",
+                    body:       `The volunteer left a note: “${preview}”`,
+                    data:       { publicCode: comp.public_code, complaintId: assignment.complaint_id,
+                                  note: note.trim(), actorRole: "volunteer" },
+                    entityType: "complaint",
+                    entityId:   assignment.complaint_id,
+                });
+            }
+
+            // Event 15: VERIFICATION_NEEDED → nearby citizens (bulk)
+            await notifyNearbyCitizens(client, {
+                excludeUserId: comp.reporter_id,
+                lat: parseFloat(comp.latitude),
+                lon: parseFloat(comp.longitude),
+                type:       "VERIFICATION_NEEDED",
+                title:      "Verification needed near you",
+                body:       `A complaint near you needs community verification: "${comp.title}"`,
+                data:       { publicCode: comp.public_code, complaintId: assignment.complaint_id },
+                entityType: "complaint",
+                entityId:   assignment.complaint_id,
+            });
+        }
 
         return { assignmentId: assignment.id, complaintId: assignment.complaint_id, proofUrl };
     });
@@ -400,6 +473,28 @@ async function finalizeTaskOnResolution(client, complaintId) {
         taskId:      task_id,
         points:      POINTS.community_fix,
         type:        "community_fix",
+    });
+
+    // Event 12: FIX_VERIFIED → volunteer
+    await notify(client, {
+        userId:     volunteer_id,
+        type:       "FIX_VERIFIED",
+        title:      "🎉 Your fix was accepted!",
+        body:       "The community verified your fix. The complaint has been resolved!",
+        data:       { taskId: task_id, complaintId, pointsEarned: POINTS.community_fix },
+        entityType: "task",
+        entityId:   task_id,
+    });
+
+    // Event 14: COMMUNITY_FIX_POINTS_EARNED → volunteer
+    await notify(client, {
+        userId:     volunteer_id,
+        type:       "COMMUNITY_FIX_POINTS_EARNED",
+        title:      `+${POINTS.community_fix} points earned!`,
+        body:       `You earned ${POINTS.community_fix} points for resolving a community complaint. Keep it up!`,
+        data:       { points: POINTS.community_fix, taskId: task_id, complaintId },
+        entityType: "task",
+        entityId:   task_id,
     });
 
     return { volunteerId: volunteer_id, taskId: task_id, pointsAwarded: POINTS.community_fix };
