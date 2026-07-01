@@ -13,7 +13,10 @@ const createSlaCategory = asyncHandler(async (req, res) => {
     }
 
     const { name, departmentId, slaDurationDays, description } = req.body;
-    const category = await service.createSlaCategory({ name, departmentId, slaDurationDays, description });
+    const category = await service.createSlaCategory({
+        name, departmentId, slaDurationDays, description,
+        actorId: req.user.userId,
+    });
     return sendSuccess(res, { category }, 201);
 });
 
@@ -30,7 +33,7 @@ const updateSlaCategory = asyncHandler(async (req, res) => {
         return res.status(422).json({ success: false, errors });
     }
 
-    const category = await service.updateSlaCategory(req.params.id, req.body);
+    const category = await service.updateSlaCategory(req.params.id, req.body, req.user.userId);
     return sendSuccess(res, { category });
 });
 

@@ -16,7 +16,10 @@ const createDepartment = asyncHandler(async (req, res) => {
     }
 
     const { name, email, category, description, password } = req.body;
-    const dept = await service.createDepartment({ name, email, category, description, password });
+    const dept = await service.createDepartment({
+        name, email, category, description, password,
+        actorId: req.user.userId,
+    });
     return sendSuccess(res, { department: dept }, 201);
 });
 
@@ -40,7 +43,7 @@ const getDepartment = asyncHandler(async (req, res) => {
 
 // PATCH /api/admin/departments/:id — toggle is_active
 const toggleDepartment = asyncHandler(async (req, res) => {
-    const dept = await service.toggleDepartmentActive(req.params.id);
+    const dept = await service.toggleDepartmentActive(req.params.id, req.user.userId);
     return sendSuccess(res, { department: dept });
 });
 
@@ -51,7 +54,7 @@ const resetDepartmentPassword = asyncHandler(async (req, res) => {
         return res.status(422).json({ success: false, errors });
     }
 
-    await service.resetDepartmentPassword(req.params.id, req.body.password);
+    await service.resetDepartmentPassword(req.params.id, req.body.password, req.user.userId);
     return sendSuccess(res, { message: "Department password has been reset successfully." });
 });
 
