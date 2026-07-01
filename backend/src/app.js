@@ -21,6 +21,7 @@ const {
 const deptRoutes           = require("./features/dept/dept.routes");
 const volunteerRoutes       = require("./features/volunteer/volunteer.routes");
 const notificationRoutes    = require("./features/notifications/notifications.routes");
+const adminRoutes           = require("./features/admin/admin.routes");
 const errorMiddleware       = require("./shared/middlewares/error.middleware");
 const {
     globalLimiter,
@@ -44,6 +45,7 @@ app.use("/api/complaints", complaintsAuthRoutes);
 app.use("/api/dept",          deptRoutes);
 app.use("/api/volunteer",     volunteerRoutes);
 app.use("/api/notifications", notificationRoutes);
+app.use("/api/admin",         adminRoutes);
 app.use((_req, res) => {
     res.status(404).json({
         success: false,

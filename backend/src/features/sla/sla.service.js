@@ -1,12 +1,13 @@
 "use strict";
 
-const repo = require("./sla.repository");
+const repo     = require("./sla.repository");
 const deptRepo = require("../departments/departments.repository");
 const AppError = require("../../shared/utils/app-error");
+const { audit } = require("../../shared/utils/audit");
 
 // ─── write ─────────────────────────────────────────────────────────────────────
 
-async function createSlaCategory({ name, departmentId, slaDurationDays, description }) {
+async function createSlaCategory({ name, departmentId, slaDurationDays, description, actorId }) {
     // Verify department exists
     const dept = await deptRepo.findDepartmentById(departmentId);
     if (!dept) {
@@ -20,10 +21,26 @@ async function createSlaCategory({ name, departmentId, slaDurationDays, descript
         description,
     });
 
+    audit(null, {
+        actorId,
+        actorRole:  "admin",
+        action:     "CREATE",
+        entityType: "sla_category",
+        entityId:   row.id,
+        metadata: {
+            entityName: row.name,
+            changes: [
+                { field: "name",            before: null, after: row.name },
+                { field: "slaDurationDays", before: null, after: row.sla_duration_days },
+                { field: "department",      before: null, after: dept.name },
+            ],
+        },
+    });
+
     return formatSlaCategory(row);
 }
 
-async function updateSlaCategory(id, fields) {
+async function updateSlaCategory(id, fields, actorId) {
     const existing = await repo.findSlaCategoryById(id);
     if (!existing) {
         throw new AppError("SLA_CATEGORY_NOT_FOUND", "SLA category not found.", 404);
@@ -38,6 +55,25 @@ async function updateSlaCategory(id, fields) {
     }
 
     const updated = await repo.updateSlaCategory(id, fields);
+
+    // Build before/after changes from submitted fields
+    const changes = [];
+    const fieldMap = { name: "name", slaDurationDays: "sla_duration_days", description: "description" };
+    for (const [key, col] of Object.entries(fieldMap)) {
+        if (fields[key] !== undefined) {
+            changes.push({ field: key, before: existing[col] ?? null, after: fields[key] });
+        }
+    }
+
+    audit(null, {
+        actorId,
+        actorRole:  "admin",
+        action:     "UPDATE",
+        entityType: "sla_category",
+        entityId:   id,
+        metadata:   { entityName: existing.name, changes },
+    });
+
     return formatSlaCategory(updated);
 }
 

@@ -4,9 +4,10 @@ const repo                   = require("./departments.repository");
 const { hashPassword }       = require("../../shared/utils/hash");
 const AppError               = require("../../shared/utils/app-error");
 const { withTransaction }    = require("../../shared/db/query");
-const { insertUser, findDepartmentByUserId } = require("../auth/auth.repository");
+const { insertUser }         = require("../auth/auth.repository");
+const { audit }              = require("../../shared/utils/audit");
 
-async function createDepartment({ name, email, category, description, password }) {
+async function createDepartment({ name, email, category, description, password, actorId }) {
     const trimmedName = name.trim();
 
     if (!email || !email.trim()) {
@@ -64,10 +65,28 @@ async function createDepartment({ name, email, category, description, password }
         return { dept: rows[0], user };
     });
 
+    // Audit log (fire-and-forget)
+    audit(null, {
+        actorId,
+        actorRole:  "admin",
+        action:     "CREATE",
+        entityType: "department",
+        entityId:   dept.id,
+        metadata: {
+            entityName: dept.name,
+            entityCode: dept.code,
+            changes: [
+                { field: "name",     before: null, after: dept.name },
+                { field: "email",    before: null, after: dept.email },
+                { field: "category", before: null, after: dept.category ?? null },
+            ],
+        },
+    });
+
     return formatDepartment(dept);
 }
 
-async function resetDepartmentPassword(id, newPassword) {
+async function resetDepartmentPassword(id, newPassword, actorId) {
     const existing = await repo.findDepartmentById(id);
     if (!existing) {
         throw new AppError("DEPARTMENT_NOT_FOUND", "Department not found.", 404);
@@ -87,6 +106,15 @@ async function resetDepartmentPassword(id, newPassword) {
                 [existing.user_id, passwordHash],
             );
         }
+    });
+
+    audit(null, {
+        actorId,
+        actorRole:  "admin",
+        action:     "PASSWORD_RESET",
+        entityType: "department",
+        entityId:   id,
+        metadata:   { entityName: existing.name, entityCode: existing.code },
     });
 
     return { success: true };
@@ -110,13 +138,28 @@ async function getDepartmentById(id) {
     return formatDepartment(dept);
 }
 
-async function toggleDepartmentActive(id) {
+async function toggleDepartmentActive(id, actorId) {
     const existing = await repo.findDepartmentById(id);
     if (!existing) {
         throw new AppError("DEPARTMENT_NOT_FOUND", "Department not found.", 404);
     }
 
     const updated = await repo.toggleActiveById(id);
+    const action  = updated.is_active ? "REACTIVATE" : "DEACTIVATE";
+
+    audit(null, {
+        actorId,
+        actorRole:  "admin",
+        action,
+        entityType: "department",
+        entityId:   id,
+        metadata: {
+            entityName: existing.name,
+            entityCode: existing.code,
+            changes: [{ field: "isActive", before: existing.is_active, after: updated.is_active }],
+        },
+    });
+
     return formatDepartment(updated);
 }
 
