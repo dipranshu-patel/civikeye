@@ -15,6 +15,7 @@ async function findUserByEmail(email) {
       created_at
     FROM users
     WHERE email = $1
+      AND is_deleted = FALSE
     LIMIT 1;
   `;
 

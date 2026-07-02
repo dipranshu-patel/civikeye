@@ -22,6 +22,7 @@ const deptRoutes           = require("./features/dept/dept.routes");
 const volunteerRoutes       = require("./features/volunteer/volunteer.routes");
 const notificationRoutes    = require("./features/notifications/notifications.routes");
 const adminRoutes           = require("./features/admin/admin.routes");
+const usersRoutes           = require("./features/users/users.routes");
 const errorMiddleware       = require("./shared/middlewares/error.middleware");
 const {
     globalLimiter,
@@ -32,6 +33,7 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
+
 app.use("/api", globalLimiter);
 app.use("/api/auth", authRoutes);
 app.use("/api/me", meRoutes);
@@ -46,6 +48,7 @@ app.use("/api/dept",          deptRoutes);
 app.use("/api/volunteer",     volunteerRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/admin",         adminRoutes);
+app.use("/api/users",         usersRoutes);
 app.use((_req, res) => {
     res.status(404).json({
         success: false,

@@ -19,6 +19,7 @@ function formatComplaint(row) {
         id:          row.id,
         publicCode:  row.public_code,
         reporterId:  row.reporter_id,
+        reporterName: row.reporter_name ?? "Anonymous",
         title:       row.title,
         description: row.description ?? null,
         category: {
@@ -46,6 +47,7 @@ function formatComplaint(row) {
         updatedAt:              row.updated_at,
     };
 }
+
 
 function formatPhoto(row) {
     return {
