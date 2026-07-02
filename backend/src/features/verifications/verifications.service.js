@@ -3,8 +3,6 @@
 const repo     = require("./verifications.repository");
 const AppError = require("../../shared/utils/app-error");
 
-// ─── GET /api/me/verifications ────────────────────────────────────────────────
-
 async function getMyVerifications({ user, tab, filter, search }) {
     const { userId, latitude, longitude } = user;
 
@@ -27,7 +25,6 @@ async function getMyVerifications({ user, tab, filter, search }) {
         };
     }
 
-    // Default: pending tab
     const VALID_FILTERS = ["urgent", "deadline_soon", "most_recent", "nearest"];
     const safeFilter = VALID_FILTERS.includes(filter) ? filter : "most_recent";
 
@@ -46,8 +43,6 @@ async function getMyVerifications({ user, tab, filter, search }) {
         items:   pending.map(formatPendingItem),
     };
 }
-
-// ─── POST /api/complaints/:id/verify ──────────────────────────────────────────
 
 async function castVote({ complaintId, user, vote, comment }) {
     const { userId, latitude, longitude } = user;
@@ -132,8 +127,6 @@ async function castVote({ complaintId, user, vote, comment }) {
             : null,
     };
 }
-
-// ─── Formatters ───────────────────────────────────────────────────────────────
 
 function formatSummary(row) {
     return {

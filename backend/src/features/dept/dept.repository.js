@@ -5,8 +5,6 @@ const {
     uploadBufferToCloudinary,
 } = require("../../shared/middlewares/upload.middleware");
 
-// ─── Shared column set for complaint reads (dept-scoped) ──────────────────────
-
 const COMPLAINT_COLS = `
     c.id,
     c.public_code,
@@ -39,8 +37,6 @@ const COMPLAINT_JOINS = `
     JOIN departments    d   ON d.id   = c.department_id
 `;
 
-// ─── Tab → status mapping ─────────────────────────────────────────────────────
-
 const TAB_STATUS = {
     assigned:             ["reported"],
     in_progress:          ["in_progress"],
@@ -48,8 +44,6 @@ const TAB_STATUS = {
     resolved:             ["resolved"],
     reopened:             ["reopened"],
 };
-
-// ─── Summary counts (tab badges + summary cards) ──────────────────────────────
 
 async function getDeptSummaryCounts(departmentId) {
     const sql = `
@@ -74,8 +68,6 @@ async function getDeptSummaryCounts(departmentId) {
     return rows[0];
 }
 
-// ─── Urgent complaints (overdue, up to 6, ordered by sla_deadline ASC) ───────
-
 async function findUrgentComplaints(departmentId) {
     const sql = `
         SELECT ${COMPLAINT_COLS},
@@ -92,8 +84,6 @@ async function findUrgentComplaints(departmentId) {
     const { rows } = await query(sql, [departmentId]);
     return rows;
 }
-
-// ─── Recent activity (last 8 status transitions for this dept's complaints) ───
 
 async function findDeptRecentActivity(departmentId) {
     const sql = `
@@ -114,8 +104,6 @@ async function findDeptRecentActivity(departmentId) {
     return rows;
 }
 
-// ─── Performance metrics from view ───────────────────────────────────────────
-
 async function getDeptPerformance(departmentId) {
     const sql = `
         SELECT
@@ -134,8 +122,6 @@ async function getDeptPerformance(departmentId) {
     const { rows } = await query(sql, [departmentId]);
     return rows[0] ?? null;
 }
-
-// ─── Complaints list (tabbed + search + paginated) ────────────────────────────
 
 async function findDeptComplaints({ departmentId, tab, search, page, limit }) {
     const statuses = TAB_STATUS[tab] ?? ["reported"];
@@ -187,8 +173,6 @@ async function findDeptComplaints({ departmentId, tab, search, page, limit }) {
     return rows;
 }
 
-// ─── Complaint detail ─────────────────────────────────────────────────────────
-
 async function findDeptComplaintById(id, departmentId) {
     const sql = `
         SELECT ${COMPLAINT_COLS}
@@ -224,13 +208,6 @@ async function findStatusHistory(complaintId) {
     return rows;
 }
 
-// ─── Status transition ────────────────────────────────────────────────────────
-
-/**
- * Applies a status transition inside a transaction.
- * If workPhotos is provided (array of { buffer }) and toStatus = 'pending_verification',
- * uploads to Cloudinary before committing.
- */
 async function applyStatusTransition({
     complaintId,
     fromStatus,
@@ -241,7 +218,6 @@ async function applyStatusTransition({
 }) {
     const uploadedPhotos = [];
 
-    // Upload work photos BEFORE the transaction (Cloudinary is external)
     if (workPhotos?.length) {
         for (const [i, file] of workPhotos.entries()) {
             const result = await uploadBufferToCloudinary(file.buffer, {
@@ -252,7 +228,6 @@ async function applyStatusTransition({
     }
 
     const result = await withTransaction(async (client) => {
-        // Update complaint status
         const updateFields = [`status = $2`];
         const updateValues = [complaintId, toStatus];
         let idx = 3;
@@ -262,7 +237,6 @@ async function applyStatusTransition({
             updateFields.push(`verification_deadline = NOW() + INTERVAL '72 hours'`);
         }
         if (toStatus === "in_progress" || toStatus === "pending_verification") {
-            // no resolved_at change
         }
 
         const { rows: updRows } = await client.query(
@@ -274,7 +248,6 @@ async function applyStatusTransition({
         );
         const updated = updRows[0];
 
-        // Write status_history
         await client.query(
             `INSERT INTO complaint_status_history
                  (complaint_id, from_status, to_status, actor_id, actor_role, note)
@@ -282,7 +255,6 @@ async function applyStatusTransition({
             [complaintId, fromStatus, toStatus, actorId, note ?? null],
         );
 
-        // Store work / resolution photos
         for (const photo of uploadedPhotos) {
             await client.query(
                 `INSERT INTO complaint_photos (complaint_id, url, public_id, position)

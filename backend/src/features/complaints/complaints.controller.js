@@ -10,8 +10,6 @@ const {
 const asyncHandler = require("../../shared/utils/async-handler");
 const { sendSuccess } = require("../../shared/utils/respond");
 
-// ─── POST /api/complaints ─────────────────────────────────────────────────────
-
 const createComplaint = asyncHandler(async (req, res) => {
     const errors = validateCreateComplaint(req.body, req.files);
     if (errors.length > 0) {
@@ -35,8 +33,6 @@ const createComplaint = asyncHandler(async (req, res) => {
     return sendSuccess(res, { complaint: result }, 201);
 });
 
-// ─── GET /api/complaints ──────────────────────────────────────────────────────
-
 const exploreComplaints = asyncHandler(async (req, res) => {
     const errors = validateExploreQuery(req.query);
     if (errors.length > 0) {
@@ -55,8 +51,6 @@ const exploreComplaints = asyncHandler(async (req, res) => {
     return sendSuccess(res, data);
 });
 
-// ─── GET /api/complaints/nearby ───────────────────────────────────────────────
-
 const getNearby = asyncHandler(async (req, res) => {
     const errors = validateNearbyQuery(req.query);
     if (errors.length > 0) {
@@ -70,8 +64,6 @@ const getNearby = asyncHandler(async (req, res) => {
     const complaints = await service.getNearbyComplaints({ lat, lng, radius });
     return sendSuccess(res, { complaints });
 });
-
-// ─── GET /api/complaints/similar ─────────────────────────────────────────────
 
 const getSimilar = asyncHandler(async (req, res) => {
     const { lat, lng, category_id } = req.query;
@@ -92,15 +84,11 @@ const getSimilar = asyncHandler(async (req, res) => {
     return sendSuccess(res, { complaints });
 });
 
-// ─── GET /api/complaints/:id ──────────────────────────────────────────────────
-
 const getComplaintDetail = asyncHandler(async (req, res) => {
     const requestingUserId = req.user?.userId ?? null;
     const data = await service.getComplaintDetail(req.params.id, requestingUserId);
     return sendSuccess(res, { complaint: data });
 });
-
-// ─── GET /api/me/complaints ───────────────────────────────────────────────────
 
 const getMyComplaints = asyncHandler(async (req, res) => {
     const errors = validateMyComplaintsQuery(req.query);
@@ -120,21 +108,15 @@ const getMyComplaints = asyncHandler(async (req, res) => {
     return sendSuccess(res, data);
 });
 
-// ─── POST /api/complaints/:id/upvote ─────────────────────────────────────────
-
 const addUpvote = asyncHandler(async (req, res) => {
     const data = await service.addUpvote(req.params.id, req.user.userId);
     return sendSuccess(res, data);
 });
 
-// ─── DELETE /api/complaints/:id/upvote ───────────────────────────────────────
-
 const removeUpvote = asyncHandler(async (req, res) => {
     const data = await service.removeUpvote(req.params.id, req.user.userId);
     return sendSuccess(res, data);
 });
-
-// ─── GET /api/me/dashboard ────────────────────────────────────────────────────
 
 const getDashboard = asyncHandler(async (req, res) => {
     const lat = req.query.lat ? parseFloat(req.query.lat) : null;

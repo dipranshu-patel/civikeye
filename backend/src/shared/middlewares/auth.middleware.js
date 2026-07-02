@@ -169,7 +169,6 @@ function ensureDepartmentOwner(departmentRepository) {
     }, "department");
 }
 
-// Loads lat/lon from users table into req.user for location-sensitive endpoints
 async function requireUserLocation(req, _res, next) {
     try {
         const { rows } = await pool.query(

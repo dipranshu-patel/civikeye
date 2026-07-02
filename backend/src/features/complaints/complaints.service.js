@@ -7,12 +7,8 @@ const slaRepo                         = require("../sla/sla.repository");
 const AppError                        = require("../../shared/utils/app-error");
 const { notify, notifyNearbyCitizens } = require("../../shared/utils/notify");
 
-// Upvote milestones that trigger reporter notifications
 const UPVOTE_REPORTER_MILESTONES = [5, 10, 25, 50, 100];
-// Milestones that also alert the dept official
 const UPVOTE_DEPT_MILESTONES     = [10, 25, 50, 100];
-
-// ─── Formatters ───────────────────────────────────────────────────────────────
 
 function formatComplaint(row) {
     return {
@@ -70,21 +66,16 @@ function formatHistoryEntry(row) {
     };
 }
 
-// ─── isOverdue helper ─────────────────────────────────────────────────────────
-
 function isOverdue(complaint) {
     if (!complaint.slaDeadline) return false;
     if (["resolved", "pending_verification"].includes(complaint.status)) return false;
     return new Date(complaint.slaDeadline) < new Date();
 }
 
-// ─── Create complaint ─────────────────────────────────────────────────────────
-
 async function createComplaint({ reporterId, title, description, categoryId, issueType, addressText, latitude, longitude, files }) {
     latitude  = parseFloat(latitude);
     longitude = parseFloat(longitude);
 
-    // 1. Load SLA category → get department_id + sla_duration_days
     const category = await slaRepo.findSlaCategoryById(categoryId);
     if (!category) {
         throw new AppError("CATEGORY_NOT_FOUND", "The selected category does not exist.", 404);
@@ -93,7 +84,6 @@ async function createComplaint({ reporterId, title, description, categoryId, iss
     const slaDays       = category.sla_duration_days;
     const slaDeadline   = slaDays ? new Date(Date.now() + slaDays * 86_400_000) : null;
 
-    // 2. Duplicate guard — 100 m same category not resolved
     const duplicates = await repo.findDuplicateCandidates({ lat: latitude, lng: longitude, categoryId });
     if (duplicates.length > 0) {
         throw new AppError(
@@ -104,7 +94,6 @@ async function createComplaint({ reporterId, title, description, categoryId, iss
         );
     }
 
-    // 3. Upload photos to Cloudinary (parallel)
     const uploadedPhotos = await Promise.all(
         files.map((file, i) =>
             uploadBufferToCloudinary(file.buffer, { folder: "civikeye/complaints" }).then((res) => ({
@@ -114,7 +103,6 @@ async function createComplaint({ reporterId, title, description, categoryId, iss
         ),
     );
 
-    // 4. DB transaction: complaint + photos + first status_history
     const result = await withTransaction(async (client) => {
         const complaint = await repo.insertComplaint(client, {
             reporterId,
@@ -154,15 +142,12 @@ async function createComplaint({ reporterId, title, description, categoryId, iss
 
     const volunteerRepo = require("../volunteer/volunteer.repository");
 
-    // Auto-create volunteer task for community_fixable complaints (Phase 6)
     if (issueType === "community_fixable") {
         await volunteerRepo.createVolunteerTask(null, result.complaint.id);
     }
 
-    // ── Notifications (best-effort, fire-and-forget) ──────────────────────────
     const c = result.complaint;
 
-    // Event 1: reporter gets confirmation
     notify(null, {
         userId:     reporterId,
         type:       "COMPLAINT_SUBMITTED",
@@ -173,8 +158,6 @@ async function createComplaint({ reporterId, title, description, categoryId, iss
         entityId:   c.id,
     });
 
-    // Event 8: dept official gets new complaint alert — authority_required only
-    // community_fixable complaints are NOT visible in the dept dashboard so skip.
     if (issueType === "authority_required") {
         const { rows: deptRows } = await query(
             "SELECT user_id FROM departments WHERE id = $1", [departmentId],
@@ -192,7 +175,6 @@ async function createComplaint({ reporterId, title, description, categoryId, iss
         }
     }
 
-    // Event 19: notify nearby citizens about new volunteer task
     if (issueType === "community_fixable") {
         notifyNearbyCitizens(null, {
             excludeUserId: reporterId,
@@ -214,8 +196,6 @@ async function createComplaint({ reporterId, title, description, categoryId, iss
         createdAt:  result.complaint.created_at,
     };
 }
-
-// ─── Get complaint detail ─────────────────────────────────────────────────────
 
 async function getComplaintDetail(id, requestingUserId) {
     const complaint = await repo.findComplaintById(id);
@@ -241,18 +221,14 @@ async function getComplaintDetail(id, requestingUserId) {
     };
 }
 
-// ─── Explore ──────────────────────────────────────────────────────────────────
-
 async function exploreComplaints({ search, status, issueType, categoryId, departmentId, sort, page, limit }) {
     const statusList = status ? status.split(",").map((s) => s.trim()) : undefined;
 
-    // Authority required bucket
     const authorityRows = await repo.findComplaintsExplore({
         search, statusList, issueType: "authority_required", categoryId, departmentId,
         sort, page, limit,
     });
 
-    // Volunteer needed bucket
     const volunteerRows = await repo.findComplaintsExplore({
         search, statusList, issueType: "community_fixable", categoryId, departmentId,
         sort, page, limit,
@@ -270,21 +246,15 @@ async function exploreComplaints({ search, status, issueType, categoryId, depart
     };
 }
 
-// ─── Nearby ───────────────────────────────────────────────────────────────────
-
 async function getNearbyComplaints({ lat, lng, radius }) {
     const rows = await repo.findNearbyComplaints({ lat, lng, radiusMetres: radius });
     return rows.map(formatComplaint);
 }
 
-// ─── Similar (duplicate panel) ────────────────────────────────────────────────
-
 async function getSimilarComplaints({ lat, lng, categoryId }) {
     const rows = await repo.findSimilarComplaints({ lat, lng, categoryId, excludeId: null });
     return rows.map(formatComplaint);
 }
-
-// ─── My Complaints ────────────────────────────────────────────────────────────
 
 async function getMyComplaints({ reporterId, tab, search, sort, page, limit }) {
     const [rows, summary] = await Promise.all([
@@ -312,8 +282,6 @@ async function getMyComplaints({ reporterId, tab, search, sort, page, limit }) {
     };
 }
 
-// ─── Upvote toggle ────────────────────────────────────────────────────────────
-
 async function addUpvote(complaintId, userId) {
     const complaint = await repo.findComplaintById(complaintId);
     if (!complaint) throw new AppError("COMPLAINT_NOT_FOUND", "Complaint not found.", 404);
@@ -323,9 +291,7 @@ async function addUpvote(complaintId, userId) {
 
     const newCount = await withTransaction((client) => repo.insertUpvote(client, complaintId, userId));
 
-    // ── Notifications (best-effort) ──────────────────────────────────────────
     if (UPVOTE_REPORTER_MILESTONES.includes(newCount)) {
-        // Event 2: reporter milestone
         notify(null, {
             userId:     complaint.reporter_id,
             type:       "COMPLAINT_UPVOTE_MILESTONE",
@@ -336,7 +302,6 @@ async function addUpvote(complaintId, userId) {
             entityId:   complaintId,
         });
     }
-    // Event 9: dept official surge alert — authority_required only
     if (UPVOTE_DEPT_MILESTONES.includes(newCount) && complaint.issue_type === "authority_required") {
         const { rows: deptRows } = await query(
             "SELECT user_id FROM departments WHERE id = $1", [complaint.department_id],
@@ -366,8 +331,6 @@ async function removeUpvote(complaintId, userId) {
     return { upvoteCount: newCount };
 }
 
-// ─── Dashboard ────────────────────────────────────────────────────────────────
-
 async function getDashboard(userId, { lat, lng }) {
     const data = await repo.findDashboardData(userId, { lat, lng });
 
@@ -375,14 +338,12 @@ async function getDashboard(userId, { lat, lng }) {
         summary: {
             myActiveComplaints:   data.summary.my_active,
             pendingVerifications: data.summary.my_pending_verification,
-            // Phase 6 stubs
             myVolunteerTasks:     0,
             contributionScore:    0,
         },
         myComplaints:               data.myRecentComplaints.map(formatComplaint),
         verificationRequests:       data.nearbyPendingVerifications.map(formatComplaint),
         recentActivity:             data.recentActivity,
-        // Phase 5/6 enrichments — stubs
         communitySnapshot: {
             communityReports:  null,
             verifications:     null,

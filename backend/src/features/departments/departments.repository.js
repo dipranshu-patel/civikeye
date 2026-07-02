@@ -2,8 +2,6 @@
 
 const { query } = require("../../shared/db/query");
 
-// ─── helpers ─────────────────────────────────────────────────────────────────
-
 function slugify(name) {
     return name
         .toLowerCase()
@@ -12,7 +10,6 @@ function slugify(name) {
         .replace(/^-|-$/g, "");
 }
 
-// Columns returned in all public/admin reads — password_hash is NEVER included
 const SAFE_COLUMNS = `
     d.id,
     d.name,
@@ -26,8 +23,6 @@ const SAFE_COLUMNS = `
     d.created_at,
     d.updated_at
 `;
-
-// ─── write ────────────────────────────────────────────────────────────────────
 
 async function insertDepartment({
     name,
@@ -69,8 +64,6 @@ async function updateDepartmentPassword(id, passwordHash) {
     const { rows } = await query(sql, [id, passwordHash]);
     return rows[0] ?? null;
 }
-
-// ─── read ─────────────────────────────────────────────────────────────────────
 
 async function findAllDepartments() {
     const sql = `

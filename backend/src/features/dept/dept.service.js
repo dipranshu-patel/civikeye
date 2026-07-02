@@ -4,11 +4,6 @@ const repo     = require("./dept.repository");
 const AppError = require("../../shared/utils/app-error");
 const { notify, notifyNearbyCitizens } = require("../../shared/utils/notify");
 
-// ─── Valid state machine transitions (from department role) ───────────────────
-// reported     → in_progress          (Start Progress)
-// in_progress  → pending_verification (Submit Resolution Proof)
-// reopened     → in_progress          (Resume Work)
-
 const VALID_TRANSITIONS = {
     reported:    ["in_progress"],
     in_progress: ["pending_verification"],
@@ -25,8 +20,6 @@ function assertValidTransition(fromStatus, toStatus) {
         );
     }
 }
-
-// ─── Formatters ───────────────────────────────────────────────────────────────
 
 function formatComplaint(row) {
     const now       = new Date();
@@ -92,8 +85,6 @@ function formatPerformance(row) {
     };
 }
 
-// ─── Dashboard ────────────────────────────────────────────────────────────────
-
 async function getDeptDashboard(departmentId) {
     const [summary, urgents, activity, performance] = await Promise.all([
         repo.getDeptSummaryCounts(departmentId),
@@ -110,8 +101,6 @@ async function getDeptDashboard(departmentId) {
     };
 }
 
-// ─── Complaints list ──────────────────────────────────────────────────────────
-
 async function getDeptComplaints({ departmentId, tab = "assigned", search, page = 1, limit = 20 }) {
     const [rows, summary] = await Promise.all([
         repo.findDeptComplaints({ departmentId, tab, search, page, limit }),
@@ -126,8 +115,6 @@ async function getDeptComplaints({ departmentId, tab = "assigned", search, page 
         pagination: { page, limit, total },
     };
 }
-
-// ─── Complaint detail ─────────────────────────────────────────────────────────
 
 async function getDeptComplaintDetail(id, departmentId) {
     const complaint = await repo.findDeptComplaintById(id, departmentId);
@@ -155,15 +142,12 @@ async function getDeptComplaintDetail(id, departmentId) {
     };
 }
 
-// ─── Status transition ────────────────────────────────────────────────────────
-
 async function updateComplaintStatus({ complaintId, departmentId, actorId, toStatus, note, workPhotos }) {
     const complaint = await repo.findDeptComplaintById(complaintId, departmentId);
     if (!complaint) {
         throw new AppError("COMPLAINT_NOT_FOUND", "Complaint not found in your department.", 404);
     }
 
-    // community_fixable complaints are handled exclusively by volunteers — not by departments
     if (complaint.issue_type === "community_fixable") {
         throw new AppError(
             "COMMUNITY_FIXABLE_NOT_DEPT",
@@ -174,7 +158,6 @@ async function updateComplaintStatus({ complaintId, departmentId, actorId, toSta
 
     assertValidTransition(complaint.status, toStatus);
 
-    // Require note AND at least 1 work photo when submitting resolution proof
     if (toStatus === "pending_verification") {
         if (!note?.trim()) {
             throw new AppError("NOTE_REQUIRED", "A resolution note is required when submitting proof.", 422);
@@ -193,11 +176,9 @@ async function updateComplaintStatus({ complaintId, departmentId, actorId, toSta
         workPhotos,
     });
 
-    // ── Notifications (best-effort, fire-and-forget) ───────────────────────────
     const reporterId = complaint.reporter_id;
     const publicCode = complaint.public_code;
 
-    // Status-specific notification to reporter
     if (toStatus === "in_progress" && reporterId) {
         notify(null, {
             userId:     reporterId,
@@ -220,7 +201,6 @@ async function updateComplaintStatus({ complaintId, departmentId, actorId, toSta
             entityType: "complaint",
             entityId:   complaintId,
         });
-        // Notify nearby citizens to verify
         notifyNearbyCitizens(null, {
             excludeUserId: reporterId,
             lat: parseFloat(complaint.latitude),
@@ -234,7 +214,6 @@ async function updateComplaintStatus({ complaintId, departmentId, actorId, toSta
         });
     }
 
-    // Activity notification whenever a progress note is added
     if (note?.trim() && reporterId) {
         const preview = note.trim().length > 100
             ? note.trim().slice(0, 100) + "…"

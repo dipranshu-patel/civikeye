@@ -5,8 +5,6 @@ const AppError             = require("../../shared/utils/app-error");
 const { hashPassword, comparePassword } = require("../../shared/utils/hash");
 const { serializeReporterName, canShowContributionHistory } = require("../../shared/utils/serialize-public-user");
 
-// ─── GET /api/me ──────────────────────────────────────────────────────────────
-
 async function getProfile(userId) {
     const [user, prefs, summary, isVerifiedVolunteer] = await Promise.all([
         repo.findUserById(userId),
@@ -28,13 +26,11 @@ async function getProfile(userId) {
         passwordChangedAt: user.password_changed_at ?? null,
         createdAt: user.created_at,
 
-        // §3 Privacy read-only indicators
-        publicLedgerVisibility:  "visible",           // system-wide: complaints always visible
-        communityVerification:   isVerifiedVolunteer  // derived from completed volunteer tasks
+        publicLedgerVisibility:  "visible",           
+        communityVerification:   isVerifiedVolunteer  
             ? "verified"
             : "not_applicable",
 
-        // §1 Contribution summary
         contributionSummary: {
             complaintsField:    summary.complaints_filed    ?? 0,
             upvotesCast:        summary.upvotes_cast        ?? 0,
@@ -43,12 +39,9 @@ async function getProfile(userId) {
             civicPoints:        summary.civic_points        ?? 0,
         },
 
-        // §2 + §3 Preferences
         preferences: formatPreferences(prefs),
     };
 }
-
-// ─── PATCH /api/me/profile ────────────────────────────────────────────────────
 
 async function updateProfile(userId, { fullName, email }) {
     if (!fullName && !email) {
@@ -66,21 +59,15 @@ async function updateProfile(userId, { fullName, email }) {
     return { id: updated.id, fullName: updated.full_name, email: updated.email };
 }
 
-// ─── GET /api/me/preferences ──────────────────────────────────────────────────
-
 async function getPreferences(userId) {
     const prefs = await repo.findOrCreatePreferences(userId);
     return { preferences: formatPreferences(prefs) };
 }
 
-// ─── PATCH /api/me/preferences ────────────────────────────────────────────────
-
 async function updatePreferences(userId, fields) {
     const prefs = await repo.updatePreferences(userId, fields);
     return { preferences: formatPreferences(prefs) };
 }
-
-// ─── POST /api/me/change-password ─────────────────────────────────────────────
 
 async function changePassword(userId, { currentPassword, newPassword }) {
     if (!currentPassword || !newPassword) {
@@ -105,8 +92,6 @@ async function changePassword(userId, { currentPassword, newPassword }) {
     return { passwordChangedAt: result.password_changed_at };
 }
 
-// ─── DELETE /api/me/account ───────────────────────────────────────────────────
-
 async function deleteAccount(userId, { confirmation } = {}) {
     if (!confirmation || confirmation.trim().toLowerCase() !== "delete") {
         throw new AppError(
@@ -122,8 +107,6 @@ async function deleteAccount(userId, { confirmation } = {}) {
     await repo.softDeleteUser(userId);
     return { deleted: true };
 }
-
-// ─── Location (existing) ──────────────────────────────────────────────────────
 
 async function updateLocation(userId, body) {
     const lat = parseFloat(body.latitude);
@@ -146,8 +129,6 @@ async function updateLocation(userId, body) {
 }
 
 
-// ─── Formatter ────────────────────────────────────────────────────────────────
-
 function formatPreferences(prefs) {
     return {
         showNameOnComplaints:    prefs.show_name_on_complaints,
@@ -156,8 +137,6 @@ function formatPreferences(prefs) {
         updatedAt:               prefs.updated_at,
     };
 }
-
-// ─── GET /api/users/:id/profile (public, no auth) ──────────────────────────────
 
 async function getPublicProfile(userId) {
     const [user, summary, isVerifiedVolunteer] = await Promise.all([
@@ -168,17 +147,15 @@ async function getPublicProfile(userId) {
 
     if (!user) throw new AppError("USER_NOT_FOUND", "This profile does not exist.", 404);
 
-    // Honor show_name_on_complaints for the display name on their public card
     const displayName = serializeReporterName(user, user);
 
-    // Honor show_contribution_history — zero out stats if hidden
     const showStats = canShowContributionHistory(user);
 
     return {
         id:          user.id,
         displayName,
         isAnonymous: !user.show_name_on_complaints,
-        role:        user.role,                         // 'citizen' (volunteers are citizens too)
+        role:        user.role,                        
         memberSince: user.created_at,
         communityVerification: isVerifiedVolunteer ? "verified" : "not_applicable",
         contributionSummary: showStats ? {
@@ -187,7 +164,7 @@ async function getPublicProfile(userId) {
             verificationsCast: summary.verifications_cast ?? 0,
             tasksCompleted:    summary.tasks_completed     ?? 0,
             civicPoints:       summary.civic_points        ?? 0,
-        } : null,           // null = hidden by user's preference
+        } : null,         
     };
 }
 

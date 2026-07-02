@@ -3,8 +3,6 @@
 const repo     = require("./admin.repository");
 const AppError = require("../../shared/utils/app-error");
 
-// ─── Dashboard ────────────────────────────────────────────────────────────────
-
 async function getAdminDashboard() {
     const [stats, deptCounts, recentActivity] = await Promise.all([
         repo.getDashboardStats(),
@@ -31,8 +29,6 @@ async function getAdminDashboard() {
     };
 }
 
-// ─── Audit Logs ───────────────────────────────────────────────────────────────
-
 async function getAuditLogs({ search, action, entityType, dateFrom, dateTo, page, limit }) {
     const [summary, rows] = await Promise.all([
         repo.getAuditLogSummary(),
@@ -58,8 +54,6 @@ async function getAuditLogDetail(id) {
     if (!log) throw new AppError("LOG_NOT_FOUND", "Audit log entry not found.", 404);
     return formatLog(log);
 }
-
-// ─── Formatters ───────────────────────────────────────────────────────────────
 
 function formatLog(row) {
     return {

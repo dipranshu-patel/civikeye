@@ -2,8 +2,6 @@
 
 const { query } = require("../../shared/db/query");
 
-// ─── write ─────────────────────────────────────────────────────────────────────
-
 async function insertSlaCategory({ name, departmentId, slaDurationDays, description }) {
     const sql = `
         INSERT INTO sla_categories
@@ -24,7 +22,6 @@ async function insertSlaCategory({ name, departmentId, slaDurationDays, descript
 }
 
 async function updateSlaCategory(id, fields) {
-    // Build SET clause dynamically from provided fields
     const allowed = ["name", "department_id", "sla_duration_days", "description"];
     const setClauses = [];
     const values = [];
@@ -60,8 +57,6 @@ async function updateSlaCategory(id, fields) {
     return rows[0] ?? null;
 }
 
-// ─── read ──────────────────────────────────────────────────────────────────────
-
 async function findAllSlaCategories() {
     const sql = `
         SELECT
@@ -85,7 +80,6 @@ async function findAllSlaCategories() {
 }
 
 async function findSlaCategories() {
-    // Public list — only categories whose department is active
     const sql = `
         SELECT
             s.id,
@@ -127,8 +121,6 @@ async function findSlaCategoryById(id) {
     const { rows } = await query(sql, [id]);
     return rows[0] ?? null;
 }
-
-// ─── summary stats (for admin cards) ──────────────────────────────────────────
 
 async function getSlaSummary() {
     const sql = `

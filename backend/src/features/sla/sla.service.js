@@ -5,10 +5,7 @@ const deptRepo = require("../departments/departments.repository");
 const AppError = require("../../shared/utils/app-error");
 const { audit } = require("../../shared/utils/audit");
 
-// ─── write ─────────────────────────────────────────────────────────────────────
-
 async function createSlaCategory({ name, departmentId, slaDurationDays, description, actorId }) {
-    // Verify department exists
     const dept = await deptRepo.findDepartmentById(departmentId);
     if (!dept) {
         throw new AppError("DEPARTMENT_NOT_FOUND", "The specified department does not exist.", 404);
@@ -46,7 +43,6 @@ async function updateSlaCategory(id, fields, actorId) {
         throw new AppError("SLA_CATEGORY_NOT_FOUND", "SLA category not found.", 404);
     }
 
-    // If departmentId is changing, verify the new dept exists
     if (fields.departmentId) {
         const dept = await deptRepo.findDepartmentById(fields.departmentId);
         if (!dept) {
@@ -56,7 +52,6 @@ async function updateSlaCategory(id, fields, actorId) {
 
     const updated = await repo.updateSlaCategory(id, fields);
 
-    // Build before/after changes from submitted fields
     const changes = [];
     const fieldMap = { name: "name", slaDurationDays: "sla_duration_days", description: "description" };
     for (const [key, col] of Object.entries(fieldMap)) {
@@ -77,8 +72,6 @@ async function updateSlaCategory(id, fields, actorId) {
     return formatSlaCategory(updated);
 }
 
-// ─── read ──────────────────────────────────────────────────────────────────────
-
 async function listAllSlaCategories() {
     const [rows, summary] = await Promise.all([
         repo.findAllSlaCategories(),
@@ -95,8 +88,6 @@ async function listPublicSlaCategories() {
     const rows = await repo.findSlaCategories();
     return rows.map(formatSlaCategory);
 }
-
-// ─── formatters ───────────────────────────────────────────────────────────────
 
 function formatSlaCategory(row) {
     return {

@@ -4,14 +4,11 @@ const multer  = require("multer");
 const { v2: cloudinary } = require("cloudinary");
 const AppError = require("../utils/app-error");
 
-// ─── Cloudinary config ────────────────────────────────────────────────────────
 cloudinary.config({
     cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
     api_key:    process.env.CLOUDINARY_API_KEY,
     api_secret: process.env.CLOUDINARY_API_SECRET,
 });
-
-// ─── Multer — memory storage ──────────────────────────────────────────────────
 
 const ALLOWED_MIME_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 const MAX_FILES           = 4;
@@ -39,8 +36,6 @@ const _multer = multer({
 
 const uploadPhotos  = _multer.array("photos", MAX_FILES);
 const uploadSingle  = (fieldName) => _multer.single(fieldName);
-
-// ─── Multer error handler (use after uploadPhotos in route) ───────────────────
 
 function handleUploadError(err, _req, _res, next) {
     if (!err) return next();
@@ -76,11 +71,6 @@ function handleUploadError(err, _req, _res, next) {
     );
 }
 
-// ─── Cloudinary helpers ───────────────────────────────────────────────────────
-
-/**
- * Upload a raw Buffer to Cloudinary, returns { url, publicId }
- */
 function uploadBufferToCloudinary(buffer, options = {}) {
     return new Promise((resolve, reject) => {
         const stream = cloudinary.uploader.upload_stream(
@@ -105,9 +95,6 @@ function uploadBufferToCloudinary(buffer, options = {}) {
     });
 }
 
-/**
- * Delete a Cloudinary asset by its public_id
- */
 async function deleteFromCloudinary(publicId) {
     return cloudinary.uploader.destroy(publicId);
 }

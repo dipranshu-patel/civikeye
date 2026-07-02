@@ -2,8 +2,6 @@
 
 const { query } = require("../../shared/db/query");
 
-// ─── Dashboard stats ──────────────────────────────────────────────────────────
-
 async function getDashboardStats() {
     const sql = `
         SELECT
@@ -32,8 +30,6 @@ async function getDeptCounts() {
     return rows[0];
 }
 
-// ─── Recent activity (last N audit log entries for dashboard) ─────────────────
-
 async function getRecentActivity(limit = 8) {
     const sql = `
         SELECT
@@ -54,8 +50,6 @@ async function getRecentActivity(limit = 8) {
     return rows;
 }
 
-// ─── Audit log summary cards ──────────────────────────────────────────────────
-
 async function getAuditLogSummary() {
     const sql = `
         SELECT
@@ -68,8 +62,6 @@ async function getAuditLogSummary() {
     const { rows } = await query(sql);
     return rows[0];
 }
-
-// ─── Audit log list (paginated + filtered) ────────────────────────────────────
 
 async function findAuditLogs({ search, action, entityType, dateFrom, dateTo, page, limit }) {
     const conditions = [];
@@ -136,8 +128,6 @@ async function findAuditLogs({ search, action, entityType, dateFrom, dateTo, pag
     const { rows } = await query(sql, values);
     return rows;
 }
-
-// ─── Single audit log detail ──────────────────────────────────────────────────
 
 async function findAuditLogById(id) {
     const sql = `

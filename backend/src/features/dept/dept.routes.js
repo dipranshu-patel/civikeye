@@ -7,10 +7,8 @@ const { uploadPhotos, handleUploadError } = require("../../shared/middlewares/up
 
 const router = Router();
 
-// All dept routes require a valid official token with a deptId
 router.use(requireAuth, requireRole("official"));
 
-// Guard: ensure departmentId is present in the token
 router.use((req, _res, next) => {
     if (!req.user.departmentId) {
         const AppError = require("../../shared/utils/app-error");
@@ -24,7 +22,7 @@ router.get("/complaints",               controller.getComplaints);
 router.get("/complaints/:id",           controller.getComplaintDetail);
 router.patch(
     "/complaints/:id/status",
-    uploadPhotos, handleUploadError,     // optional work photos
+    uploadPhotos, handleUploadError,  
     controller.updateComplaintStatus,
 );
 

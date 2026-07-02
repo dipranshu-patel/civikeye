@@ -5,7 +5,9 @@ function sendSuccess(res, data, status = 200) {
 }
 
 function sendError(res, code, message, status = 500) {
-    return res.status(status).json({ success: false, error: { code, message } });
+    return res
+        .status(status)
+        .json({ success: false, error: { code, message } });
 }
 
 module.exports = { sendSuccess, sendError };

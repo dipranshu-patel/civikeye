@@ -1,6 +1,3 @@
--- Complaint upvotes — one upvote per citizen per complaint (toggle)
--- Denormalized count is maintained in complaints.upvote_count
-
 CREATE TABLE IF NOT EXISTS complaint_upvotes (
     complaint_id  UUID        NOT NULL
                               REFERENCES complaints (id) ON DELETE CASCADE,

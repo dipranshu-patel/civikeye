@@ -79,6 +79,50 @@ const resetPasswordLimiter = rateLimit({
     ),
 });
 
+const reportLimiter = rateLimit({
+    windowMs: ONE_HOUR_MS,
+    max: 50,              // for production - 5
+    standardHeaders: true,
+    legacyHeaders: false,
+    handler: makeHandler(
+        "TOO_MANY_REPORTS",
+        "You have filed too many complaints this hour. Please try again later.",
+    ),
+});
+
+const upvoteLimiter = rateLimit({
+    windowMs: ONE_HOUR_MS,
+    max: 200,             // for production - 30
+    standardHeaders: true,
+    legacyHeaders: false,
+    handler: makeHandler(
+        "TOO_MANY_UPVOTES",
+        "Too many upvote actions this hour. Please try again later.",
+    ),
+});
+
+const verifyLimiter = rateLimit({
+    windowMs: ONE_HOUR_MS,
+    max: 200,             // for production - 20
+    standardHeaders: true,
+    legacyHeaders: false,
+    handler: makeHandler(
+        "TOO_MANY_VERIFICATIONS",
+        "Too many verification votes this hour. Please try again later.",
+    ),
+});
+
+const claimLimiter = rateLimit({
+    windowMs: ONE_HOUR_MS,
+    max: 100,             // for production - 10
+    standardHeaders: true,
+    legacyHeaders: false,
+    handler: makeHandler(
+        "TOO_MANY_CLAIMS",
+        "Too many task claims this hour. Please try again later.",
+    ),
+});
+
 module.exports = {
     sendOtpLimiter,
     verifyOtpLimiter,
@@ -86,4 +130,8 @@ module.exports = {
     registerLimiter,
     forgotPasswordLimiter,
     resetPasswordLimiter,
+    reportLimiter,
+    upvoteLimiter,
+    verifyLimiter,
+    claimLimiter,
 };

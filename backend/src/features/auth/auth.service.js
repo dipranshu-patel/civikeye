@@ -115,7 +115,6 @@ async function login({ email, password }) {
         );
     }
 
-    // For department officials, embed their deptId in the token
     let deptId = null;
     if (user.role === "official") {
         const dept = await repo.findDepartmentByUserId(user.id);
