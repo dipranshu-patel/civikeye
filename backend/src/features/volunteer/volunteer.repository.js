@@ -176,6 +176,7 @@ async function submitTaskCompletion({ taskId, volunteerId, note, proofFile }) {
         if (!assignment) return { error: "ASSIGNMENT_NOT_FOUND" };
         if (assignment.status !== "active") return { error: "ASSIGNMENT_NOT_ACTIVE" };
 
+
         // Update assignment
         await client.query(
             `UPDATE volunteer_task_assignments
@@ -404,7 +405,7 @@ async function getLeaderboard({ page, limit }) {
             RANK() OVER (ORDER BY SUM(con.points) DESC)::INT     AS rank,
             u.id,
             u.full_name,
-            u.show_real_name,
+            COALESCE(up.appear_on_leaderboard, TRUE)             AS appear_on_leaderboard,
             SUM(con.points)::INT                                  AS total_points,
             COUNT(DISTINCT vta.id) FILTER (WHERE vta.status = 'completed')::INT AS completed_fixes,
             ROUND(
@@ -414,11 +415,12 @@ async function getLeaderboard({ page, limit }) {
             )                                                     AS verify_rate_pct,
             COUNT(*) OVER ()::INT                                 AS total_count
         FROM contributions con
-        JOIN users u ON u.id = con.user_id
+        JOIN users u ON u.id = con.user_id AND u.is_deleted = FALSE
+        LEFT JOIN user_preferences             up  ON up.user_id       = u.id
         LEFT JOIN volunteer_task_assignments vta ON vta.volunteer_id = u.id
         LEFT JOIN complaint_verifications cv ON cv.verifier_id = u.id
         LEFT JOIN complaints c2 ON c2.id = cv.complaint_id
-        GROUP BY u.id, u.full_name, u.show_real_name
+        GROUP BY u.id, u.full_name, up.appear_on_leaderboard
         ORDER BY SUM(con.points) DESC
         LIMIT $1 OFFSET $2;
     `;
@@ -500,17 +502,6 @@ async function finalizeTaskOnResolution(client, complaintId) {
     return { volunteerId: volunteer_id, taskId: task_id, pointsAwarded: POINTS.community_fix };
 }
 
-// ─── Toggle leaderboard privacy ───────────────────────────────────────────────
-
-async function togglePrivacy(userId) {
-    const { rows } = await query(
-        `UPDATE users SET show_real_name = NOT show_real_name WHERE id = $1
-         RETURNING show_real_name`,
-        [userId],
-    );
-    return rows[0]?.show_real_name ?? null;
-}
-
 module.exports = {
     createVolunteerTask,
     findOpenTasks,
@@ -524,6 +515,5 @@ module.exports = {
     getLeaderboard,
     awardPoints,
     finalizeTaskOnResolution,
-    togglePrivacy,
     POINTS,
 };

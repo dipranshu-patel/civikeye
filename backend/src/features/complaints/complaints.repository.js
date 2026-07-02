@@ -22,13 +22,17 @@ const COMPLAINT_COLS = `
     c.id,
     c.public_code,
     c.reporter_id,
+    CASE
+        WHEN COALESCE(up_r.show_name_on_complaints, TRUE) = TRUE THEN u_r.full_name
+        ELSE 'Anonymous'
+    END                   AS reporter_name,
     c.title,
     c.description,
     c.category_id,
-    cat.name          AS category_name,
+    cat.name              AS category_name,
     c.department_id,
-    d.name            AS department_name,
-    d.code            AS department_code,
+    d.name                AS department_name,
+    d.code                AS department_code,
     c.issue_type,
     c.status,
     c.address_text,
@@ -46,8 +50,10 @@ const COMPLAINT_COLS = `
 
 const COMPLAINT_JOINS = `
     FROM complaints c
-    JOIN sla_categories cat ON cat.id = c.category_id
-    JOIN departments    d   ON d.id   = c.department_id
+    JOIN sla_categories  cat   ON cat.id  = c.category_id
+    JOIN departments     d     ON d.id    = c.department_id
+    LEFT JOIN users              u_r   ON u_r.id  = c.reporter_id
+    LEFT JOIN user_preferences   up_r  ON up_r.user_id = c.reporter_id
 `;
 
 // ─── Insert ───────────────────────────────────────────────────────────────────

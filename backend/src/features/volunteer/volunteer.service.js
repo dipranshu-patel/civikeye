@@ -130,13 +130,6 @@ async function getLeaderboard({ page = 1, limit = 20 }) {
     };
 }
 
-// ─── Toggle privacy ───────────────────────────────────────────────────────────
-
-async function togglePrivacy(userId) {
-    const showRealName = await repo.togglePrivacy(userId);
-    return { showRealName };
-}
-
 // ─── Formatters ───────────────────────────────────────────────────────────────
 
 function formatTaskCard(row) {
@@ -194,28 +187,18 @@ function formatMyTaskCard(row, tab) {
 }
 
 function formatLeaderboardEntry(row) {
-    const displayName = row.show_real_name
-        ? row.full_name
-        : maskName(row.full_name, row.id);
+    const displayName = row.appear_on_leaderboard
+        ? (row.full_name ?? "Anonymous")
+        : "Anonymous";
 
     return {
-        rank:            row.rank,
+        rank:           row.rank,
         displayName,
-        isAnonymous:     !row.show_real_name,
-        totalPoints:     row.total_points    ?? 0,
-        completedFixes:  row.completed_fixes ?? 0,
-        verifyRatePct:   row.verify_rate_pct ? parseFloat(row.verify_rate_pct) : null,
+        isAnonymous:    !row.appear_on_leaderboard,
+        totalPoints:    row.total_points    ?? 0,
+        completedFixes: row.completed_fixes ?? 0,
+        verifyRatePct:  row.verify_rate_pct ? parseFloat(row.verify_rate_pct) : null,
     };
-}
-
-function maskName(fullName, userId) {
-    // e.g. "Aarav Mehta" → "AM·a4f2"
-    const initials = (fullName ?? "??")
-        .split(" ")
-        .map((w) => w[0]?.toUpperCase() ?? "?")
-        .slice(0, 2)
-        .join("");
-    return `${initials}·${userId.slice(0, 4)}`;
 }
 
 module.exports = {
@@ -225,5 +208,4 @@ module.exports = {
     getMyTasks,
     getImpact,
     getLeaderboard,
-    togglePrivacy,
 };
