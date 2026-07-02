@@ -27,7 +27,6 @@ function validateCreateDepartment(body) {
         }
     }
 
-    // Password is required on creation
     if (!body.password || typeof body.password !== "string") {
         errors.push({ field: "password", message: "A department password is required." });
     } else if (body.password.length < 8) {

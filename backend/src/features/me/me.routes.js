@@ -8,20 +8,16 @@ const verificationsController = require("../verifications/verifications.controll
 const router = Router();
 router.use(requireAuth);
 
-// ─── Profile ──────────────────────────────────────────────────────────────────
 router.get("/",              controller.getProfile);
 router.patch("/profile",     controller.updateProfile);
 router.patch("/location",    controller.updateLocation);
 
-// ─── Preferences ──────────────────────────────────────────────────────────────
 router.get("/preferences",   controller.getPreferences);
 router.patch("/preferences", controller.updatePreferences);
 
-// ─── Account actions ──────────────────────────────────────────────────────────
 router.post("/change-password", controller.changePassword);
 router.delete("/account",       controller.deleteAccount);
 
-// ─── Verifications (existing) ─────────────────────────────────────────────────
 router.get("/verifications", requireUserLocation, verificationsController.getMyVerifications);
 
 module.exports = router;

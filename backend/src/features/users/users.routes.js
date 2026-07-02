@@ -7,8 +7,6 @@ const service        = require("../me/me.service");
 
 const router = Router();
 
-// GET /api/users/:id/profile — public, no auth required
-// Returns a privacy-filtered citizen/volunteer public profile
 router.get("/:id/profile", asyncHandler(async (req, res) => {
     const data = await service.getPublicProfile(req.params.id);
     return sendSuccess(res, { profile: data });

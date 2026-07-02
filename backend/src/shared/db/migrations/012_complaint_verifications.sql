@@ -1,7 +1,3 @@
--- Community verification votes
--- One vote per citizen per complaint; enforced by UNIQUE constraint.
--- vote: 'confirm' = resolution looks good | 'reject' = issue still present
-
 CREATE TABLE IF NOT EXISTS complaint_verifications (
     id            UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
     complaint_id  UUID        NOT NULL

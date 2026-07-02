@@ -1,7 +1,3 @@
--- Complaints main table
--- category_id → sla_categories (admin-managed, carries department_id + sla_duration_days)
--- public_code auto-generated: CE-XXXX via sequence
-
 CREATE SEQUENCE IF NOT EXISTS complaint_code_seq START 1;
 
 CREATE TABLE IF NOT EXISTS complaints (
@@ -43,7 +39,6 @@ CREATE INDEX IF NOT EXISTS idx_complaints_reporter    ON complaints (reporter_id
 CREATE INDEX IF NOT EXISTS idx_complaints_sla         ON complaints (sla_deadline);
 CREATE INDEX IF NOT EXISTS idx_complaints_code        ON complaints (public_code);
 
--- Auto-update updated_at
 CREATE OR REPLACE FUNCTION set_complaint_updated_at()
 RETURNS TRIGGER AS $$
 BEGIN

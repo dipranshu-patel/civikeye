@@ -1,7 +1,3 @@
--- Volunteer tasks — one task per community_fixable complaint
--- Auto-created when a community_fixable complaint is filed.
--- status: open → claimed → pending_verification → completed
-
 CREATE SEQUENCE IF NOT EXISTS volunteer_task_code_seq START 1;
 
 CREATE TABLE IF NOT EXISTS volunteer_tasks (

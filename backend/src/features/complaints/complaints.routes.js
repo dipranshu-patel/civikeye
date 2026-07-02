@@ -4,6 +4,11 @@ const { Router } = require("express");
 const controller  = require("./complaints.controller");
 const { requireAuth, requireRole } = require("../../shared/middlewares/auth.middleware");
 const { uploadPhotos, handleUploadError } = require("../../shared/middlewares/upload.middleware");
+const {
+    reportLimiter,
+    upvoteLimiter,
+    verifyLimiter,
+} = require("../../shared/middlewares/rate-limit.middleware");
 
 // ─── Optional auth — sets req.user if token present, doesn't block if absent ─
 function optionalAuth(req, _res, next) {
@@ -34,10 +39,10 @@ authRouter.use(requireAuth, requireRole("citizen"));
 const { requireUserLocation } = require("../../shared/middlewares/auth.middleware");
 const verifyController = require("../verifications/verifications.controller");
 
-authRouter.post("/",              uploadPhotos, handleUploadError, controller.createComplaint);
-authRouter.post("/:id/upvote",    controller.addUpvote);
-authRouter.delete("/:id/upvote",  controller.removeUpvote);
-authRouter.post("/:id/verify",    requireUserLocation, verifyController.castVote);
+authRouter.post("/",              reportLimiter, uploadPhotos, handleUploadError, controller.createComplaint);
+authRouter.post("/:id/upvote",    upvoteLimiter, controller.addUpvote);
+authRouter.delete("/:id/upvote",  upvoteLimiter, controller.removeUpvote);
+authRouter.post("/:id/verify",    verifyLimiter, requireUserLocation, verifyController.castVote);
 
 // ─── /api/me routes (citizen dashboard + my complaints) ──────────────────────
 const meRouter = Router();

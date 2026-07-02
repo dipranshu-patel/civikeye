@@ -1,18 +1,17 @@
 "use strict";
 
-const path     = require("path");
-const fs       = require("fs");
+const path = require("path");
+const fs = require("fs");
 const { Pool } = require("pg");
 require("dotenv").config({ path: path.resolve(__dirname, "../../../.env") });
 
-// ─── DB connection ─────────────────────────────────────────────────────────────
 const pool = new Pool({
-    host:     process.env.DB_HOST,
-    port:     Number(process.env.DB_PORT) || 5432,
+    host: process.env.DB_HOST,
+    port: Number(process.env.DB_PORT) || 5432,
     database: process.env.DB_NAME,
-    user:     process.env.DB_USER,
+    user: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
-    ssl:      process.env.DB_SSL === "true" ? { rejectUnauthorized: false } : false,
+    ssl: process.env.DB_SSL === "true" ? { rejectUnauthorized: false } : false,
 });
 
 const MIGRATIONS_DIR = path.join(__dirname, "migrations");
@@ -21,7 +20,6 @@ async function run() {
     const client = await pool.connect();
 
     try {
-        // 1. Ensure the tracking table exists
         await client.query(`
             CREATE TABLE IF NOT EXISTS schema_migrations (
                 filename   TEXT        PRIMARY KEY,
@@ -29,13 +27,11 @@ async function run() {
             );
         `);
 
-        // 2. Load already-applied filenames
         const { rows: applied } = await client.query(
             "SELECT filename FROM schema_migrations ORDER BY filename",
         );
         const appliedSet = new Set(applied.map((r) => r.filename));
 
-        // 3. Read + sort migration files (alphabetical = numerical order via 001_, 002_, …)
         const files = fs
             .readdirSync(MIGRATIONS_DIR)
             .filter((f) => f.endsWith(".sql"))
@@ -50,12 +46,11 @@ async function run() {
 
         console.log(`${pending.length} pending migration(s):`);
 
-        // 4. Run each pending file in its own transaction
         for (const filename of pending) {
             const filePath = path.join(MIGRATIONS_DIR, filename);
-            const sql      = fs.readFileSync(filePath, "utf8");
+            const sql = fs.readFileSync(filePath, "utf8");
 
-            process.stdout.write(`  Running ${filename} ... `);
+            process.stdout.write(`Running ${filename}...`);
 
             try {
                 await client.query("BEGIN");
@@ -70,7 +65,7 @@ async function run() {
                 await client.query("ROLLBACK");
                 console.error(`\nFAILED: ${filename}`);
                 console.error(err.message);
-                process.exit(1); // stop on first failure
+                process.exit(1);
             }
         }
 

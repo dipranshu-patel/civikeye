@@ -2,8 +2,6 @@
 
 const { query, withTransaction } = require("../../shared/db/query");
 
-// ─── Find user ────────────────────────────────────────────────────────────────
-
 async function findUserById(userId) {
     const { rows } = await query(
         `SELECT id, full_name, email, role, latitude, longitude,
@@ -15,8 +13,6 @@ async function findUserById(userId) {
     );
     return rows[0] ?? null;
 }
-
-// ─── Update profile (name + email) ───────────────────────────────────────────
 
 async function updateProfile(userId, { fullName, email }) {
     const fields = [];
@@ -36,8 +32,6 @@ async function updateProfile(userId, { fullName, email }) {
     return rows[0] ?? null;
 }
 
-// ─── Update location ──────────────────────────────────────────────────────────
-
 async function updateUserLocation(userId, { latitude, longitude }, client = null) {
     const q = client
         ? (sql, params) => client.query(sql, params)
@@ -52,8 +46,6 @@ async function updateUserLocation(userId, { latitude, longitude }, client = null
     return rows[0] ?? null;
 }
 
-// ─── Preferences (upsert on first access) ─────────────────────────────────────
-
 async function findOrCreatePreferences(userId) {
     const { rows } = await query(
         `INSERT INTO user_preferences (user_id)
@@ -66,12 +58,10 @@ async function findOrCreatePreferences(userId) {
 }
 
 async function updatePreferences(userId, fields) {
-    // Accept both camelCase (from request body) and snake_case (internal calls)
     const KEY_MAP = {
         showNameOnComplaints:    "show_name_on_complaints",
         appearOnLeaderboard:     "appear_on_leaderboard",
         showContributionHistory: "show_contribution_history",
-        // snake_case passthrough (for internal service callers)
         show_name_on_complaints:   "show_name_on_complaints",
         appear_on_leaderboard:     "appear_on_leaderboard",
         show_contribution_history: "show_contribution_history",
@@ -83,7 +73,6 @@ async function updatePreferences(userId, fields) {
 
     for (const [inputKey, dbCol] of Object.entries(KEY_MAP)) {
         if (fields[inputKey] !== undefined) {
-            // Avoid adding the same column twice when both forms present
             if (!setClauses.some(c => c.startsWith(dbCol))) {
                 setClauses.push(`${dbCol} = $${idx++}`);
                 values.push(Boolean(fields[inputKey]));
@@ -103,7 +92,6 @@ async function updatePreferences(userId, fields) {
         values,
     );
 
-    // Row might not exist yet — upsert then retry
     if (!rows.length) {
         await findOrCreatePreferences(userId);
         return updatePreferences(userId, fields);
@@ -111,8 +99,6 @@ async function updatePreferences(userId, fields) {
 
     return rows[0];
 }
-
-// ─── Contribution summary ─────────────────────────────────────────────────────
 
 async function getContributionSummary(userId) {
     const { rows } = await query(
@@ -137,8 +123,6 @@ async function getContributionSummary(userId) {
     return rows[0];
 }
 
-// ─── Change password ──────────────────────────────────────────────────────────
-
 async function updatePassword(userId, newHash) {
     const { rows } = await query(
         `UPDATE users
@@ -158,11 +142,8 @@ async function findPasswordHash(userId) {
     return rows[0]?.password_hash ?? null;
 }
 
-// ─── Soft delete account ──────────────────────────────────────────────────────
-
 async function softDeleteUser(userId) {
     return withTransaction(async (client) => {
-        // Anonymize user row
         await client.query(
             `UPDATE users
              SET full_name     = 'Deleted User',
@@ -176,19 +157,16 @@ async function softDeleteUser(userId) {
             [userId],
         );
 
-        // Delete all active refresh tokens (terminate sessions)
         await client.query(
             `DELETE FROM refresh_tokens WHERE user_id = $1`,
             [userId],
         );
 
-        // Delete all notifications
         await client.query(
             `DELETE FROM notifications WHERE user_id = $1`,
             [userId],
         );
 
-        // Delete preferences (CASCADE handles this, but explicit for clarity)
         await client.query(
             `DELETE FROM user_preferences WHERE user_id = $1`,
             [userId],
@@ -198,8 +176,6 @@ async function softDeleteUser(userId) {
     });
 }
 
-// ─── Check email uniqueness (for profile update) ─────────────────────────────
-
 async function isEmailTaken(email, excludeUserId) {
     const { rows } = await query(
         `SELECT id FROM users WHERE email = $1 AND id != $2 AND is_deleted = FALSE LIMIT 1`,
@@ -207,9 +183,6 @@ async function isEmailTaken(email, excludeUserId) {
     );
     return rows.length > 0;
 }
-
-// ─── Community verification status ───────────────────────────────────────────
-// Derived: TRUE if user has at least one completed volunteer task
 
 async function getCommunityVerificationStatus(userId) {
     const { rows } = await query(
@@ -222,8 +195,6 @@ async function getCommunityVerificationStatus(userId) {
     );
     return rows[0]?.is_verified_volunteer ?? false;
 }
-
-// ─── Public profile (anyone can view) ────────────────────────────────────────
 
 async function findPublicProfile(userId) {
     const { rows } = await query(

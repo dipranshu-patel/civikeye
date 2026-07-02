@@ -8,7 +8,6 @@ const {
 const asyncHandler = require("../../shared/utils/async-handler");
 const { sendSuccess } = require("../../shared/utils/respond");
 
-// POST /api/admin/departments
 const createDepartment = asyncHandler(async (req, res) => {
     const errors = validateCreateDepartment(req.body);
     if (errors.length > 0) {
@@ -23,31 +22,26 @@ const createDepartment = asyncHandler(async (req, res) => {
     return sendSuccess(res, { department: dept }, 201);
 });
 
-// GET /api/admin/departments
 const listAdminDepartments = asyncHandler(async (_req, res) => {
     const departments = await service.listAllDepartments();
     return sendSuccess(res, { departments });
 });
 
-// GET /api/departments
 const listCitizenDepartments = asyncHandler(async (_req, res) => {
     const departments = await service.listActiveDepartments();
     return sendSuccess(res, { departments });
 });
 
-// GET /api/departments/:id
 const getDepartment = asyncHandler(async (req, res) => {
     const dept = await service.getDepartmentById(req.params.id);
     return sendSuccess(res, { department: dept });
 });
 
-// PATCH /api/admin/departments/:id — toggle is_active
 const toggleDepartment = asyncHandler(async (req, res) => {
     const dept = await service.toggleDepartmentActive(req.params.id, req.user.userId);
     return sendSuccess(res, { department: dept });
 });
 
-// PATCH /api/admin/departments/:id/password — reset department password
 const resetDepartmentPassword = asyncHandler(async (req, res) => {
     const errors = validateResetDepartmentPassword(req.body);
     if (errors.length > 0) {

@@ -4,8 +4,6 @@ const repo     = require("./volunteer.repository");
 const AppError = require("../../shared/utils/app-error");
 const { minVotes, confirmThreshold } = require("../../config/verification");
 
-// ─── Discover ─────────────────────────────────────────────────────────────────
-
 async function discoverTasks({ search, page = 1, limit = 20 }) {
     page  = Math.max(1, parseInt(page)  || 1);
     limit = Math.min(50, parseInt(limit) || 20);
@@ -18,8 +16,6 @@ async function discoverTasks({ search, page = 1, limit = 20 }) {
         pagination: { page, limit, total },
     };
 }
-
-// ─── Claim task ───────────────────────────────────────────────────────────────
 
 async function claimTask({ taskId, volunteerId }) {
     const result = await repo.claimTask({ taskId, volunteerId });
@@ -44,8 +40,6 @@ async function claimTask({ taskId, volunteerId }) {
     };
 }
 
-// ─── Submit completion ────────────────────────────────────────────────────────
-
 async function submitTaskCompletion({ taskId, volunteerId, note, proofFile }) {
     const result = await repo.submitTaskCompletion({ taskId, volunteerId, note, proofFile });
 
@@ -66,8 +60,6 @@ async function submitTaskCompletion({ taskId, volunteerId, note, proofFile }) {
     };
 }
 
-// ─── My tasks ─────────────────────────────────────────────────────────────────
-
 async function getMyTasks({ volunteerId, tab }) {
     const VALID_TABS = ["active", "pending_verification", "completed"];
     const safeTab    = VALID_TABS.includes(tab) ? tab : "active";
@@ -87,8 +79,6 @@ async function getMyTasks({ volunteerId, tab }) {
         tasks: rows.map((r) => formatMyTaskCard(r, safeTab)),
     };
 }
-
-// ─── Impact ───────────────────────────────────────────────────────────────────
 
 async function getImpact(volunteerId) {
     const [stats, rank, city] = await Promise.all([
@@ -115,8 +105,6 @@ async function getImpact(volunteerId) {
     };
 }
 
-// ─── Leaderboard ─────────────────────────────────────────────────────────────
-
 async function getLeaderboard({ page = 1, limit = 20 }) {
     page  = Math.max(1, parseInt(page)  || 1);
     limit = Math.min(50, parseInt(limit) || 20);
@@ -129,8 +117,6 @@ async function getLeaderboard({ page = 1, limit = 20 }) {
         pagination: { page, limit, total },
     };
 }
-
-// ─── Formatters ───────────────────────────────────────────────────────────────
 
 function formatTaskCard(row) {
     return {

@@ -5,7 +5,6 @@ const { validateCreateSlaCategory, validateUpdateSlaCategory } = require("./sla.
 const asyncHandler = require("../../shared/utils/async-handler");
 const { sendSuccess } = require("../../shared/utils/respond");
 
-// POST /api/admin/sla-categories
 const createSlaCategory = asyncHandler(async (req, res) => {
     const errors = validateCreateSlaCategory(req.body);
     if (errors.length > 0) {
@@ -20,13 +19,11 @@ const createSlaCategory = asyncHandler(async (req, res) => {
     return sendSuccess(res, { category }, 201);
 });
 
-// GET /api/admin/sla-categories
 const listAdminSlaCategories = asyncHandler(async (_req, res) => {
     const result = await service.listAllSlaCategories();
     return sendSuccess(res, result);
 });
 
-// PATCH /api/admin/sla-categories/:id
 const updateSlaCategory = asyncHandler(async (req, res) => {
     const errors = validateUpdateSlaCategory(req.body);
     if (errors.length > 0) {
@@ -37,7 +34,6 @@ const updateSlaCategory = asyncHandler(async (req, res) => {
     return sendSuccess(res, { category });
 });
 
-// GET /api/sla-categories
 const listPublicSlaCategories = asyncHandler(async (_req, res) => {
     const categories = await service.listPublicSlaCategories();
     return sendSuccess(res, { categories });

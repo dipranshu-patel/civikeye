@@ -1,5 +1,3 @@
--- Complaint photos (Cloudinary hosted, max 4 per complaint)
-
 CREATE TABLE IF NOT EXISTS complaint_photos (
     id            UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
     complaint_id  UUID        NOT NULL

@@ -1,7 +1,3 @@
--- Volunteer task assignments — who claimed what
--- UNIQUE (task_id, volunteer_id) prevents double-claiming
--- proof_photo_url / proof_public_id — Cloudinary uploaded before submitting resolution
-
 CREATE TABLE IF NOT EXISTS volunteer_task_assignments (
     id              UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
     task_id         UUID        NOT NULL

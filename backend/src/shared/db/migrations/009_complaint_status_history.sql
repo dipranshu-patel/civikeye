@@ -1,6 +1,3 @@
--- Complaint status history (powers the timeline in the detail modal)
--- from_status NULL = initial creation entry
-
 CREATE TABLE IF NOT EXISTS complaint_status_history (
     id            UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
     complaint_id  UUID        NOT NULL

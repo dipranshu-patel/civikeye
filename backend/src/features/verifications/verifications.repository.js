@@ -6,15 +6,11 @@ const { minVotesCommunity, minVotesAuthority,
 const { notify, notifyPriorVerifiers,
         notifyNearbyCitizens }                        = require("../../shared/utils/notify");
 
-// Re-export so service can reference them in response payloads
 const MIN_VOTES_COMMUNITY = minVotesCommunity;
 const MIN_VOTES_AUTHORITY = minVotesAuthority;
 const CONFIRM_THRESHOLD   = confirmThreshold;
 const RADIUS_KM           = radiusKm;
 
-// Haversine distance expression (SQL, in km)
-// u_lat / u_lon = verifier's registered location
-// c_lat / c_lon = complaint location
 const DISTANCE_KM_SQL = (uLat, uLon, cLat, cLon) => `
     6371.0 * 2 * ASIN(SQRT(
         POWER(SIN(RADIANS((${cLat}) - (${uLat})) / 2), 2) +
@@ -22,11 +18,6 @@ const DISTANCE_KM_SQL = (uLat, uLon, cLat, cLon) => `
         POWER(SIN(RADIANS((${cLon}) - (${uLon})) / 2), 2)
     ))
 `;
-
-// ─── Summary cards ────────────────────────────────────────────────────────────
-// pending_count  = complaints in pending_verification within 2km, not reporter, not voted
-// completed      = total votes cast by this user
-// approval_accuracy = % of user's confirm votes where complaint eventually resolved
 
 async function getVerificationSummary(userId, userLat, userLon) {
     const sql = `
@@ -70,8 +61,6 @@ async function getVerificationSummary(userId, userLat, userLon) {
     return rows[0];
 }
 
-// ─── Pending verifications (eligible, not yet voted, within 2km) ──────────────
-
 async function findPendingVerifications({ userId, userLat, userLon, filter, search }) {
     const conditions = [
         `c.status = 'pending_verification'`,
@@ -93,15 +82,12 @@ async function findPendingVerifications({ userId, userLat, userLon, filter, sear
         idx++;
     }
 
-    // Filter chip → ORDER BY
     let orderBy;
     switch (filter) {
         case "urgent":
-            // complaints with sla_deadline approaching or overdue
             orderBy = "c.sla_deadline ASC NULLS LAST";
             break;
         case "deadline_soon":
-            // verification_deadline closest first
             orderBy = "c.verification_deadline ASC";
             break;
         case "nearest":
@@ -158,8 +144,6 @@ async function findPendingVerifications({ userId, userLat, userLon, filter, sear
     return rows;
 }
 
-// ─── Verification history (votes already cast by this user) ───────────────────
-
 async function findVerificationHistory(userId) {
     const sql = `
         SELECT
@@ -197,8 +181,6 @@ async function findVerificationHistory(userId) {
     return rows;
 }
 
-// ─── Eligibility check ────────────────────────────────────────────────────────
-
 async function checkEligibility(complaintId, userId, userLat, userLon) {
     const sql = `
         SELECT
@@ -219,11 +201,8 @@ async function checkEligibility(complaintId, userId, userLat, userLon) {
     return rows[0] ?? null;
 }
 
-// ─── Cast vote (with eager resolution check) ──────────────────────────────────
-
 async function castVoteAndResolve({ complaintId, verifierId, vote, comment }) {
     return withTransaction(async (client) => {
-        // Insert vote
         const { rows: voteRows } = await client.query(
             `INSERT INTO complaint_verifications (complaint_id, verifier_id, vote, comment)
              VALUES ($1, $2, $3, $4)
@@ -232,7 +211,6 @@ async function castVoteAndResolve({ complaintId, verifierId, vote, comment }) {
         );
         const newVote = voteRows[0];
 
-        // Tally current votes + fetch complaint type in one query
         const { rows: tally } = await client.query(
             `SELECT
                 COUNT(*)::INT                                    AS total,
@@ -248,14 +226,12 @@ async function castVoteAndResolve({ complaintId, verifierId, vote, comment }) {
         const { total, confirms, issue_type } = tally[0];
         const ratio = total > 0 ? confirms / total : 0;
 
-        // Pick threshold based on who fixed the complaint
         const MIN_VOTES = issue_type === "community_fixable"
             ? MIN_VOTES_COMMUNITY
             : MIN_VOTES_AUTHORITY;
 
         let resolution = null;
 
-        // Eager resolution: trigger when MIN_VOTES reached
         if (total >= MIN_VOTES) {
             const newStatus = ratio >= CONFIRM_THRESHOLD ? "resolved" : "reopened";
 
@@ -282,7 +258,6 @@ async function castVoteAndResolve({ complaintId, verifierId, vote, comment }) {
             if (updated.length > 0) {
                 resolution = updated[0];
 
-                // Write status_history entry
                 await client.query(
                     `INSERT INTO complaint_status_history
                          (complaint_id, from_status, to_status, actor_role, note)
@@ -299,10 +274,8 @@ async function castVoteAndResolve({ complaintId, verifierId, vote, comment }) {
                 if (newStatus === "resolved") {
                     const volRepo = require("../volunteer/volunteer.repository");
 
-                    // Award +10 community_fix points to the volunteer who fixed it
                     await volRepo.finalizeTaskOnResolution(client, complaintId);
 
-                    // Award +10 report points to the citizen who originally reported this complaint
                     const { rows: reporterRows } = await client.query(
                         `SELECT reporter_id, title, public_code FROM complaints WHERE id = $1`,
                         [complaintId],
@@ -318,7 +291,6 @@ async function castVoteAndResolve({ complaintId, verifierId, vote, comment }) {
 
                         const { reporter_id, title, public_code } = reporterRows[0];
 
-                        // Event 5: COMPLAINT_RESOLVED → reporter
                         await notify(client, {
                             userId:     reporter_id,
                             type:       "COMPLAINT_RESOLVED",
@@ -329,7 +301,6 @@ async function castVoteAndResolve({ complaintId, verifierId, vote, comment }) {
                             entityId:   complaintId,
                         });
 
-                        // Event 7: REPORT_POINTS_EARNED → reporter
                         await notify(client, {
                             userId:     reporter_id,
                             type:       "REPORT_POINTS_EARNED",
@@ -341,7 +312,6 @@ async function castVoteAndResolve({ complaintId, verifierId, vote, comment }) {
                         });
                     }
 
-                    // Event 17: COMPLAINT_YOU_VERIFIED_RESOLVED → prior verifiers (bulk)
                     await notifyPriorVerifiers(client, {
                         complaintId, excludeVerifierId: verifierId,
                         type:       "COMPLAINT_YOU_VERIFIED_RESOLVED",
@@ -353,9 +323,6 @@ async function castVoteAndResolve({ complaintId, verifierId, vote, comment }) {
                     });
 
                 } else {
-                    // newStatus === 'reopened'
-
-                    // Get reporter + location details for notifications
                     const { rows: compRows } = await client.query(
                         `SELECT reporter_id, title, public_code, latitude, longitude, issue_type
                          FROM complaints WHERE id = $1`,
@@ -363,7 +330,6 @@ async function castVoteAndResolve({ complaintId, verifierId, vote, comment }) {
                     );
 
                     if (compRows[0]?.reporter_id) {
-                        // Event 6: COMPLAINT_REOPENED → reporter
                         await notify(client, {
                             userId:     compRows[0].reporter_id,
                             type:       "COMPLAINT_REOPENED",
@@ -375,7 +341,6 @@ async function castVoteAndResolve({ complaintId, verifierId, vote, comment }) {
                         });
                     }
 
-                    // Event 13: FIX_REJECTED → volunteer + reset task so it can be claimed again
                     const { rows: assignRows } = await client.query(
                         `SELECT vta.volunteer_id, vta.id AS assignment_id, vt.id AS task_id
                          FROM volunteer_tasks vt
@@ -387,7 +352,6 @@ async function castVoteAndResolve({ complaintId, verifierId, vote, comment }) {
                     if (assignRows[0]) {
                         const { volunteer_id, assignment_id, task_id } = assignRows[0];
 
-                        // Cancel the rejected assignment
                         await client.query(
                             `UPDATE volunteer_task_assignments
                              SET status = 'cancelled', completed_at = NOW()
@@ -395,13 +359,11 @@ async function castVoteAndResolve({ complaintId, verifierId, vote, comment }) {
                             [assignment_id],
                         );
 
-                        // Reset the task back to open so a volunteer can try again
                         await client.query(
                             `UPDATE volunteer_tasks SET status = 'open' WHERE id = $1`,
                             [task_id],
                         );
 
-                        // Clear any existing verification votes so fresh count starts
                         await client.query(
                             `DELETE FROM complaint_verifications WHERE complaint_id = $1`,
                             [complaintId],
@@ -418,8 +380,6 @@ async function castVoteAndResolve({ complaintId, verifierId, vote, comment }) {
                         });
                     }
 
-                    // Event 18: COMPLAINT_YOU_VERIFIED_REOPENED → prior verifiers
-                    // Must run BEFORE deleting votes (uses complaint_verifications to find who voted)
                     await notifyPriorVerifiers(client, {
                         complaintId, excludeVerifierId: verifierId,
                         type:       "COMPLAINT_YOU_VERIFIED_REOPENED",
@@ -430,14 +390,12 @@ async function castVoteAndResolve({ complaintId, verifierId, vote, comment }) {
                         entityId:   complaintId,
                     });
 
-                    // Now safe to clear votes — fresh verification round after next fix attempt
                     if (assignRows[0]) {
                         await client.query(
                             `DELETE FROM complaint_verifications WHERE complaint_id = $1`,
                             [complaintId],
                         );
 
-                        // Re-notify nearby citizens so they know a task is available again
                         if (compRows[0]?.issue_type === "community_fixable") {
                             await notifyNearbyCitizens(client, {
                                 excludeUserId: compRows[0]?.reporter_id ?? verifierId,
@@ -456,7 +414,6 @@ async function castVoteAndResolve({ complaintId, verifierId, vote, comment }) {
             }
         }
 
-        // Award +5 verification points to voter (Phase 6)
         const volRepo = require("../volunteer/volunteer.repository");
         await volRepo.awardPoints(client, {
             userId:      verifierId,
@@ -466,7 +423,6 @@ async function castVoteAndResolve({ complaintId, verifierId, vote, comment }) {
             type:        "verification",
         });
 
-        // Event 16: VERIFICATION_POINTS_EARNED → verifier
         await notify(client, {
             userId:     verifierId,
             type:       "VERIFICATION_POINTS_EARNED",

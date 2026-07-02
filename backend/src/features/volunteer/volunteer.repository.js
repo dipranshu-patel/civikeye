@@ -4,14 +4,11 @@ const { query, withTransaction }                            = require("../../sha
 const { uploadBufferToCloudinary }                          = require("../../shared/middlewares/upload.middleware");
 const { notify, notifyNearbyCitizens }                      = require("../../shared/utils/notify");
 
-// ─── Points constants ─────────────────────────────────────────────────────────
 const POINTS = {
     community_fix: parseInt(process.env.POINTS_COMMUNITY_FIX ?? "25", 10),
     verification:  parseInt(process.env.POINTS_VERIFICATION  ?? "5",  10),
     report:        parseInt(process.env.POINTS_REPORT        ?? "10", 10),
 };
-
-// ─── Shared complaint+task column set ────────────────────────────────────────
 
 const TASK_COLS = `
     vt.id           AS task_id,
@@ -44,10 +41,6 @@ const TASK_JOINS = `
     JOIN sla_categories cat ON cat.id = c.category_id
 `;
 
-// ─── Auto-create volunteer_task when complaint filed ─────────────────────────
-
-// Auto-create volunteer_task when complaint filed
-// client = pg PoolClient (inside transaction) OR null (standalone)
 async function createVolunteerTask(client, complaintId) {
     const q = client ? client.query.bind(client) : query;
     const { rows } = await q(
@@ -57,8 +50,6 @@ async function createVolunteerTask(client, complaintId) {
     );
     return rows[0];
 }
-
-// ─── Discover — open tasks ────────────────────────────────────────────────────
 
 async function findOpenTasks({ search, page, limit }) {
     const conditions = [`vt.status = 'open'`, `c.status = 'reported'`];
@@ -87,11 +78,8 @@ async function findOpenTasks({ search, page, limit }) {
     return rows;
 }
 
-// ─── Claim task ───────────────────────────────────────────────────────────────
-
 async function claimTask({ taskId, volunteerId }) {
     return withTransaction(async (client) => {
-        // Lock + fetch task AND linked complaint details
         const { rows: taskRows } = await client.query(
             `SELECT vt.id, vt.status, vt.complaint_id,
                     c.issue_type,
@@ -112,18 +100,14 @@ async function claimTask({ taskId, volunteerId }) {
         if (!task)                                        return { error: "TASK_NOT_FOUND" };
         if (task.status !== "open")                       return { error: "TASK_NOT_OPEN" };
         if (task.already_claimed)                         return { error: "ALREADY_CLAIMED" };
-        // Guard: only community-fixable complaints are claimable
         if (task.issue_type !== "community_fixable")     return { error: "NOT_COMMUNITY_FIXABLE" };
-        // Guard: the original reporter cannot volunteer for their own complaint
         if (task.reporter_id === volunteerId)             return { error: "REPORTER_CANNOT_CLAIM" };
 
-        // Update task status → claimed
         await client.query(
             `UPDATE volunteer_tasks SET status = 'claimed' WHERE id = $1`,
             [taskId],
         );
 
-        // Create assignment
         const { rows: assignRows } = await client.query(
             `INSERT INTO volunteer_task_assignments (task_id, volunteer_id)
              VALUES ($1, $2)
@@ -131,7 +115,6 @@ async function claimTask({ taskId, volunteerId }) {
             [taskId, volunteerId],
         );
 
-        // Event 10: TASK_CLAIMED → volunteer
         await notify(client, {
             userId:     volunteerId,
             type:       "TASK_CLAIMED",
@@ -146,10 +129,7 @@ async function claimTask({ taskId, volunteerId }) {
     });
 }
 
-// ─── Submit completion (proof → pending_verification) ────────────────────────
-
 async function submitTaskCompletion({ taskId, volunteerId, note, proofFile }) {
-    // Upload proof photo to Cloudinary BEFORE transaction
     let proofUrl = null, proofPublicId = null;
     if (proofFile) {
         const uploaded = await uploadBufferToCloudinary(proofFile.buffer, {
@@ -160,7 +140,6 @@ async function submitTaskCompletion({ taskId, volunteerId, note, proofFile }) {
     }
 
     return withTransaction(async (client) => {
-        // Fetch assignment
         const { rows: assignRows } = await client.query(
             `SELECT vta.id, vta.status, vta.task_id,
                     vt.complaint_id, vt.status AS task_status
@@ -177,7 +156,6 @@ async function submitTaskCompletion({ taskId, volunteerId, note, proofFile }) {
         if (assignment.status !== "active") return { error: "ASSIGNMENT_NOT_ACTIVE" };
 
 
-        // Update assignment
         await client.query(
             `UPDATE volunteer_task_assignments
              SET status          = 'pending_verification',
@@ -189,13 +167,11 @@ async function submitTaskCompletion({ taskId, volunteerId, note, proofFile }) {
             [assignment.id, volunteerId, note ?? null, proofUrl, proofPublicId],
         );
 
-        // Move task → pending_verification
         await client.query(
             `UPDATE volunteer_tasks SET status = 'pending_verification' WHERE id = $1`,
             [taskId],
         );
 
-        // Move complaint → pending_verification + set verification window
         await client.query(
             `UPDATE complaints
              SET status                  = 'pending_verification',
@@ -205,7 +181,6 @@ async function submitTaskCompletion({ taskId, volunteerId, note, proofFile }) {
             [assignment.complaint_id],
         );
 
-        // Write status_history
         await client.query(
             `INSERT INTO complaint_status_history
                  (complaint_id, from_status, to_status, actor_id, actor_role, note)
@@ -213,14 +188,12 @@ async function submitTaskCompletion({ taskId, volunteerId, note, proofFile }) {
             [assignment.complaint_id, volunteerId, note ?? "Volunteer submitted resolution proof."],
         );
 
-        // Fetch complaint details for notifications
         const { rows: cRows } = await client.query(
             `SELECT reporter_id, title, latitude, longitude, public_code
              FROM complaints WHERE id = $1`, [assignment.complaint_id],
         );
         const comp = cRows[0];
 
-        // Event 11: TASK_SUBMITTED → volunteer
         await notify(client, {
             userId:     volunteerId,
             type:       "TASK_SUBMITTED",
@@ -232,7 +205,6 @@ async function submitTaskCompletion({ taskId, volunteerId, note, proofFile }) {
         });
 
         if (comp) {
-            // COMPLAINT_PENDING_VERIFICATION → reporter
             await notify(client, {
                 userId:     comp.reporter_id,
                 type:       "COMPLAINT_PENDING_VERIFICATION",
@@ -243,7 +215,6 @@ async function submitTaskCompletion({ taskId, volunteerId, note, proofFile }) {
                 entityId:   assignment.complaint_id,
             });
 
-            // COMPLAINT_ACTIVITY → reporter (if volunteer left a note)
             if (note?.trim()) {
                 const preview = note.trim().length > 100
                     ? note.trim().slice(0, 100) + "…"
@@ -260,7 +231,6 @@ async function submitTaskCompletion({ taskId, volunteerId, note, proofFile }) {
                 });
             }
 
-            // Event 15: VERIFICATION_NEEDED → nearby citizens (bulk)
             await notifyNearbyCitizens(client, {
                 excludeUserId: comp.reporter_id,
                 lat: parseFloat(comp.latitude),
@@ -277,8 +247,6 @@ async function submitTaskCompletion({ taskId, volunteerId, note, proofFile }) {
         return { assignmentId: assignment.id, complaintId: assignment.complaint_id, proofUrl };
     });
 }
-
-// ─── My tasks list ────────────────────────────────────────────────────────────
 
 async function findMyTasks({ volunteerId, tab }) {
     const TAB_ASSIGNMENT_STATUS = {
@@ -316,8 +284,6 @@ async function findMyTasks({ volunteerId, tab }) {
     return rows;
 }
 
-// ─── My tasks summary (tab badge counts) ─────────────────────────────────────
-
 async function getMyTasksSummary(volunteerId) {
     const sql = `
         SELECT
@@ -330,8 +296,6 @@ async function getMyTasksSummary(volunteerId) {
     const { rows } = await query(sql, [volunteerId]);
     return rows[0];
 }
-
-// ─── Impact stats ─────────────────────────────────────────────────────────────
 
 async function getImpactStats(volunteerId) {
     const sql = `
@@ -364,8 +328,6 @@ async function getImpactStats(volunteerId) {
     return rows[0] ?? null;
 }
 
-// ─── Volunteer rank ───────────────────────────────────────────────────────────
-
 async function getVolunteerRank(volunteerId) {
     const sql = `
         SELECT rank
@@ -381,8 +343,6 @@ async function getVolunteerRank(volunteerId) {
     return rows[0]?.rank ?? null;
 }
 
-// ─── City-wide impact ─────────────────────────────────────────────────────────
-
 async function getCityWideStats() {
     const sql = `
         SELECT
@@ -394,8 +354,6 @@ async function getCityWideStats() {
     const { rows } = await query(sql);
     return rows[0];
 }
-
-// ─── Leaderboard ─────────────────────────────────────────────────────────────
 
 async function getLeaderboard({ page, limit }) {
     const offset = (page - 1) * limit;
@@ -429,8 +387,6 @@ async function getLeaderboard({ page, limit }) {
     return rows;
 }
 
-// ─── Award contribution points ────────────────────────────────────────────────
-
 async function awardPoints(client, { userId, complaintId, taskId, points, type }) {
     const { rows } = await client.query(
         `INSERT INTO contributions (user_id, complaint_id, task_id, points, type)
@@ -441,10 +397,7 @@ async function awardPoints(client, { userId, complaintId, taskId, points, type }
     return rows[0];
 }
 
-// ─── Complete task after community verification resolves complaint ─────────────
-
 async function finalizeTaskOnResolution(client, complaintId) {
-    // Get the active assignment for this task
     const { rows } = await client.query(
         `SELECT vta.id AS assignment_id, vta.volunteer_id, vt.id AS task_id
          FROM volunteer_tasks vt
@@ -458,7 +411,6 @@ async function finalizeTaskOnResolution(client, complaintId) {
     if (!rows.length) return null;
     const { assignment_id, volunteer_id, task_id } = rows[0];
 
-    // Mark assignment + task completed
     await client.query(
         `UPDATE volunteer_task_assignments SET status = 'completed', completed_at = NOW() WHERE id = $1`,
         [assignment_id],
@@ -468,7 +420,6 @@ async function finalizeTaskOnResolution(client, complaintId) {
         [task_id],
     );
 
-    // Award +10 community_fix points to the volunteer
     await awardPoints(client, {
         userId:      volunteer_id,
         complaintId,
@@ -477,7 +428,6 @@ async function finalizeTaskOnResolution(client, complaintId) {
         type:        "community_fix",
     });
 
-    // Event 12: FIX_VERIFIED → volunteer
     await notify(client, {
         userId:     volunteer_id,
         type:       "FIX_VERIFIED",
@@ -488,7 +438,6 @@ async function finalizeTaskOnResolution(client, complaintId) {
         entityId:   task_id,
     });
 
-    // Event 14: COMMUNITY_FIX_POINTS_EARNED → volunteer
     await notify(client, {
         userId:     volunteer_id,
         type:       "COMMUNITY_FIX_POINTS_EARNED",

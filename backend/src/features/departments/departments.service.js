@@ -17,7 +17,6 @@ async function createDepartment({ name, email, category, description, password, 
         throw new AppError("MISSING_PASSWORD", "Department password is required.", 422);
     }
 
-    // Prevent slug collisions
     const slug = repo.slugify(trimmedName);
     const existing = await repo.findDepartmentBySlug(slug);
     if (existing) {
@@ -30,7 +29,6 @@ async function createDepartment({ name, email, category, description, password, 
 
     const passwordHash = await hashPassword(password);
 
-    // Transaction: create official user → create department linked to that user
     const { dept } = await withTransaction(async (client) => {
         const user = await insertUser({
             fullName:     trimmedName,
@@ -65,7 +63,6 @@ async function createDepartment({ name, email, category, description, password, 
         return { dept: rows[0], user };
     });
 
-    // Audit log (fire-and-forget)
     audit(null, {
         actorId,
         actorRole:  "admin",
@@ -94,7 +91,6 @@ async function resetDepartmentPassword(id, newPassword, actorId) {
 
     const passwordHash = await hashPassword(newPassword);
 
-    // Update both the department's own password_hash AND the linked user's password_hash
     await withTransaction(async (client) => {
         await client.query(
             `UPDATE departments SET password_hash = $2 WHERE id = $1`,
@@ -162,9 +158,6 @@ async function toggleDepartmentActive(id, actorId) {
 
     return formatDepartment(updated);
 }
-
-// ─── formatter ────────────────────────────────────────────────────────────────
-// password_hash is NEVER included here — it is stripped in the repository layer
 
 function formatDepartment(row) {
     return {

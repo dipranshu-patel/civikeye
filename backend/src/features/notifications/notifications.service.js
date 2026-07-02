@@ -3,8 +3,6 @@
 const repo     = require("./notifications.repository");
 const AppError = require("../../shared/utils/app-error");
 
-// ─── GET /api/notifications ───────────────────────────────────────────────────
-
 async function listNotifications({ userId, page = 1, limit = 20 }) {
     page  = Math.max(1, parseInt(page)  || 1);
     limit = Math.min(50, parseInt(limit) || 20);
@@ -22,14 +20,10 @@ async function listNotifications({ userId, page = 1, limit = 20 }) {
     };
 }
 
-// ─── GET /api/notifications/unread-count ─────────────────────────────────────
-
 async function getUnreadCount(userId) {
     const count = await repo.getUnreadCount(userId);
     return { count };
 }
-
-// ─── PATCH /api/notifications/:id/read ───────────────────────────────────────
 
 async function markOneRead({ notificationId, userId }) {
     const row = await repo.markOneRead({ notificationId, userId });
@@ -39,14 +33,10 @@ async function markOneRead({ notificationId, userId }) {
     return { id: row.id, isRead: row.is_read };
 }
 
-// ─── PATCH /api/notifications/read-all ───────────────────────────────────────
-
 async function markAllRead(userId) {
     const count = await repo.markAllRead(userId);
     return { markedRead: count };
 }
-
-// ─── Formatter ────────────────────────────────────────────────────────────────
 
 function formatNotification(row) {
     return {

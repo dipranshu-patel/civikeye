@@ -15,15 +15,15 @@ const {
 } = require("./features/sla/sla.routes");
 const {
     publicRouter: complaintsPublicRoutes,
-    authRouter:   complaintsAuthRoutes,
-    meRouter:     complaintsMeRoutes,
+    authRouter: complaintsAuthRoutes,
+    meRouter: complaintsMeRoutes,
 } = require("./features/complaints/complaints.routes");
-const deptRoutes           = require("./features/dept/dept.routes");
-const volunteerRoutes       = require("./features/volunteer/volunteer.routes");
-const notificationRoutes    = require("./features/notifications/notifications.routes");
-const adminRoutes           = require("./features/admin/admin.routes");
-const usersRoutes           = require("./features/users/users.routes");
-const errorMiddleware       = require("./shared/middlewares/error.middleware");
+const deptRoutes = require("./features/dept/dept.routes");
+const volunteerRoutes = require("./features/volunteer/volunteer.routes");
+const notificationRoutes = require("./features/notifications/notifications.routes");
+const adminRoutes = require("./features/admin/admin.routes");
+const usersRoutes = require("./features/users/users.routes");
+const errorMiddleware = require("./shared/middlewares/error.middleware");
 const {
     globalLimiter,
 } = require("./shared/middlewares/global-rate-limit.middleware");
@@ -44,11 +44,11 @@ app.use("/api/departments", deptCitizenRoutes);
 app.use("/api/sla-categories", slaPublicRoutes);
 app.use("/api/complaints", complaintsPublicRoutes);
 app.use("/api/complaints", complaintsAuthRoutes);
-app.use("/api/dept",          deptRoutes);
-app.use("/api/volunteer",     volunteerRoutes);
+app.use("/api/dept", deptRoutes);
+app.use("/api/volunteer", volunteerRoutes);
 app.use("/api/notifications", notificationRoutes);
-app.use("/api/admin",         adminRoutes);
-app.use("/api/users",         usersRoutes);
+app.use("/api/admin", adminRoutes);
+app.use("/api/users", usersRoutes);
 app.use((_req, res) => {
     res.status(404).json({
         success: false,

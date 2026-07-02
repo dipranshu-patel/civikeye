@@ -1,9 +1,3 @@
--- Contributions points ledger
--- Immutable append-only log: one row per points-earning event.
--- type: report           = complaint filed and later resolved (+10)
---       verification     = cast a community verification vote (+5)
---       community_fix    = volunteer task community-verified complete (+10)
-
 CREATE TABLE IF NOT EXISTS contributions (
     id            UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id       UUID        NOT NULL
