@@ -3,6 +3,9 @@ import MainLayout from "../components/layout/MainLayout";
 import HomePage from "../pages/public/HomePage";
 import HowItWorksPage from "../pages/public/HowItWorksPage";
 import AboutPage from "../pages/public/AboutPage";
+import PrivacyPolicyPage from "../pages/public/PrivacyPolicyPage";
+import TermsOfServicePage from "../pages/public/TermsOfServicePage";
+import FAQPage from "../pages/public/FAQPage";
 import RegisterPage from "../pages/auth/RegisterPage";
 import LoginPage from "../pages/auth/LoginPage";
 import ForgotPasswordPage from "../pages/auth/ForgotPassword";
@@ -47,6 +50,18 @@ const router = createBrowserRouter([
             {
                 path: "/about",
                 element: <AboutPage />,
+            },
+            {
+                path: "/privacy",
+                element: <PrivacyPolicyPage />,
+            },
+            {
+                path: "/terms",
+                element: <TermsOfServicePage />,
+            },
+            {
+                path: "/faqs",
+                element: <FAQPage />,
             },
         ],
     },

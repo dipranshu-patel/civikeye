@@ -51,7 +51,7 @@ export default function ProblemSection() {
                 <div className="bg-white border border-gray-200/80 rounded-2xl p-7 shadow-[0_2px_12px_-4px_rgba(0,0,0,0.04)]">
 
                     {/* Card header row */}
-                    <div className="flex items-center justify-between mb-7">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 sm:gap-0 mb-7">
                         <p className="font-[var(--font-inter)] text-[11px] font-bold text-gray-400 tracking-widest uppercase">
                             Typical Complaint Lifecycle
                         </p>
@@ -64,7 +64,8 @@ export default function ProblemSection() {
                     </div>
 
                     {/* Steps */}
-                    <div className="flex items-start mb-7">
+                    <div className="w-full overflow-x-auto pb-4">
+                        <div className="flex items-start mb-2 min-w-[640px] md:min-w-0">
                         {lifecycleSteps.map(({ number, label, type }, i) => {
                             const cfg = stepConfig[type];
                             const Icon = cfg.icon;
@@ -87,6 +88,7 @@ export default function ProblemSection() {
                                 </React.Fragment>
                             );
                         })}
+                        </div>
                     </div>
 
                     {/* Legend row */}
