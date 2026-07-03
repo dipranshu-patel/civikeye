@@ -84,21 +84,23 @@ export default function Navbar() {
                         onClick={() => setMobileOpen((prev) => !prev)}
                         className="font-[var(--font-inter)] md:hidden inline-flex items-center justify-center p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors duration-150"
                     >
-                        {mobileOpen ? (
-                            <X className="h-5 w-5" />
-                        ) : (
-                            <Menu className="h-5 w-5" />
-                        )}
+                        <div className="relative w-5 h-5 flex items-center justify-center">
+                            <Menu className={`absolute w-5 h-5 transition-all duration-300 ${mobileOpen ? 'opacity-0 scale-50 rotate-90' : 'opacity-100 scale-100 rotate-0'}`} />
+                            <X className={`absolute w-5 h-5 transition-all duration-300 ${mobileOpen ? 'opacity-100 scale-100 rotate-0' : 'opacity-0 scale-50 -rotate-90'}`} />
+                        </div>
                     </button>
                 </div>
             </div>
 
             {/* ── Mobile menu panel ── */}
-            {mobileOpen && (
-                <div
-                    id="mobile-menu"
-                    className="md:hidden border-t border-gray-100 bg-white"
-                >
+            {/* ── Mobile menu panel ── */}
+            <div
+                id="mobile-menu"
+                className={`md:hidden grid transition-all duration-300 ease-in-out bg-white ${
+                    mobileOpen ? "grid-rows-[1fr] opacity-100 border-t border-gray-100" : "grid-rows-[0fr] opacity-0"
+                }`}
+            >
+                <div className="overflow-hidden">
                     <nav
                         aria-label="Mobile navigation"
                         className="flex flex-col px-4 py-4 gap-1"
@@ -141,7 +143,7 @@ export default function Navbar() {
                         </Link>
                     </nav>
                 </div>
-            )}
+            </div>
         </header>
     );
 }

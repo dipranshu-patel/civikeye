@@ -1,30 +1,26 @@
 import { useState } from "react";
-import { Plus, Minus } from "lucide-react";
+import { Plus } from "lucide-react";
 
 const faqData = [
     {
+        question: "What is CivikEye?",
+        answer: "CivikEye is a demo app that shows how citizens could report local civic problems like potholes, garbage, broken streetlights, and water issues. It demonstrates how a transparent complaint system could work, with community upvoting, volunteer participation, and accountability tracking. This is a demo project and is not connected to any real government."
+    },
+    {
+        question: "How do I get started?",
+        answer: "Sign up with your email and phone number, verify your identity, and you can immediately start reporting issues. Choose a location, describe the problem, upload a photo, and select the issue category. Your complaint will be visible to other demo users who can upvote or add comments."
+    },
+    {
         question: "How does CivikEye prevent fake or spam complaints?",
-        answer: "Citizens can submit only one complaint per location within a 50m radius, and nearby reports auto-suggest existing issues for upvoting instead of duplication. Resolutions require multi-citizen verification within a 2km radius — single actors cannot close issues unilaterally. Suspected spam is reviewed by administrators without changing public history."
+        answer: "The system only allows one complaint per location within a 50m radius — nearby reports automatically suggest existing issues for upvoting instead of duplication. Suspected spam is reviewed before being displayed. Users are encouraged to verify their identity to build trust."
     },
     {
-        question: "Who actually resolves issues — authorities or volunteers?",
-        answer: "Both. Authority-required issues are handled by departments, while community-fixable issues can be resolved by verified volunteers. Every resolution requires public verification."
+        question: "Can I report any type of issue?",
+        answer: "Yes, you can report any civic problem like roads, streetlights, water, garbage, sanitation, or parks. Simply select the category that best fits your issue and provide a clear description with a photo."
     },
     {
-        question: "How is authority accountability enforced?",
-        answer: "Every complaint receives an SLA deadline. Missed deadlines become publicly visible, and department performance metrics remain visible to all citizens."
-    },
-    {
-        question: "Which languages are supported?",
-        answer: "CivikEye supports English, Hindi, and additional regional languages through multilingual content and translation support."
-    },
-    {
-        question: "Can volunteers join freely?",
-        answer: "Yes. Citizens can volunteer for community-fixable issues and build public contribution records through successful verified resolutions."
-    },
-    {
-        question: "What about privacy and personal data?",
-        answer: "Personal information is protected while issue reports, status changes, verification activity, and accountability records remain publicly transparent."
+        question: "Who resolves issues in this demo?",
+        answer: "In the demo, either simulated \"departments\" or verified volunteers can mark issues as resolved. Every resolution requires verification from other users within the area to show how public accountability would work in a real system."
     }
 ];
 
@@ -58,30 +54,33 @@ export default function FAQSection() {
                     </div>
 
                     {/* ── Right Column (Accordion) ── */}
-                    <div className="flex-1">
-                        <div className="bg-white border border-gray-200/80 rounded-2xl shadow-[0_2px_12px_-4px_rgba(0,0,0,0.02)] overflow-hidden divide-y divide-gray-100">
+                    <div className="flex-1 mt-6 lg:mt-0">
+                        <div className="flex flex-col">
                             {faqData.map((faq, index) => {
                                 const isOpen = openIndex === index;
                                 return (
-                                    <div key={index} className="flex flex-col">
+                                    <div 
+                                        key={index} 
+                                        className="border-b border-dotted border-gray-300 last:border-b-0"
+                                    >
                                         <button
                                             onClick={() => toggleFAQ(index)}
-                                            className="flex items-center justify-between w-full text-left px-6 py-6 md:px-8 md:py-7 hover:bg-gray-50/50 transition-colors duration-200 focus:outline-none"
+                                            className="flex items-center w-full text-left py-4 md:py-5 hover:opacity-70 transition-opacity focus:outline-none"
                                             aria-expanded={isOpen}
                                         >
-                                            <span className="font-[var(--font-satoshi)] text-[17px] font-semibold text-gray-900 pr-8">
+                                            <div className="flex-shrink-0 w-6 flex items-center justify-start text-gray-400 mr-2 md:mr-3">
+                                                <Plus className={`w-[16px] h-[16px] transition-transform duration-300 ${isOpen ? 'rotate-45' : ''}`} strokeWidth={2.5} />
+                                            </div>
+                                            <span className="text-[15.5px] font-medium text-[#111]">
                                                 {faq.question}
                                             </span>
-                                            <div className="flex-shrink-0 w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center text-gray-500 bg-white">
-                                                {isOpen ? <Minus className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
-                                            </div>
                                         </button>
                                         <div
-                                            className={`grid transition-all duration-300 ease-in-out ${isOpen ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
+                                            className={`grid transition-all duration-300 ease-in-out ${isOpen ? "grid-rows-[1fr] opacity-100 mb-4 md:mb-5" : "grid-rows-[0fr] opacity-0"
                                                 }`}
                                         >
                                             <div className="overflow-hidden">
-                                                <p className="font-[var(--font-inter)] text-[15px] text-gray-500 leading-relaxed pb-6 md:pb-8 px-6 md:px-8">
+                                                <p className="text-[15px] text-gray-600 leading-relaxed pl-8 md:pl-9">
                                                     {faq.answer}
                                                 </p>
                                             </div>
