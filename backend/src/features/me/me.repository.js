@@ -184,6 +184,51 @@ async function isEmailTaken(email, excludeUserId) {
     return rows.length > 0;
 }
 
+async function createEmailChangeOtp(userId, newEmail, otp, expiresAt) {
+    await query(
+        `UPDATE email_change_otps SET verified = TRUE WHERE user_id = $1 AND verified = FALSE`,
+        [userId],
+    );
+    const { rows } = await query(
+        `INSERT INTO email_change_otps (user_id, new_email, otp, expires_at)
+         VALUES ($1, $2, $3, $4)
+         RETURNING id, user_id, new_email, otp, verified, attempts, expires_at, created_at`,
+        [userId, newEmail, otp, expiresAt],
+    );
+    return rows[0];
+}
+
+async function findPendingEmailChangeOtp(userId) {
+    const { rows } = await query(
+        `SELECT id, user_id, new_email, otp, verified, attempts, expires_at
+         FROM email_change_otps
+         WHERE user_id = $1
+           AND verified = FALSE
+           AND expires_at > NOW()
+         ORDER BY created_at DESC
+         LIMIT 1`,
+        [userId],
+    );
+    return rows[0] ?? null;
+}
+
+async function verifyEmailChangeOtp(otpId, otp) {
+    const { rows } = await query(
+        `UPDATE email_change_otps
+         SET
+           attempts = attempts + 1,
+           verified = CASE
+                        WHEN otp = $2 AND expires_at > NOW() AND verified = FALSE
+                        THEN TRUE
+                        ELSE verified
+                      END
+         WHERE id = $1
+         RETURNING id, user_id, new_email, otp, verified, attempts, expires_at`,
+        [otpId, otp],
+    );
+    return rows[0] ?? null;
+}
+
 async function getCommunityVerificationStatus(userId) {
     const { rows } = await query(
         `SELECT EXISTS (
@@ -226,6 +271,9 @@ module.exports = {
     findPasswordHash,
     softDeleteUser,
     isEmailTaken,
+    createEmailChangeOtp,
+    findPendingEmailChangeOtp,
+    verifyEmailChangeOtp,
     getCommunityVerificationStatus,
     findPublicProfile,
 };

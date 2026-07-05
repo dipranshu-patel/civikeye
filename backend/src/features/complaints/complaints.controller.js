@@ -33,6 +33,7 @@ const createComplaint = asyncHandler(async (req, res) => {
     return sendSuccess(res, { complaint: result }, 201);
 });
 
+
 const exploreComplaints = asyncHandler(async (req, res) => {
     const errors = validateExploreQuery(req.query);
     if (errors.length > 0) {

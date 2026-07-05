@@ -2,8 +2,8 @@ import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Eye, EyeOff, CheckCircle2, ShieldCheck, Users, X, User, Mail, Lock, MoveRight, MapPin } from "lucide-react";
 import { authService } from "../../services/auth.service";
-import { Input } from "../../components/ui/Input";
-import { Button } from "../../components/ui/Button";
+import { Input } from "../../../shared/components/ui/Input";
+import { Button } from "../../../shared/components/ui/Button";
 import { OTPInput } from "../../components/auth/OTPInput";
 import LogoSVG from "../../assets/logo.svg";
 

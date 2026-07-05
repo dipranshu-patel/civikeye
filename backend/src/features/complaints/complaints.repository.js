@@ -134,9 +134,14 @@ async function findStatusHistory(complaintId) {
             csh.actor_role,
             csh.note,
             csh.created_at,
-            u.full_name AS actor_name
+            CASE
+                WHEN u.role = 'citizen' AND COALESCE(up.show_name_on_complaints, TRUE) = FALSE
+                THEN 'Anonymous'
+                ELSE u.full_name
+            END AS actor_name
         FROM complaint_status_history csh
         LEFT JOIN users u ON u.id = csh.actor_id
+        LEFT JOIN user_preferences up ON up.user_id = csh.actor_id
         WHERE csh.complaint_id = $1
         ORDER BY csh.created_at ASC;
     `;
@@ -256,6 +261,7 @@ async function findMyComplaints({ reporterId, tab, search, sort, page, limit }) 
     if (tab === "pending_verification") conditions.push(`c.status = 'pending_verification'`);
     if (tab === "resolved")             conditions.push(`c.status = 'resolved'`);
     if (tab === "reopened")             conditions.push(`c.status = 'reopened'`);
+    if (tab === "overdue")              conditions.push(`c.status != 'resolved' AND current_timestamp > (c.created_at + (cat.sla_duration_days || ' days')::interval)`);
 
     if (search) {
         conditions.push(`(c.title ILIKE $${idx} OR c.public_code ILIKE $${idx})`);
@@ -268,6 +274,7 @@ async function findMyComplaints({ reporterId, tab, search, sort, page, limit }) 
         sla_breached:          "c.sla_deadline ASC NULLS LAST",
         awaiting_verification: "c.verification_deadline ASC NULLS LAST",
         recent:                "c.updated_at DESC",
+        oldest:                "c.updated_at ASC",
     };
     const orderBy = orderMap[sort] ?? "c.updated_at DESC";
     const offset  = (page - 1) * limit;
