@@ -51,9 +51,29 @@ const deleteAccount = asyncHandler(async (req, res) => {
 });
 
 
+const requestEmailChange = asyncHandler(async (req, res) => {
+    const { newEmail } = req.body;
+    if (!newEmail || typeof newEmail !== "string") {
+        return res.status(422).json({ success: false, errors: [{ field: "newEmail", message: "A valid new email address is required." }] });
+    }
+    const result = await service.requestEmailChange(req.user.userId, { newEmail });
+    return sendSuccess(res, result);
+});
+
+const confirmEmailChange = asyncHandler(async (req, res) => {
+    const { otp } = req.body;
+    if (!otp) {
+        return res.status(422).json({ success: false, errors: [{ field: "otp", message: "OTP is required." }] });
+    }
+    const result = await service.confirmEmailChange(req.user.userId, { otp });
+    return sendSuccess(res, { user: result });
+});
+
 module.exports = {
     getProfile,
     updateProfile,
+    requestEmailChange,
+    confirmEmailChange,
     updateLocation,
     getPreferences,
     updatePreferences,

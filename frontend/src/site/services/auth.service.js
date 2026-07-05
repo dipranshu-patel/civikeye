@@ -1,4 +1,4 @@
-import api from '../lib/axios';
+import api from '../../shared/lib/axios';
 
 export const authService = {
     async sendOtp(email) {

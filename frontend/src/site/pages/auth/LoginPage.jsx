@@ -1,29 +1,35 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Eye, EyeOff, CheckCircle2, ShieldCheck, Users, Mail, Lock, MoveRight } from "lucide-react";
 import { authService } from "../../services/auth.service";
-import { Input } from "../../components/ui/Input";
-import { Button } from "../../components/ui/Button";
+import { Input } from "../../../shared/components/ui/Input";
+import { Button } from "../../../shared/components/ui/Button";
 import LogoSVG from "../../assets/logo.svg";
 
 export default function LoginPage() {
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
+
+    useEffect(() => {
+        const token = localStorage.getItem('accessToken');
+        const role = localStorage.getItem('userRole');
+        if (token) {
+            navigate(`/${role || 'citizen'}/dashboard`);
+        }
+    }, [navigate]);
+
     
-    // Form Data
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [keepSignedIn, setKeepSignedIn] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
     
-    // Errors (submission only validation)
     const [fieldErrors, setFieldErrors] = useState({});
     const [globalError, setGlobalError] = useState(null);
 
     const handleLogin = async (e) => {
         e.preventDefault();
         
-        // Reset errors
         setFieldErrors({});
         setGlobalError(null);
         
@@ -50,9 +56,25 @@ export default function LoginPage() {
 
         setLoading(true);
         try {
-            // Note: backend login logic should issue cookies/tokens
-            await authService.login(email, password);
-            navigate("/");
+            const response = await authService.login(email, password);
+            
+            const user = response?.data?.user;
+            const token = response?.data?.accessToken;
+            
+            if (token) {
+                localStorage.setItem('accessToken', token);
+                localStorage.setItem('userRole', user?.role || 'citizen');
+            }
+            
+            if (user?.role === "citizen") {
+                navigate("/citizen/dashboard");
+            } else if (user?.role === "department") {
+                navigate("/department/dashboard");
+            } else if (user?.role === "admin") {
+                navigate("/admin/dashboard");
+            } else {
+                navigate("/");
+            }
         } catch (err) {
             setGlobalError(
                 err.response?.data?.error?.message ||
@@ -67,7 +89,6 @@ export default function LoginPage() {
     return (
         <div className="min-h-screen bg-white font-sans text-gray-900 selection:bg-gray-200">
             <div className="flex min-h-screen">
-                {/* Left Panel */}
                 <div className="hidden lg:flex lg:w-1/2 flex-col justify-between p-12 bg-gray-50 relative">
                     <div className="absolute inset-0 bg-gradient-to-br from-gray-50 to-gray-100 pointer-events-none" />
 
@@ -104,7 +125,6 @@ export default function LoginPage() {
                     </div>
                 </div>
 
-                {/* Right Panel */}
                 <div className="w-full lg:w-1/2 flex flex-col items-center justify-center p-8 py-12 min-h-screen bg-white">
                     <div className="w-full max-w-md">
                         <h2 className="text-3xl font-bold tracking-tight text-gray-900 mb-3">

@@ -18,6 +18,9 @@ router.patch("/preferences", controller.updatePreferences);
 router.post("/change-password", controller.changePassword);
 router.delete("/account",       controller.deleteAccount);
 
+router.post("/request-email-change", controller.requestEmailChange);
+router.post("/confirm-email-change",  controller.confirmEmailChange);
+
 router.get("/verifications", requireUserLocation, verificationsController.getMyVerifications);
 
 module.exports = router;

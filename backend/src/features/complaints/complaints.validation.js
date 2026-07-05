@@ -1,8 +1,8 @@
 "use strict";
 
 const VALID_ISSUE_TYPES = ["authority_required", "community_fixable"];
-const VALID_TABS        = ["active", "pending_verification", "resolved", "reopened"];
-const VALID_SORTS_MY    = ["recent", "sla_breached", "most_upvoted", "awaiting_verification"];
+const VALID_TABS        = ["active", "pending_verification", "resolved", "reopened", "overdue"];
+const VALID_SORTS_MY    = ["recent", "oldest", "sla_breached", "most_upvoted", "awaiting_verification"];
 const VALID_SORTS_EXP   = ["recent", "most_upvoted", "sla_deadline"];
 
 function validateCreateComplaint(body, files) {
@@ -27,14 +27,21 @@ function validateCreateComplaint(body, files) {
         errors.push({ field: "issueType", message: `Issue type must be one of: ${VALID_ISSUE_TYPES.join(", ")}.` });
     }
 
+    if (!body.addressText || typeof body.addressText !== "string" || body.addressText.trim().length < 10) {
+        errors.push({ field: "addressText", message: "Address must be at least 10 characters." });
+    }
+    if (body.addressText && body.addressText.trim().length > 300) {
+        errors.push({ field: "addressText", message: "Address must not exceed 300 characters." });
+    }
+
     const lat = parseFloat(body.latitude);
     const lng = parseFloat(body.longitude);
 
     if (isNaN(lat) || lat < -90 || lat > 90) {
-        errors.push({ field: "latitude", message: "A valid latitude (-90 to 90) is required." });
+        errors.push({ field: "latitude", message: "A valid latitude is required. Please allow location access." });
     }
     if (isNaN(lng) || lng < -180 || lng > 180) {
-        errors.push({ field: "longitude", message: "A valid longitude (-180 to 180) is required." });
+        errors.push({ field: "longitude", message: "A valid longitude is required. Please allow location access." });
     }
 
     if (body.description && body.description.length > 600) {

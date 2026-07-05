@@ -2,8 +2,8 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Mail, ShieldCheck, Users, MoveRight, ArrowLeft } from "lucide-react";
 import { authService } from "../../services/auth.service";
-import { Input } from "../../components/ui/Input";
-import { Button } from "../../components/ui/Button";
+import { Input } from "../../../shared/components/ui/Input";
+import { Button } from "../../../shared/components/ui/Button";
 import LogoSVG from "../../assets/logo.svg";
 
 export default function ForgotPasswordPage() {
@@ -11,14 +11,12 @@ export default function ForgotPasswordPage() {
     const [loading, setLoading] = useState(false);
     const [success, setSuccess] = useState(false);
     
-    // Errors
     const [fieldErrors, setFieldErrors] = useState({});
     const [globalError, setGlobalError] = useState(null);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         
-        // Reset errors
         setFieldErrors({});
         setGlobalError(null);
         
@@ -43,13 +41,9 @@ export default function ForgotPasswordPage() {
             await authService.forgotPassword(email);
             setSuccess(true);
         } catch (err) {
-            // As per requirements: "Do NOT reveal email exists / doesn't exist"
-            // So if it's a 4xx, we might still show success if backend hides it.
-            // But if it's a 500, we should handle server unavailable/network failure.
             if (!err.response || err.response.status >= 500) {
                 setGlobalError("Server is currently unavailable. Please try again later.");
             } else {
-                // If backend returns error like validation, we could set it, but usually backend returns success for all forgot password attempts
                 setSuccess(true);
             }
         } finally {

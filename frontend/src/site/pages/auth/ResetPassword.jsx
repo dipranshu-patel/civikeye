@@ -2,8 +2,8 @@ import { useState, useEffect } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { ShieldCheck, Users, Lock, Eye, EyeOff, MoveRight, ArrowLeft, CheckCircle2, X } from "lucide-react";
 import { authService } from "../../services/auth.service";
-import { Input } from "../../components/ui/Input";
-import { Button } from "../../components/ui/Button";
+import { Input } from "../../../shared/components/ui/Input";
+import { Button } from "../../../shared/components/ui/Button";
 import LogoSVG from "../../assets/logo.svg";
 
 export default function ResetPasswordPage() {

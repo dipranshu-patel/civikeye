@@ -13,12 +13,10 @@ export default function Navbar() {
     const [mobileOpen, setMobileOpen] = useState(false);
 
     return (
-        /* Changed from 'bg-white border-b border-gray-100' to 'bg-transparent' */
         <header className="w-full bg-white/20 backdrop-blur-md sticky border-b border-[#e4e4e7] top-0 z-50">
             <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex items-center justify-between h-16">
 
-                    {/* ── Left: Logo ── */}
                     <Link
                         to="/"
                         className="font-[var(--font-satoshi)] font-semibold flex items-center gap-1.5 shrink-0"
@@ -34,7 +32,6 @@ export default function Navbar() {
                         </span>
                     </Link>
 
-                    {/* ── Center: Nav links (desktop) ── */}
                     <nav
                         aria-label="Primary navigation"
                         className="hidden md:flex items-center gap-8"
@@ -58,24 +55,34 @@ export default function Navbar() {
                         ))}
                     </nav>
 
-                    {/* ── Right: Actions (desktop) ── */}
                     <div className="hidden md:flex items-center gap-4">
-                        <Link
-                            to="/login"
-                            className="font-[var(--font-inter)] text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors duration-150"
-                        >
-                            Sign in
-                        </Link>
-                        <Link
-                            to="/register"
-                            className="font-[var(--font-inter)] inline-flex items-center gap-1.5 bg-gray-900 text-white text-sm font-medium px-4 py-2 rounded-full hover:bg-gray-700 transition-colors duration-150"
-                        >
-                            Report an issue
-                            <ArrowRight className="h-3.5 w-3.5" strokeWidth={2.5} />
-                        </Link>
+                        {localStorage.getItem('accessToken') ? (
+                            <Link
+                                to={`/${localStorage.getItem('userRole') || 'citizen'}/dashboard`}
+                                className="font-[var(--font-inter)] inline-flex items-center gap-1.5 bg-gray-900 text-white text-sm font-medium px-4 py-2 rounded-full hover:bg-gray-700 transition-colors duration-150"
+                            >
+                                Dashboard
+                                <ArrowRight className="h-3.5 w-3.5" strokeWidth={2.5} />
+                            </Link>
+                        ) : (
+                            <>
+                                <Link
+                                    to="/login"
+                                    className="font-[var(--font-inter)] text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors duration-150"
+                                >
+                                    Sign in
+                                </Link>
+                                <Link
+                                    to="/register"
+                                    className="font-[var(--font-inter)] inline-flex items-center gap-1.5 bg-gray-900 text-white text-sm font-medium px-4 py-2 rounded-full hover:bg-gray-700 transition-colors duration-150"
+                                >
+                                    Report an issue
+                                    <ArrowRight className="h-3.5 w-3.5" strokeWidth={2.5} />
+                                </Link>
+                            </>
+                        )}
                     </div>
 
-                    {/* ── Mobile: Hamburger toggle ── */}
                     <button
                         type="button"
                         aria-label={mobileOpen ? "Close menu" : "Open menu"}
@@ -92,8 +99,6 @@ export default function Navbar() {
                 </div>
             </div>
 
-            {/* ── Mobile menu panel ── */}
-            {/* ── Mobile menu panel ── */}
             <div
                 id="mobile-menu"
                 className={`md:hidden grid transition-all duration-300 ease-in-out bg-white ${
@@ -126,21 +131,34 @@ export default function Navbar() {
 
                         <hr className="my-2 border-gray-100" />
 
-                        <Link
-                            to="/login"
-                            onClick={() => setMobileOpen(false)}
-                            className="font-[var(--font-inter)] text-sm font-medium px-3 py-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-colors duration-150"
-                        >
-                            Sign in
-                        </Link>
-                        <Link
-                            to="/register"
-                            onClick={() => setMobileOpen(false)}
-                            className="font-[var(--font-inter)] inline-flex items-center justify-center gap-1.5 bg-gray-900 text-white text-sm font-medium px-4 py-2.5 rounded-lg hover:bg-gray-700 transition-colors duration-150 mt-1"
-                        >
-                            Report an issue
-                            <ArrowRight className="h-3.5 w-3.5" strokeWidth={2.5} />
-                        </Link>
+                        {localStorage.getItem('accessToken') ? (
+                            <Link
+                                to={`/${localStorage.getItem('userRole') || 'citizen'}/dashboard`}
+                                onClick={() => setMobileOpen(false)}
+                                className="font-[var(--font-inter)] inline-flex items-center justify-center gap-1.5 bg-gray-900 text-white text-sm font-medium px-4 py-2.5 rounded-lg hover:bg-gray-700 transition-colors duration-150 mt-1"
+                            >
+                                Dashboard
+                                <ArrowRight className="h-3.5 w-3.5" strokeWidth={2.5} />
+                            </Link>
+                        ) : (
+                            <>
+                                <Link
+                                    to="/login"
+                                    onClick={() => setMobileOpen(false)}
+                                    className="font-[var(--font-inter)] text-sm font-medium px-3 py-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-colors duration-150"
+                                >
+                                    Sign in
+                                </Link>
+                                <Link
+                                    to="/register"
+                                    onClick={() => setMobileOpen(false)}
+                                    className="font-[var(--font-inter)] inline-flex items-center justify-center gap-1.5 bg-gray-900 text-white text-sm font-medium px-4 py-2.5 rounded-lg hover:bg-gray-700 transition-colors duration-150 mt-1"
+                                >
+                                    Report an issue
+                                    <ArrowRight className="h-3.5 w-3.5" strokeWidth={2.5} />
+                                </Link>
+                            </>
+                        )}
                     </nav>
                 </div>
             </div>

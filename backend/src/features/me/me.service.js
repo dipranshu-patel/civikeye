@@ -43,17 +43,82 @@ async function getProfile(userId) {
     };
 }
 
-async function updateProfile(userId, { fullName, email }) {
-    if (!fullName && !email) {
-        throw new AppError("NO_FIELDS", "Provide at least fullName or email to update.", 422);
+async function updateProfile(userId, { fullName }) {
+    if (!fullName) {
+        throw new AppError("NO_FIELDS", "Provide fullName to update.", 422);
     }
 
-    if (email) {
-        const taken = await repo.isEmailTaken(email, userId);
-        if (taken) throw new AppError("EMAIL_TAKEN", "That email is already in use.", 409);
+    const updated = await repo.updateProfile(userId, { fullName });
+    if (!updated) throw new AppError("USER_NOT_FOUND", "User not found.", 404);
+
+    return { id: updated.id, fullName: updated.full_name, email: updated.email };
+}
+
+async function requestEmailChange(userId, { newEmail }) {
+    const { sendOtpEmail, EmailError } = require("../../shared/utils/email");
+    const crypto = require("crypto");
+
+    const normalisedEmail = newEmail.trim().toLowerCase();
+
+    const taken = await repo.isEmailTaken(normalisedEmail, userId);
+    if (taken) throw new AppError("EMAIL_TAKEN", "That email is already in use.", 409);
+
+    const OTP_TTL_MS = 10 * 60 * 1000;
+    const otp       = crypto.randomInt(100_000, 1_000_000).toString();
+    const expiresAt = new Date(Date.now() + OTP_TTL_MS);
+
+    await repo.createEmailChangeOtp(userId, normalisedEmail, otp, expiresAt);
+
+    if (process.env.SKIP_EMAIL === "true") {
+        console.warn(`[requestEmailChange] SKIP_EMAIL=true — OTP for ${normalisedEmail}: ${otp}`);
+        return { success: true };
     }
 
-    const updated = await repo.updateProfile(userId, { fullName, email });
+    try {
+        await sendOtpEmail(normalisedEmail, otp);
+    } catch (emailErr) {
+        if (emailErr instanceof EmailError) {
+            const isConfig = emailErr.code === "EMAIL_API_KEY_INVALID" || emailErr.code === "EMAIL_DOMAIN_INVALID";
+            throw new AppError(
+                emailErr.code,
+                isConfig ? "Email service is misconfigured. Please contact support." : "Failed to send verification email. Please try again in a moment.",
+                503,
+            );
+        }
+        throw new AppError("EMAIL_SEND_FAILED", "An unexpected error occurred while sending the verification email.", 503);
+    }
+
+    return { success: true };
+}
+
+async function confirmEmailChange(userId, { otp }) {
+    if (!otp) throw new AppError("MISSING_OTP", "OTP is required.", 422);
+
+    const OTP_MAX_ATTEMPTS = 5;
+    const record = await repo.findPendingEmailChangeOtp(userId);
+
+    if (!record) {
+        throw new AppError("OTP_NOT_FOUND", "No pending email change found. Please request a new one.", 404);
+    }
+
+    if (record.attempts >= OTP_MAX_ATTEMPTS) {
+        throw new AppError("OTP_MAX_ATTEMPTS", "Too many incorrect attempts. Please request a new OTP.", 429);
+    }
+
+    const verified = await repo.verifyEmailChangeOtp(record.id, otp);
+    if (!verified || !verified.verified) {
+        const attemptsLeft = OTP_MAX_ATTEMPTS - (verified?.attempts ?? OTP_MAX_ATTEMPTS);
+        throw new AppError(
+            "OTP_INVALID",
+            `Invalid OTP. ${attemptsLeft} attempt${attemptsLeft === 1 ? "" : "s"} remaining.`,
+            400,
+        );
+    }
+
+    const taken = await repo.isEmailTaken(verified.new_email, userId);
+    if (taken) throw new AppError("EMAIL_TAKEN", "That email is already in use.", 409);
+
+    const updated = await repo.updateProfile(userId, { email: verified.new_email });
     if (!updated) throw new AppError("USER_NOT_FOUND", "User not found.", 404);
 
     return { id: updated.id, fullName: updated.full_name, email: updated.email };
@@ -171,6 +236,8 @@ async function getPublicProfile(userId) {
 module.exports = {
     getProfile,
     updateProfile,
+    requestEmailChange,
+    confirmEmailChange,
     getPreferences,
     updatePreferences,
     changePassword,
