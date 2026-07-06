@@ -6,6 +6,6 @@ export const verificationsService = {
     },
     
     castVote: (complaintId, data) => {
-        return api.post(`/verifications/${complaintId}/vote`, data);
+        return api.post(`/complaints/${complaintId}/verify`, data);
     }
 };

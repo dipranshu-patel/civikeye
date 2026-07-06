@@ -64,12 +64,13 @@ export default function LoginPage() {
             if (token) {
                 localStorage.setItem('accessToken', token);
                 localStorage.setItem('userRole', user?.role || 'citizen');
+                localStorage.setItem('userId', user?.id);
             }
             
             if (user?.role === "citizen") {
                 navigate("/citizen/dashboard");
-            } else if (user?.role === "department") {
-                navigate("/department/dashboard");
+            } else if (user?.role === "official") {
+                navigate("/official/dashboard");
             } else if (user?.role === "admin") {
                 navigate("/admin/dashboard");
             } else {
@@ -173,7 +174,7 @@ export default function LoginPage() {
                                     <button
                                         type="button"
                                         onClick={() => setShowPassword(!showPassword)}
-                                        className="absolute right-3 top-5 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                                        className="absolute right-3 top-5 -translate-y-1/2 text-gray-400 hover:text-gray-600 cursor-pointer"
                                     >
                                         {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                                     </button>
@@ -193,7 +194,7 @@ export default function LoginPage() {
                                 isLoading={loading}
                             >
                                 {loading ? "Signing in..." : (
-                                    <span className="flex items-center gap-2">
+                                    <span className="flex items-center gap-2 cursor-pointer">
                                         Sign in <MoveRight className="w-5 h-5" />
                                     </span>
                                 )}

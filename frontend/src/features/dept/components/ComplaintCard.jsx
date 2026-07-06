@@ -1,7 +1,5 @@
 import { MapPin, ThumbsUp, Clock } from 'lucide-react';
 import clsx from 'clsx';
-import { useState } from 'react';
-import { complaintsService } from '../services/complaints.service';
 
 function formatDistanceToNow(dateStr) {
     const d = new Date(dateStr);
@@ -24,58 +22,16 @@ function isPast(dateStr) {
 
 export default function ComplaintCard({ complaint, onClick, className }) {
     const {
-        id,
         publicCode,
         title,
         status,
         category,
-        department,
         addressText,
-        upvoteCount: initialUpvoteCount,
+        upvoteCount,
         slaDeadline,
         createdAt,
-        coverPhoto,
-        reporterId,
-        userUpvoted: initialUserUpvoted
+        coverPhoto
     } = complaint;
-
-    const [upvoteCount, setUpvoteCount] = useState(initialUpvoteCount || 0);
-    const [hasUpvoted, setHasUpvoted] = useState(initialUserUpvoted || false);
-    const [upvoteError, setUpvoteError] = useState(null);
-    const currentUserId = localStorage.getItem('userId');
-    const isReporter = currentUserId === reporterId;
-
-    const handleUpvote = async (e) => {
-        e.stopPropagation();
-        setUpvoteError(null);
-        
-        if (!currentUserId) {
-            setUpvoteError("Please log in to upvote.");
-            return;
-        }
-
-        if (isReporter) {
-            setUpvoteError("You cannot upvote your own complaint.");
-            return;
-        }
-
-        try {
-            if (hasUpvoted) {
-                setHasUpvoted(false);
-                setUpvoteCount(prev => Math.max(0, prev - 1));
-                await complaintsService.removeUpvote(id);
-            } else {
-                setHasUpvoted(true);
-                setUpvoteCount(prev => prev + 1);
-                await complaintsService.addUpvote(id);
-            }
-        } catch (err) {
-            // Revert on error
-            setHasUpvoted(!hasUpvoted);
-            setUpvoteCount(prev => hasUpvoted ? prev + 1 : Math.max(0, prev - 1));
-            setUpvoteError(err.response?.data?.error?.message || "Failed to toggle upvote.");
-        }
-    };
 
     const renderSLA = () => {
         if (!slaDeadline) return null;
@@ -108,7 +64,7 @@ export default function ComplaintCard({ complaint, onClick, className }) {
     return (
         <div 
             onClick={onClick}
-            className={clsx("shrink-0 bg-white border border-gray-200 rounded-2xl overflow-hidden flex flex-col hover:border-gray-300 hover:shadow-lg hover:shadow-gray-900/5 transition-all cursor-pointer", className || "w-[340px]")}>
+            className={clsx("shrink-0 bg-white border border-gray-200 rounded-2xl overflow-hidden flex flex-col hover:border-gray-300 hover:shadow-lg hover:shadow-gray-900/5 transition-all cursor-pointer h-full", className)}>
             <div className="p-5 flex gap-4">
                 <div className="w-[72px] h-[72px] rounded-xl bg-gray-100 shrink-0 overflow-hidden border border-gray-100">
                     {coverPhoto ? (
@@ -131,12 +87,6 @@ export default function ComplaintCard({ complaint, onClick, className }) {
                         {title}
                     </h3>
                     <div className="space-y-1.5 mt-auto">
-                        {department?.name && (
-                            <div className="flex items-start gap-1.5 text-xs text-gray-500">
-                                <span className="text-gray-400 shrink-0 font-medium">@</span>
-                                <span className="truncate">{department.name}</span>
-                            </div>
-                        )}
                         <div className="flex items-start gap-1.5 text-xs text-gray-500">
                             <MapPin className="w-3.5 h-3.5 shrink-0 mt-0.5" />
                             <span className="truncate">{addressText}</span>
@@ -146,17 +96,9 @@ export default function ComplaintCard({ complaint, onClick, className }) {
             </div>
 
             <div className="px-5 py-3.5 border-t border-gray-100 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-gray-500 mt-auto bg-gray-50/50">
-                <div 
-                    onClick={handleUpvote}
-                    className={clsx(
-                        "flex items-center gap-1.5 font-semibold transition-colors cursor-pointer",
-                        hasUpvoted ? "text-blue-600" : "text-gray-700 hover:text-gray-900",
-                        isReporter && "opacity-50 cursor-not-allowed hover:text-gray-700"
-                    )}
-                    title={isReporter ? "You cannot upvote your own complaint" : "Upvote"}
-                >
-                    <ThumbsUp className={clsx("w-3.5 h-3.5", hasUpvoted ? "text-blue-600 fill-blue-600" : "text-gray-400")} />
-                    {upvoteCount}
+                <div className="flex items-center gap-1.5 font-semibold text-gray-700">
+                    <ThumbsUp className="w-3.5 h-3.5 text-gray-400" />
+                    {upvoteCount || 0}
                 </div>
                 {renderSLA()}
                 <div className="flex items-center gap-1.5 ml-auto text-gray-400 font-medium">
@@ -165,12 +107,7 @@ export default function ComplaintCard({ complaint, onClick, className }) {
                 </div>
             </div>
 
-            <div className="px-5 pb-5 pt-4 bg-white mt-auto border-t border-gray-100">
-                {upvoteError && (
-                    <div className="text-red-500 text-xs font-medium mb-3 text-center">
-                        {upvoteError}
-                    </div>
-                )}
+            <div className="px-5 pb-5 pt-4 bg-white border-t border-gray-100 mt-auto">
                 <button 
                     onClick={(e) => { e.stopPropagation(); onClick && onClick(e); }}
                     className="w-full py-2.5 rounded-xl border-2 border-gray-100 text-sm font-bold text-gray-700 hover:border-gray-900 hover:bg-gray-900 hover:text-white transition-all cursor-pointer"

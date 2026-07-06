@@ -27,6 +27,14 @@ export const complaintsService = {
         return api.get(`/complaints/${id}`);
     },
     
+    addUpvote: (id) => {
+        return api.post(`/complaints/${id}/upvote`);
+    },
+    
+    removeUpvote: (id) => {
+        return api.delete(`/complaints/${id}/upvote`);
+    },
+    
     getMyComplaints: (params) => {
         return api.get('/me/complaints', { params });
     }

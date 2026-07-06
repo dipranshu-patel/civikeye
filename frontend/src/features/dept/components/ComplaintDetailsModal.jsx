@@ -1,20 +1,21 @@
-import { useState, useEffect } from "react";
-import { X, MapPin, Clock, CheckCircle2, AlertCircle, ThumbsUp } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { X, MapPin, Clock, CheckCircle2, ThumbsUp, Upload, Loader2, AlertCircle } from "lucide-react";
 import clsx from "clsx";
-import { complaintsService } from "../services/complaints.service";
+import { deptService } from "../services/dept.service";
 
 function formatDistanceToNow(dateStr) {
     const d = new Date(dateStr);
     const now = new Date();
-    const diffInSeconds = Math.floor((now - d) / 1000);
+    const diffInSeconds = Math.floor(Math.abs(now - d) / 1000);
     
-    if (diffInSeconds < 60) return 'just now';
+    if (diffInSeconds < 60) return '< 1m';
     const diffInMinutes = Math.floor(diffInSeconds / 60);
     if (diffInMinutes < 60) return `${diffInMinutes}m`;
     const diffInHours = Math.floor(diffInMinutes / 60);
     if (diffInHours < 24) return `${diffInHours}h`;
     const diffInDays = Math.floor(diffInHours / 24);
-    return `${diffInDays}d`;
+    const remainingHours = diffInHours % 24;
+    return remainingHours > 0 ? `${diffInDays}d ${remainingHours}h` : `${diffInDays}d`;
 }
 
 function formatDate(dateStr) {
@@ -23,24 +24,77 @@ function formatDate(dateStr) {
     return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' });
 }
 
-export default function ComplaintDetailsModal({ complaintId, onClose }) {
+export default function ComplaintDetailsModal({ complaintId, onClose, onUpdate }) {
     const [complaint, setComplaint] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [upvoteError, setUpvoteError] = useState(null);
+    
+    const [note, setNote] = useState("");
+    const [photos, setWorkPhotos] = useState([]);
+    const [submitting, setSubmitting] = useState(false);
+    const [error, setError] = useState(null);
+    
+    const fileInputRef = useRef(null);
 
     useEffect(() => {
         const fetchDetails = async () => {
             try {
-                const res = await complaintsService.getComplaintDetail(complaintId);
+                const res = await deptService.getComplaintDetail(complaintId);
                 setComplaint(res.data.data.complaint);
             } catch (err) {
                 console.error(err);
+                setError("Failed to load details.");
             } finally {
                 setLoading(false);
             }
         };
         fetchDetails();
     }, [complaintId]);
+
+    const handlePhotoChange = (e) => {
+        const files = Array.from(e.target.files);
+        if (files.length > 3) {
+            setError("Maximum 3 photos allowed.");
+            return;
+        }
+        setWorkPhotos(files);
+        setError(null);
+    };
+
+    const handleUpdateStatus = async (toStatus) => {
+        if (toStatus === 'pending_verification') {
+            if (!note.trim()) {
+                setError("A resolution note is required.");
+                return;
+            }
+            if (photos.length === 0) {
+                setError("At least one work photo is required as proof.");
+                return;
+            }
+        }
+
+        setSubmitting(true);
+        setError(null);
+        try {
+            const formData = new FormData();
+            formData.append("toStatus", toStatus);
+            if (note.trim()) formData.append("note", note.trim());
+            photos.forEach(photo => formData.append("photos", photo));
+
+            await deptService.updateComplaintStatus(complaintId, formData);
+            
+            // Refresh details
+            const res = await deptService.getComplaintDetail(complaintId);
+            setComplaint(res.data.data.complaint);
+            setNote("");
+            setWorkPhotos([]);
+            if (onUpdate) onUpdate();
+        } catch (err) {
+            console.error(err);
+            setError(err.response?.data?.message || "Failed to update status.");
+        } finally {
+            setSubmitting(false);
+        }
+    };
 
     const statusConfig = {
         reported: { bg: 'bg-gray-100', text: 'text-gray-700', label: 'Reported', dot: 'bg-gray-400' },
@@ -55,7 +109,7 @@ export default function ComplaintDetailsModal({ complaintId, onClose }) {
         return (
             <div className="fixed inset-0 z-50 bg-gray-900/40 backdrop-blur-sm flex items-center justify-center p-4">
                 <div className="bg-white rounded-3xl p-8 shadow-2xl flex flex-col items-center">
-                    <div className="w-8 h-8 border-4 border-gray-200 border-t-gray-900 rounded-full animate-spin"></div>
+                    <Loader2 className="w-8 h-8 text-gray-900 animate-spin" />
                     <p className="mt-4 text-sm font-medium text-gray-500">Loading details...</p>
                 </div>
             </div>
@@ -65,46 +119,9 @@ export default function ComplaintDetailsModal({ complaintId, onClose }) {
     if (!complaint) return null;
 
     const {
-        id, publicCode, title, description, status, category, department,
-        addressText, upvoteCount, createdAt, photos, history, isOverdue,
-        reporter_id: reporterId, userUpvoted: hasUpvoted
+        publicCode, title, description, status, category,
+        addressText, upvoteCount, createdAt, photos: complaintPhotos, history, isOverdue
     } = complaint;
-
-    const currentUserId = localStorage.getItem('userId');
-    const isReporter = currentUserId === reporterId;
-
-    const handleUpvote = async (e) => {
-        e.stopPropagation();
-        setUpvoteError(null);
-        
-        if (!currentUserId) {
-            setUpvoteError("Please log in to upvote.");
-            return;
-        }
-
-        if (isReporter) {
-            setUpvoteError("You cannot upvote your own complaint.");
-            return;
-        }
-
-        try {
-            if (hasUpvoted) {
-                setComplaint(prev => ({ ...prev, userUpvoted: false, upvoteCount: Math.max(0, prev.upvoteCount - 1) }));
-                await complaintsService.removeUpvote(id);
-            } else {
-                setComplaint(prev => ({ ...prev, userUpvoted: true, upvoteCount: prev.upvoteCount + 1 }));
-                await complaintsService.addUpvote(id);
-            }
-        } catch (err) {
-            // Revert on error
-            setComplaint(prev => ({ 
-                ...prev, 
-                userUpvoted: !prev.userUpvoted, 
-                upvoteCount: prev.userUpvoted ? prev.upvoteCount + 1 : Math.max(0, prev.upvoteCount - 1) 
-            }));
-            setUpvoteError(err.response?.data?.error?.message || "Failed to toggle upvote.");
-        }
-    };
 
     const sConf = statusConfig[status] || statusConfig.reported;
     const displayBadge = isOverdue ? { bg: 'bg-red-50', text: 'text-red-700', label: 'Overdue', dot: 'bg-red-500' } : sConf;
@@ -115,7 +132,7 @@ export default function ComplaintDetailsModal({ complaintId, onClose }) {
             onClick={onClose}
         >
             <div 
-                className="bg-white rounded-3xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col relative"
+                className="bg-white rounded-3xl shadow-2xl w-full max-w-5xl max-h-[90vh] overflow-hidden flex flex-col relative"
                 onClick={e => e.stopPropagation()}
             >
                 {/* Header */}
@@ -136,9 +153,9 @@ export default function ComplaintDetailsModal({ complaintId, onClose }) {
                 </div>
 
                 <div className="flex-1 overflow-y-auto p-6 md:p-8">
-                    <div className="flex flex-col md:flex-row gap-10">
+                    <div className="flex flex-col lg:flex-row gap-10">
                         {/* Left: Details */}
-                        <div className="flex-1 space-y-8">
+                        <div className="flex-1 space-y-8 min-w-0">
                             <div>
                                 <h1 className="text-2xl font-bold text-gray-900 mb-4 leading-snug">{title}</h1>
                                 
@@ -155,31 +172,13 @@ export default function ComplaintDetailsModal({ complaintId, onClose }) {
                                         </div>
                                         {formatDistanceToNow(createdAt)} ago
                                     </div>
-                                    <div 
-                                        onClick={handleUpvote}
-                                        className={clsx(
-                                            "flex items-center gap-2 text-sm font-medium transition-colors cursor-pointer",
-                                            hasUpvoted ? "text-blue-600" : "text-gray-600 hover:text-gray-900",
-                                            isReporter && "opacity-50 cursor-not-allowed hover:text-gray-600"
-                                        )}
-                                        title={isReporter ? "You cannot upvote your own complaint" : "Upvote"}
-                                    >
-                                        <div className={clsx(
-                                            "w-8 h-8 rounded-full flex items-center justify-center transition-colors",
-                                            hasUpvoted ? "bg-blue-100 text-blue-600" : "bg-blue-50 text-blue-500 hover:bg-blue-100"
-                                        )}>
-                                            <ThumbsUp className={clsx("w-4 h-4", hasUpvoted && "fill-blue-600")} />
+                                    <div className="flex items-center gap-2 text-sm text-gray-600 font-medium">
+                                        <div className="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center text-blue-500">
+                                            <ThumbsUp className="w-4 h-4" />
                                         </div>
                                         {upvoteCount} Upvotes
                                     </div>
                                 </div>
-
-                                {upvoteError && (
-                                    <div className="text-red-500 text-sm font-medium mb-4 flex items-center gap-2">
-                                        <AlertCircle className="w-4 h-4" />
-                                        {upvoteError}
-                                    </div>
-                                )}
 
                                 <div className="bg-gray-50 rounded-2xl p-5 border border-gray-100 mb-6">
                                     <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Description</h3>
@@ -193,19 +192,15 @@ export default function ComplaintDetailsModal({ complaintId, onClose }) {
                                         <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Category</h3>
                                         <p className="font-semibold text-gray-900 text-sm">{category?.name}</p>
                                     </div>
-                                    <div className="border border-gray-100 rounded-2xl p-4">
-                                        <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Assigned To</h3>
-                                        <p className="font-semibold text-gray-900 text-sm">{department?.name || "Unassigned"}</p>
-                                    </div>
                                 </div>
                             </div>
 
                             {/* Photos */}
-                            {photos && photos.length > 0 && (
+                            {complaintPhotos && complaintPhotos.length > 0 && (
                                 <div>
                                     <h3 className="text-sm font-bold text-gray-900 mb-4">Evidence Photos</h3>
                                     <div className="flex gap-3 overflow-x-auto pb-2 hide-scrollbar">
-                                        {photos.map((p, i) => (
+                                        {complaintPhotos.map((p, i) => (
                                             <a key={i} href={p.url} target="_blank" rel="noreferrer" className="shrink-0">
                                                 <img 
                                                     src={p.url} 
@@ -219,13 +214,12 @@ export default function ComplaintDetailsModal({ complaintId, onClose }) {
                             )}
                         </div>
 
-                        {/* Right: Progression/History */}
-                        <div className="w-full md:w-[320px] shrink-0">
+                        {/* Right: Progression/History & Actions */}
+                        <div className="w-full lg:w-[380px] shrink-0 flex flex-col">
                             <h3 className="text-lg font-bold text-gray-900 mb-6">Complaint Progression</h3>
                             
-                            <div className="space-y-6 relative before:absolute before:top-4 before:bottom-0 before:left-[11px] before:w-0.5 before:bg-gradient-to-b before:from-gray-200 before:to-transparent">
+                            <div className="space-y-6 relative before:absolute before:top-4 before:bottom-0 before:left-[11px] before:w-0.5 before:bg-gradient-to-b before:from-gray-200 before:to-transparent mb-8">
                                 {history && history.length > 0 ? history.map((item, index) => {
-                                    const isLast = index === history.length - 1;
                                     const hConf = statusConfig[item.toStatus] || statusConfig.reported;
                                     
                                     return (
@@ -249,17 +243,87 @@ export default function ComplaintDetailsModal({ complaintId, onClose }) {
                                                         {item.note}
                                                     </div>
                                                 )}
-                                                {item.actorName && (
-                                                    <p className="text-xs text-gray-500 mt-2 font-medium">
-                                                        By <span className="text-gray-700 font-semibold">{item.actorName}</span>
-                                                        <span className="ml-1 capitalize text-gray-400">({item.actorRole})</span>
-                                                    </p>
-                                                )}
                                             </div>
                                         </div>
                                     );
                                 }) : (
                                     <div className="text-sm text-gray-500 py-4">No progression history yet.</div>
+                                )}
+                            </div>
+
+                            {/* Department Action Form */}
+                            <div className="mt-auto pt-6 border-t border-gray-100">
+                                <h3 className="text-sm font-bold text-gray-900 mb-4">Department Actions</h3>
+                                
+                                {error && (
+                                    <div className="mb-4 text-red-600 text-sm flex items-start gap-2">
+                                        <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
+                                        <p>{error}</p>
+                                    </div>
+                                )}
+
+                                {status === 'reported' && (
+                                    <button
+                                        onClick={() => handleUpdateStatus('in_progress')}
+                                        disabled={submitting}
+                                        className="w-full py-3 rounded-xl bg-gray-900 text-white font-bold hover:bg-gray-800 disabled:opacity-70 disabled:cursor-not-allowed transition-colors cursor-pointer flex justify-center items-center gap-2"
+                                    >
+                                        {submitting ? <Loader2 className="w-5 h-5 animate-spin" /> : null}
+                                        Mark as In Progress
+                                    </button>
+                                )}
+
+                                {(status === 'in_progress' || status === 'reopened') && (
+                                    <div className="space-y-4">
+                                        <div>
+                                            <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">Resolution Note *</label>
+                                            <textarea
+                                                value={note}
+                                                onChange={e => setNote(e.target.value)}
+                                                placeholder="Explain what was done..."
+                                                className="w-full px-4 py-3 rounded-xl bg-gray-50 border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all text-sm h-24 resize-none"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">Work Proof Photos *</label>
+                                            <input
+                                                type="file"
+                                                multiple
+                                                accept="image/*"
+                                                className="hidden"
+                                                ref={fileInputRef}
+                                                onChange={handlePhotoChange}
+                                            />
+                                            <button
+                                                onClick={() => fileInputRef.current?.click()}
+                                                className="w-full py-3 rounded-xl border-2 border-dashed border-gray-300 text-gray-600 hover:border-gray-400 hover:bg-gray-50 transition-colors flex items-center justify-center gap-2 text-sm font-semibold cursor-pointer"
+                                            >
+                                                <Upload className="w-4 h-4" />
+                                                {photos.length > 0 ? `${photos.length} photo(s) selected` : 'Select Photos'}
+                                            </button>
+                                        </div>
+                                        <button
+                                            onClick={() => handleUpdateStatus('pending_verification')}
+                                            disabled={submitting}
+                                            className="w-full py-3 rounded-xl bg-blue-600 text-white font-bold hover:bg-blue-700 disabled:opacity-70 disabled:cursor-not-allowed transition-colors cursor-pointer flex justify-center items-center gap-2 mt-2"
+                                        >
+                                            {submitting ? <Loader2 className="w-5 h-5 animate-spin" /> : null}
+                                            Submit for Verification
+                                        </button>
+                                    </div>
+                                )}
+
+                                {status === 'pending_verification' && (
+                                    <div className="p-4 rounded-xl bg-amber-50 border border-amber-100 text-amber-800 text-sm font-medium">
+                                        Waiting for community verification. No actions required.
+                                    </div>
+                                )}
+                                
+                                {status === 'resolved' && (
+                                    <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-100 text-emerald-800 text-sm font-medium flex items-center gap-2">
+                                        <CheckCircle2 className="w-4 h-4" />
+                                        Successfully resolved and verified.
+                                    </div>
                                 )}
                             </div>
                         </div>

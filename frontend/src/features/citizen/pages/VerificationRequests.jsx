@@ -63,10 +63,10 @@ export default function VerificationRequests() {
             const response =
                 await verificationsService.getMyVerifications(params);
 
-            if (response.success) {
+            if (response.data.success) {
                 setData({
-                    summary: response.data.summary,
-                    items: response.data.items || [],
+                    summary: response.data.data.summary,
+                    items: response.data.data.items || [],
                 });
             }
         } catch (error) {
@@ -95,7 +95,7 @@ export default function VerificationRequests() {
             const res = await verificationsService.castVote(complaintId, {
                 vote: voteType,
             });
-            if (res.success) {
+            if (res.data.success) {
                 if (activeTab === "pending") {
                     setData((prev) => ({
                         ...prev,

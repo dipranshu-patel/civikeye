@@ -286,6 +286,10 @@ async function addUpvote(complaintId, userId) {
     const complaint = await repo.findComplaintById(complaintId);
     if (!complaint) throw new AppError("COMPLAINT_NOT_FOUND", "Complaint not found.", 404);
 
+    if (complaint.reporter_id === userId) {
+        throw new AppError("REPORTER_CANNOT_UPVOTE", "You cannot upvote your own complaint.", 403);
+    }
+
     const alreadyUpvoted = await repo.hasUserUpvoted(complaintId, userId);
     if (alreadyUpvoted) throw new AppError("ALREADY_UPVOTED", "You have already upvoted this complaint.", 409);
 

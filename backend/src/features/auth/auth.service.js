@@ -195,16 +195,20 @@ async function refresh(rawRefreshToken) {
 
     await repo.revokeRefreshTokenById(tokenRow.id);
 
-    const accessToken = signAccessToken({
-        userId: tokenRow.user_id,
-        role: payload.role,
-    });
+    // Re-fetch deptId for officials so it's always present in refreshed tokens
+    let deptId = null;
+    if (payload.role === "official") {
+        const dept = await repo.findDepartmentByUserId(tokenRow.user_id);
+        deptId = dept?.id ?? null;
+    }
+
+    const tokenPayload = { userId: tokenRow.user_id, role: payload.role };
+    if (deptId) tokenPayload.deptId = deptId;
+
+    const accessToken = signAccessToken(tokenPayload);
 
     const { refreshToken: newRefreshToken, tokenHash: newHash } =
-        makeRefreshToken({
-            userId: tokenRow.user_id,
-            role: payload.role,
-        });
+        makeRefreshToken(tokenPayload);
     await repo.insertRefreshToken({
         userId: tokenRow.user_id,
         tokenHash: newHash,
