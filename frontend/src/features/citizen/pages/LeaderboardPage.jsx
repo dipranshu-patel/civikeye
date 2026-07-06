@@ -51,34 +51,32 @@ export default function LeaderboardPage() {
             <div
                 key={isPinned ? 'pinned-user' : entry.rank}
                 className={clsx(
-                    "flex items-center gap-4 p-4 rounded-2xl transition-all",
+                    "flex items-center gap-2 sm:gap-4 p-2 sm:p-4 rounded-2xl transition-all",
                     isPinned
                         ? "bg-gradient-to-r from-orange-50 to-amber-50 border border-orange-200 shadow-sm mb-6"
                         : "bg-white border border-gray-100 hover:shadow-md hover:border-gray-200"
                 )}
             >
-                <div
-                    className={clsx(
-                        "w-12 h-12 rounded-full flex items-center justify-center font-black text-lg shrink-0",
-                        entry.rank === 1 && !isPinned
-                            ? "bg-gradient-to-br from-yellow-300 to-yellow-500 text-white shadow-lg shadow-yellow-500/30"
-                            : entry.rank === 2 && !isPinned
-                                ? "bg-gradient-to-br from-gray-300 to-gray-400 text-white shadow-lg shadow-gray-400/30"
-                                : entry.rank === 3 && !isPinned
-                                    ? "bg-gradient-to-br from-orange-300 to-orange-500 text-white shadow-lg shadow-orange-500/30"
-                                    : isPinned
-                                        ? "bg-white text-orange-600 border-2 border-orange-200"
-                                        : "bg-gray-50 text-gray-500"
-                    )}
-                >
-                    {entry.rank <= 3 && !isPinned ? <Trophy className="w-6 h-6" /> : `#${entry.rank}`}
-                </div>
+                {entry.rank <= 3 && !isPinned ? (
+                    <span className="w-8 h-8 sm:w-12 sm:h-12 text-xl sm:text-2xl shrink-0 leading-none flex items-center justify-center">
+                        {entry.rank === 1 ? "🥇" : entry.rank === 2 ? "🥈" : "🥉"}
+                    </span>
+                ) : (
+                    <div className={clsx(
+                        "w-8 h-8 sm:w-12 sm:h-12 rounded-full flex items-center justify-center font-black text-sm sm:text-lg shrink-0",
+                        isPinned
+                            ? "bg-white text-orange-600 border-2 border-orange-200"
+                            : "bg-gray-50 text-gray-500"
+                    )}>
+                        {`#${entry.rank}`}
+                    </div>
+                )}
                 
-                <div className="w-12 h-12 bg-indigo-50 rounded-full flex items-center justify-center shrink-0 border border-indigo-100">
+                <div className="w-8 h-8 sm:w-12 sm:h-12 bg-indigo-50 rounded-full flex items-center justify-center shrink-0 border border-indigo-100">
                     {entry.isAnonymous ? (
-                        <User className="w-6 h-6 text-indigo-300" />
+                        <User className="w-4 h-4 sm:w-6 sm:h-6 text-indigo-300" />
                     ) : (
-                        <span className="text-lg font-bold text-indigo-600">
+                        <span className="text-sm sm:text-lg font-bold text-indigo-600">
                             {entry.displayName ? entry.displayName.charAt(0).toUpperCase() : "A"}
                         </span>
                     )}
@@ -93,7 +91,7 @@ export default function LeaderboardPage() {
                             </span>
                         )}
                     </p>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-gray-500 truncate">
                         {entry.completedFixes} completed fixes
                     </p>
                 </div>
@@ -122,7 +120,7 @@ export default function LeaderboardPage() {
                 </p>
             </div>
 
-            <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-gray-100 relative overflow-hidden">
+            <div className="bg-white rounded-3xl p-3 sm:p-8 shadow-sm border border-gray-100 relative overflow-hidden">
                 <div className="relative z-10 space-y-3">
                     {/* Pinned Current User if not in Top 10 */}
                     {!inTop10 && isRanked && (

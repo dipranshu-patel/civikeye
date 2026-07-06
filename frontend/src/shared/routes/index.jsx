@@ -32,6 +32,7 @@ import AdminDepartments from "../../features/admin/pages/Departments";
 import AdminSlaCategories from "../../features/admin/pages/SLACategories";
 import AuditLogs from "../../features/admin/pages/AuditLogs";
 import ProtectedRoute from "../components/ProtectedRoute";
+import NotFoundPage from "../pages/NotFoundPage";
 
 const router = createBrowserRouter([
     {
@@ -135,6 +136,10 @@ const router = createBrowserRouter([
                 ],
             },
         ],
+    },
+    {
+        path: "*",
+        element: <NotFoundPage />,
     },
 ]);
 

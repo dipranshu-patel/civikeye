@@ -1,7 +1,12 @@
 "use strict";
 
-const express = require("express");
+const express      = require("express");
+const cors        = require("cors");
+const helmet      = require("helmet");
+const morgan      = require("morgan");
 const cookieParser = require("cookie-parser");
+const config       = require("./config");
+const pool         = require("./config/db");
 
 const authRoutes = require("./features/auth/auth.routes");
 const meRoutes = require("./features/me/me.routes");
@@ -30,9 +35,36 @@ const {
 
 const app = express();
 
+// Trust proxy (required for rate-limiting behind Render/Railway/Nginx)
+app.set("trust proxy", 1);
+
+// Security headers
+app.use(helmet());
+
+// CORS — allow only the configured frontend origin, with cookies
+app.use(cors({
+    origin: config.frontend.url,
+    credentials: true,
+}));
+
+// Request logging (skip in test)
+if (process.env.NODE_ENV !== "test") {
+    app.use(morgan("combined"));
+}
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
+
+// Health check endpoint
+app.get("/api/health", async (_req, res) => {
+    try {
+        await pool.query("SELECT 1");
+        res.json({ status: "ok", db: "connected", ts: new Date().toISOString() });
+    } catch {
+        res.status(503).json({ status: "error", db: "unreachable" });
+    }
+});
 
 app.use("/api", globalLimiter);
 app.use("/api/auth", authRoutes);
