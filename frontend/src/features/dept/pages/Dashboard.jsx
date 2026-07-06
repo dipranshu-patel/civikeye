@@ -50,11 +50,7 @@ export default function Dashboard() {
     }
 
     if (error) {
-        return (
-            <div className="flex min-h-[60vh] items-center justify-center text-red-500">
-                {error}
-            </div>
-        );
+        return <div className="text-red-500 text-sm font-medium">{error}</div>;
     }
 
     const { summary, urgentComplaints, recentActivity, performance } = data;
@@ -75,14 +71,12 @@ export default function Dashboard() {
 
     return (
         <div className="space-y-8 max-w-[1400px] mx-auto min-h-[60vh]">
-            {/* Header / Dept Info */}
             <div className="flex items-center mb-2">
                 <h2 className="text-2xl font-bold text-gray-900">
                     {profile?.department?.name || "Department Dashboard"}
                 </h2>
             </div>
 
-            {/* Summary Cards */}
             <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
                 <div className="bg-gradient-to-br from-blue-500 to-cyan-600 rounded-2xl p-5 text-white shadow-lg shadow-blue-900/20 relative overflow-hidden flex flex-col justify-between">
                     <div className="relative z-10">
@@ -155,7 +149,6 @@ export default function Dashboard() {
                 </div>
             </div>
 
-            {/* Urgent Attention Required */}
             <section>
                 <div className="flex items-center gap-3 mb-4">
                     <AlertTriangle className="w-5 h-5 text-red-500" />
@@ -228,7 +221,6 @@ export default function Dashboard() {
             </section>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                {/* Recent Activity */}
                 <section className="lg:col-span-2">
                     <div className="flex items-center justify-between mb-4">
                         <h2 className="text-sm font-bold tracking-widest text-gray-900 uppercase">
@@ -279,7 +271,6 @@ export default function Dashboard() {
                 </section>
 
                 <div className="space-y-8">
-                    {/* Quick Actions */}
                     <section>
                         <h2 className="text-sm font-bold tracking-widest text-gray-900 uppercase mb-4">
                             Quick Actions
@@ -346,7 +337,6 @@ export default function Dashboard() {
                         </div>
                     </section>
 
-                    {/* Department Performance */}
                     <section>
                         <h2 className="text-sm font-bold tracking-widest text-gray-900 uppercase mb-4">
                             Department Performance

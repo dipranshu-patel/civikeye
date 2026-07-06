@@ -5,12 +5,14 @@ import { Bell, User, PanelLeft, Trophy, Settings, LogOut } from "lucide-react";
 import { toggleSidebar } from "../../store/uiSlice";
 import { notificationsService } from "../../services/notifications.service";
 import NotificationsDropdown from "./NotificationsDropdown";
+import api from "../../lib/axios";
 
 export default function TopNav({
     profile,
     settingsLink = "/settings",
     leaderboardLink = null,
     onProfileClick = null,
+    showNotifications = true,
 }) {
     const pageTitle = useSelector((state) => state.ui.pageTitle);
     const dispatch = useDispatch();
@@ -22,34 +24,50 @@ export default function TopNav({
     const notifRef = useRef(null);
 
     useEffect(() => {
-        notificationsService.getUnreadCount().then(res => {
-            setUnreadCount(res.data.data.count);
-        }).catch(console.error);
-    }, []);
+        if (!showNotifications) return;
+        notificationsService
+            .getUnreadCount()
+            .then((res) => {
+                setUnreadCount(res.data.data.count);
+            })
+            .catch(console.error);
+    }, [showNotifications]);
 
     useEffect(() => {
         const handleClickOutside = (event) => {
-            if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+            if (
+                dropdownRef.current &&
+                !dropdownRef.current.contains(event.target)
+            ) {
                 setIsDropdownOpen(false);
             }
             if (notifRef.current && !notifRef.current.contains(event.target)) {
                 setIsNotificationsOpen(false);
             }
         };
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
+        document.addEventListener("mousedown", handleClickOutside);
+        return () =>
+            document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
     const words = profile?.fullName ? profile.fullName.trim().split(/\s+/) : [];
-    const initials = words.length >= 2
-        ? (words[0][0] + words[1][0]).toUpperCase()
-        : words.length === 1
-            ? words[0].substring(0, 2).toUpperCase()
-            : 'U';
+    const initials =
+        words.length >= 2
+            ? (words[0][0] + words[1][0]).toUpperCase()
+            : words.length === 1
+              ? words[0].substring(0, 2).toUpperCase()
+              : "U";
 
-    const handleSignOut = () => {
-        localStorage.removeItem('accessToken');
-        window.location.href = '/login';
+    const handleSignOut = async () => {
+        try {
+            await api.post("/auth/logout");
+        } catch {
+        } finally {
+            localStorage.removeItem("accessToken");
+            localStorage.removeItem("userRole");
+            localStorage.removeItem("userId");
+            window.location.href = "/login";
+        }
     };
 
     return (
@@ -77,27 +95,31 @@ export default function TopNav({
                     </Link>
                 )}
 
-                <div className="relative" ref={notifRef}>
-                    <button 
-                        onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
-                        className="relative p-2 rounded-full text-gray-500 hover:bg-gray-100 transition-colors cursor-pointer"
-                    >
-                        <Bell className="w-5 h-5" />
-                        {unreadCount > 0 && (
-                            <span className="absolute top-2 right-2.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
+                {showNotifications && (
+                    <div className="relative" ref={notifRef}>
+                        <button
+                            onClick={() =>
+                                setIsNotificationsOpen(!isNotificationsOpen)
+                            }
+                            className="relative p-2 rounded-full text-gray-500 hover:bg-gray-100 transition-colors cursor-pointer"
+                        >
+                            <Bell className="w-5 h-5" />
+                            {unreadCount > 0 && (
+                                <span className="absolute top-2 right-2.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
+                            )}
+                        </button>
+                        {isNotificationsOpen && (
+                            <NotificationsDropdown
+                                unreadCount={unreadCount}
+                                onClose={() => setIsNotificationsOpen(false)}
+                                onUnreadCountChange={setUnreadCount}
+                            />
                         )}
-                    </button>
-                    {isNotificationsOpen && (
-                        <NotificationsDropdown 
-                            unreadCount={unreadCount}
-                            onClose={() => setIsNotificationsOpen(false)} 
-                            onUnreadCountChange={setUnreadCount}
-                        />
-                    )}
-                </div>
+                    </div>
+                )}
 
                 <div className="relative" ref={dropdownRef}>
-                    <button 
+                    <button
                         onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                         className="w-9 h-9 rounded-full bg-gray-900 text-white flex items-center justify-center font-medium text-sm hover:bg-gray-800 transition-colors cursor-pointer"
                     >
@@ -106,19 +128,26 @@ export default function TopNav({
                     {isDropdownOpen && (
                         <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-100 py-1 z-50">
                             <div className="px-4 py-2 border-b border-gray-100">
-                                <p className="text-sm font-semibold text-gray-900 truncate">{profile?.fullName}</p>
-                                <p className="text-xs text-gray-500 truncate">{profile?.email}</p>
+                                <p className="text-sm font-semibold text-gray-900 truncate">
+                                    {profile?.fullName}
+                                </p>
+                                <p className="text-xs text-gray-500 truncate">
+                                    {profile?.email}
+                                </p>
                             </div>
                             {onProfileClick && (
-                                <button 
-                                    onClick={() => { setIsDropdownOpen(false); onProfileClick(); }}
+                                <button
+                                    onClick={() => {
+                                        setIsDropdownOpen(false);
+                                        onProfileClick();
+                                    }}
                                     className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2 cursor-pointer"
                                 >
                                     <User className="w-4 h-4" /> My Profile
                                 </button>
                             )}
                             {settingsLink && (
-                                <Link 
+                                <Link
                                     to={settingsLink}
                                     onClick={() => setIsDropdownOpen(false)}
                                     className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2 cursor-pointer"
@@ -126,7 +155,7 @@ export default function TopNav({
                                     <Settings className="w-4 h-4" /> Settings
                                 </Link>
                             )}
-                            <button 
+                            <button
                                 onClick={handleSignOut}
                                 className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2 cursor-pointer"
                             >

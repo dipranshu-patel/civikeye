@@ -26,6 +26,13 @@ import DeptLayout from "../../features/dept/components/layout/DeptLayout";
 import DeptDashboard from "../../features/dept/pages/Dashboard";
 import DeptComplaints from "../../features/dept/pages/Complaints";
 
+import AdminLayout from "../../features/admin/components/layout/AdminLayout";
+import AdminDashboard from "../../features/admin/pages/Dashboard";
+import AdminDepartments from "../../features/admin/pages/Departments";
+import AdminSlaCategories from "../../features/admin/pages/SLACategories";
+import AuditLogs from "../../features/admin/pages/AuditLogs";
+import ProtectedRoute from "../components/ProtectedRoute";
+
 const router = createBrowserRouter([
     {
         path: "/register",
@@ -73,58 +80,59 @@ const router = createBrowserRouter([
         ],
     },
     {
-        path: "/citizen",
-        element: <CitizenLayout />,
+        element: <ProtectedRoute allowedRoles={["citizen"]} />,
         children: [
             {
-                path: "dashboard",
-                element: <Dashboard />,
-            },
-            {
-                path: "report-complaint",
-                element: <ReportComplaint />,
-            },
-            {
-                path: "explore-complaints",
-                element: <ExploreComplaints />,
-            },
-            {
-                path: "my-complaints",
-                element: <MyComplaints />,
-            },
-            {
-                path: "verification-requests",
-                element: <VerificationRequests />,
-            },
-            {
-                path: "volunteer",
-                element: <Volunteer />,
-            },
-            {
-                path: "leaderboard",
-                element: <LeaderboardPage />,
-            },
-            {
-                path: "departments",
-                element: <Departments />,
-            },
-            {
-                path: "settings",
-                element: <Settings />,
+                path: "/citizen",
+                element: <CitizenLayout />,
+                children: [
+                    { path: "dashboard", element: <Dashboard /> },
+                    { path: "report-complaint", element: <ReportComplaint /> },
+                    {
+                        path: "explore-complaints",
+                        element: <ExploreComplaints />,
+                    },
+                    { path: "my-complaints", element: <MyComplaints /> },
+                    {
+                        path: "verification-requests",
+                        element: <VerificationRequests />,
+                    },
+                    { path: "volunteer", element: <Volunteer /> },
+                    { path: "leaderboard", element: <LeaderboardPage /> },
+                    { path: "departments", element: <Departments /> },
+                    { path: "settings", element: <Settings /> },
+                ],
             },
         ],
     },
     {
-        path: "/official",
-        element: <DeptLayout />,
+        element: <ProtectedRoute allowedRoles={["official"]} />,
         children: [
             {
-                path: "dashboard",
-                element: <DeptDashboard />,
+                path: "/official",
+                element: <DeptLayout />,
+                children: [
+                    { path: "dashboard", element: <DeptDashboard /> },
+                    { path: "complaints", element: <DeptComplaints /> },
+                ],
             },
+        ],
+    },
+    {
+        element: <ProtectedRoute allowedRoles={["admin"]} />,
+        children: [
             {
-                path: "complaints",
-                element: <DeptComplaints />,
+                path: "/admin",
+                element: <AdminLayout />,
+                children: [
+                    { path: "dashboard", element: <AdminDashboard /> },
+                    { path: "departments", element: <AdminDepartments /> },
+                    {
+                        path: "sla-configuration",
+                        element: <AdminSlaCategories />,
+                    },
+                    { path: "audit-logs", element: <AuditLogs /> },
+                ],
             },
         ],
     },
