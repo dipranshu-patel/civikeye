@@ -361,10 +361,10 @@ async function castVoteAndResolve({ complaintId, verifierId, vote, comment }) {
 
                     // Notify the department official that their complaint was community-resolved
                     const { rows: deptRows } = await client.query(
-                        `SELECT d.official_id, c.title, c.public_code
+                        `SELECT d.user_id AS official_id, c.title, c.public_code
                          FROM complaints c
                          JOIN departments d ON d.id = c.department_id
-                         WHERE c.id = $1 AND d.official_id IS NOT NULL`,
+                         WHERE c.id = $1 AND d.user_id IS NOT NULL`,
                         [complaintId],
                     );
                     if (deptRows[0]?.official_id) {
@@ -414,7 +414,7 @@ async function castVoteAndResolve({ complaintId, verifierId, vote, comment }) {
 
                         await client.query(
                             `UPDATE volunteer_task_assignments
-                             SET status = 'cancelled', completed_at = NOW()
+                             SET status = 'abandoned', completed_at = NOW()
                              WHERE id = $1`,
                             [assignment_id],
                         );

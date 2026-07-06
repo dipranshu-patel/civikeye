@@ -52,7 +52,7 @@ async function createVolunteerTask(client, complaintId) {
 }
 
 async function findOpenTasks({ search, page, limit }) {
-    const conditions = [`vt.status = 'open'`, `c.status = 'reported'`];
+    const conditions = [`vt.status = 'open'`, `c.status IN ('reported', 'reopened')`];
     const values     = [];
     let   idx        = 1;
 
