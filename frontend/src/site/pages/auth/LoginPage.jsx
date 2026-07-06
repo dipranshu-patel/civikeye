@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { Link, Navigate, useNavigate } from "react-router-dom";
 import { Eye, EyeOff, CheckCircle2, ShieldCheck, Users, Mail, Lock, MoveRight } from "lucide-react";
 import { authService } from "../../services/auth.service";
 import { Input } from "../../../shared/components/ui/Input";
@@ -8,24 +8,23 @@ import LogoSVG from "../../assets/logo.svg";
 
 export default function LoginPage() {
     const navigate = useNavigate();
+
+    // All hooks must come before any early returns (Rules of Hooks)
     const [loading, setLoading] = useState(false);
-
-    useEffect(() => {
-        const token = localStorage.getItem('accessToken');
-        const role = localStorage.getItem('userRole');
-        if (token) {
-            navigate(`/${role || 'citizen'}/dashboard`);
-        }
-    }, [navigate]);
-
-    
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [keepSignedIn, setKeepSignedIn] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
-    
     const [fieldErrors, setFieldErrors] = useState({});
     const [globalError, setGlobalError] = useState(null);
+
+    // Synchronous check — avoids any flicker before redirect
+    const token = localStorage.getItem("accessToken");
+    const role  = localStorage.getItem("userRole");
+    if (token) {
+        return <Navigate to={`/${role || "citizen"}/dashboard`} replace />;
+    }
+
 
     const handleLogin = async (e) => {
         e.preventDefault();

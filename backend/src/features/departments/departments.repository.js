@@ -126,20 +126,35 @@ async function findActiveDepartments() {
 
 async function findActiveDepartmentsStats() {
     const sql = `
-        SELECT
-            COUNT(d.id)::INT                         AS total_departments,
-            ROUND(AVG(dp.avg_resolution_days), 1)   AS avg_response_days,
-            ROUND(AVG(dp.resolution_rate_pct), 1)   AS avg_resolution_rate_pct,
-            COALESCE(SUM(dp.overdue_count), 0)::INT  AS total_overdue,
-            ROUND(
-                COUNT(cv.id) FILTER (WHERE cv.vote = 'confirm') * 100.0
-                / NULLIF(COUNT(cv.id), 0), 1
-            )                                        AS public_verification_pct
-        FROM departments d
-        LEFT JOIN dept_performance dp       ON dp.department_id = d.id
-        LEFT JOIN complaints c              ON c.department_id  = d.id
-        LEFT JOIN complaint_verifications cv ON cv.complaint_id = c.id
-        WHERE d.is_active = TRUE;
+        WITH dept_stats AS (
+            SELECT
+                COUNT(d.id)::INT AS total_departments,
+                ROUND(AVG(dp.avg_resolution_days), 1) AS avg_response_days,
+                ROUND(AVG(dp.resolution_rate_pct), 1) AS avg_resolution_rate_pct,
+                COALESCE(SUM(dp.overdue_count), 0)::INT AS total_overdue
+            FROM departments d
+            LEFT JOIN dept_performance dp ON dp.department_id = d.id
+            WHERE d.is_active = TRUE
+        ),
+        verification_stats AS (
+            SELECT
+                ROUND(
+                    COUNT(cv.id) FILTER (WHERE cv.vote = 'confirm') * 100.0
+                    / NULLIF(COUNT(cv.id), 0), 1
+                ) AS public_verification_pct
+            FROM complaint_verifications cv
+            JOIN complaints c ON c.id = cv.complaint_id
+            JOIN departments d ON d.id = c.department_id
+            WHERE d.is_active = TRUE
+        )
+        SELECT 
+            total_departments,
+            avg_response_days,
+            avg_resolution_rate_pct,
+            total_overdue,
+            public_verification_pct
+        FROM dept_stats
+        CROSS JOIN verification_stats;
     `;
 
     const { rows } = await query(sql);

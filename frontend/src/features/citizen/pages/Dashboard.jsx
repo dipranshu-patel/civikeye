@@ -1,6 +1,16 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Clock, ShieldCheck, AlertTriangle, Target, CheckCircle, Inbox, List, Search, Activity } from "lucide-react";
+import {
+    Clock,
+    ShieldCheck,
+    AlertTriangle,
+    Target,
+    CheckCircle,
+    Inbox,
+    List,
+    Search,
+    Activity,
+} from "lucide-react";
 import { dashboardService } from "../services/dashboard.service";
 import clsx from "clsx";
 
@@ -33,11 +43,7 @@ export default function Dashboard() {
     }
 
     if (error) {
-        return (
-            <div className="flex min-h-[60vh] items-center justify-center text-red-500">
-                {error}
-            </div>
-        );
+        return <div className="text-red-500 text-sm font-medium">{error}</div>;
     }
 
     const { summary, myComplaints, verificationRequests, recentActivity } =
@@ -49,39 +55,55 @@ export default function Dashboard() {
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     <div className="bg-gradient-to-br from-purple-500 to-fuchsia-600 rounded-2xl p-6 text-white shadow-lg shadow-purple-900/20 relative overflow-hidden">
                         <div className="relative z-10">
-                            <p className="text-purple-100 font-medium text-sm mb-1">My Active Complaints</p>
+                            <p className="text-purple-100 font-medium text-sm mb-1">
+                                My Active Complaints
+                            </p>
                             <div className="flex items-baseline gap-2">
-                                <h3 className="text-3xl font-bold">{summary.myActiveComplaints || 0}</h3>
+                                <h3 className="text-3xl font-bold">
+                                    {summary.myActiveComplaints || 0}
+                                </h3>
                             </div>
                         </div>
                         <AlertTriangle className="absolute -right-4 -bottom-4 w-24 h-24 text-white opacity-20" />
                     </div>
-                    
+
                     <div className="bg-gradient-to-br from-indigo-500 to-blue-600 rounded-2xl p-6 text-white shadow-lg shadow-blue-900/20 relative overflow-hidden">
                         <div className="relative z-10">
-                            <p className="text-blue-100 font-medium text-sm mb-1">Pending Verifications</p>
+                            <p className="text-blue-100 font-medium text-sm mb-1">
+                                Pending Verifications
+                            </p>
                             <div className="flex items-baseline gap-2">
-                                <h3 className="text-3xl font-bold">{summary.pendingVerifications || 0}</h3>
+                                <h3 className="text-3xl font-bold">
+                                    {summary.pendingVerifications || 0}
+                                </h3>
                             </div>
                         </div>
                         <ShieldCheck className="absolute -right-4 -bottom-4 w-24 h-24 text-white opacity-20" />
                     </div>
-                    
+
                     <div className="bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl p-6 text-white shadow-lg shadow-emerald-900/20 relative overflow-hidden">
                         <div className="relative z-10">
-                            <p className="text-emerald-100 font-medium text-sm mb-1">My Volunteer Tasks</p>
+                            <p className="text-emerald-100 font-medium text-sm mb-1">
+                                My Volunteer Tasks
+                            </p>
                             <div className="flex items-baseline gap-2">
-                                <h3 className="text-3xl font-bold">{summary.myVolunteerTasks || 0}</h3>
+                                <h3 className="text-3xl font-bold">
+                                    {summary.myVolunteerTasks || 0}
+                                </h3>
                             </div>
                         </div>
                         <Target className="absolute -right-4 -bottom-4 w-24 h-24 text-white opacity-20" />
                     </div>
-                    
+
                     <div className="bg-gradient-to-br from-amber-500 to-orange-600 rounded-2xl p-6 text-white shadow-lg shadow-amber-900/20 relative overflow-hidden">
                         <div className="relative z-10">
-                            <p className="text-amber-100 font-medium text-sm mb-1">Contribution Score</p>
+                            <p className="text-amber-100 font-medium text-sm mb-1">
+                                Contribution Score
+                            </p>
                             <div className="flex items-baseline gap-2">
-                                <h3 className="text-3xl font-bold">{summary.contributionScore || 0}</h3>
+                                <h3 className="text-3xl font-bold">
+                                    {summary.contributionScore || 0}
+                                </h3>
                             </div>
                         </div>
                         <CheckCircle className="absolute -right-4 -bottom-4 w-24 h-24 text-white opacity-20" />
@@ -139,7 +161,8 @@ export default function Dashboard() {
                                             <span
                                                 className={clsx(
                                                     "px-2 py-0.5 rounded-full text-[10px] font-medium whitespace-nowrap",
-                                                    complaint.status === "resolved"
+                                                    complaint.status ===
+                                                        "resolved"
                                                         ? "bg-green-50 text-green-700"
                                                         : complaint.status ===
                                                             "in_progress"
@@ -147,7 +170,10 @@ export default function Dashboard() {
                                                           : "bg-gray-100 text-gray-700",
                                                 )}
                                             >
-                                                {complaint.status.replace("_", " ")}
+                                                {complaint.status.replace(
+                                                    "_",
+                                                    " ",
+                                                )}
                                             </span>
                                         </div>
                                     </div>
@@ -156,7 +182,10 @@ export default function Dashboard() {
                         ))
                     ) : (
                         <div className="bg-white border border-gray-100 rounded-xl p-4 text-sm text-gray-400 text-center py-8 flex flex-col items-center">
-                            <Inbox className="w-8 h-8 text-gray-300 mb-2" strokeWidth={1.5} />
+                            <Inbox
+                                className="w-8 h-8 text-gray-300 mb-2"
+                                strokeWidth={1.5}
+                            />
                             <span>No active complaints.</span>
                         </div>
                     )}
@@ -177,7 +206,10 @@ export default function Dashboard() {
                 </div>
                 <div className="flex gap-4 overflow-x-auto pb-4 snap-x scrollbar-hide">
                     <div className="bg-white border border-gray-100 rounded-xl p-4 text-sm text-gray-400 text-center py-8 flex flex-col items-center min-w-full">
-                        <List className="w-8 h-8 text-gray-300 mb-2" strokeWidth={1.5} />
+                        <List
+                            className="w-8 h-8 text-gray-300 mb-2"
+                            strokeWidth={1.5}
+                        />
                         <span>No active volunteer tasks.</span>
                     </div>
                 </div>
@@ -222,7 +254,10 @@ export default function Dashboard() {
                         ))
                     ) : (
                         <div className="bg-white border border-gray-100 rounded-xl p-4 text-sm text-gray-400 text-center py-8 flex flex-col items-center min-w-full">
-                            <Search className="w-8 h-8 text-gray-300 mb-2" strokeWidth={1.5} />
+                            <Search
+                                className="w-8 h-8 text-gray-300 mb-2"
+                                strokeWidth={1.5}
+                            />
                             <span>No pending verifications nearby.</span>
                         </div>
                     )}
@@ -259,7 +294,10 @@ export default function Dashboard() {
                         ))
                     ) : (
                         <div className="bg-white border border-gray-100 rounded-xl p-4 text-sm text-gray-400 text-center py-8 flex flex-col items-center">
-                            <Activity className="w-8 h-8 text-gray-300 mb-2" strokeWidth={1.5} />
+                            <Activity
+                                className="w-8 h-8 text-gray-300 mb-2"
+                                strokeWidth={1.5}
+                            />
                             <span>No recent activity.</span>
                         </div>
                     )}
