@@ -117,13 +117,15 @@ export default function TopNav({
                                     <User className="w-4 h-4" /> My Profile
                                 </button>
                             )}
-                            <Link 
-                                to={settingsLink}
-                                onClick={() => setIsDropdownOpen(false)}
-                                className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2 cursor-pointer"
-                            >
-                                <Settings className="w-4 h-4" /> Settings
-                            </Link>
+                            {settingsLink && (
+                                <Link 
+                                    to={settingsLink}
+                                    onClick={() => setIsDropdownOpen(false)}
+                                    className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2 cursor-pointer"
+                                >
+                                    <Settings className="w-4 h-4" /> Settings
+                                </Link>
+                            )}
                             <button 
                                 onClick={handleSignOut}
                                 className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2 cursor-pointer"

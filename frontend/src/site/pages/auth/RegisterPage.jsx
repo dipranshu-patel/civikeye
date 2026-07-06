@@ -331,6 +331,7 @@ export default function RegisterPage() {
                                             onClick={handleSendOtp}
                                             isLoading={loadingAction === "sendOtp"}
                                             disabled={!email || loadingAction !== null}
+                                            className="cursor-pointer"
                                         >
                                             {loadingAction === "sendOtp" ? "Verifying..." : "Verify"}
                                         </Button>
@@ -360,7 +361,7 @@ export default function RegisterPage() {
                                     </div>
 
                                     {step === 2 && (
-                                        <div className="flex items-center justify-between mt-4">
+                                        <div className="flex items-center justify-between mt-4 cursor-pointer">
                                             <Button
                                                 variant="secondary"
                                                 onClick={handleVerifyOtp}
@@ -373,7 +374,7 @@ export default function RegisterPage() {
                                             <button
                                                 onClick={handleSendOtp}
                                                 disabled={timer > 0 || loadingAction !== null}
-                                                className="text-sm text-blue-600 hover:text-blue-700 disabled:text-gray-400 font-medium"
+                                                className="text-sm text-blue-600 hover:text-blue-700 disabled:text-gray-400 font-medium cursor-pointer disabled:cursor-not-allowed"
                                             >
                                                 {timer > 0
                                                     ? `Resend in ${timer}s`
@@ -408,7 +409,7 @@ export default function RegisterPage() {
                                         onClick={() =>
                                             setShowPassword(!showPassword)
                                         }
-                                        className="absolute right-3 top-5 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                                        className="absolute right-3 top-5 -translate-y-1/2 text-gray-400 hover:text-gray-600 cursor-pointer"
                                     >
                                         {showPassword ? (
                                             <EyeOff className="w-4 h-4" />
@@ -456,7 +457,7 @@ export default function RegisterPage() {
                                     onChange={(e) =>
                                         setConsent(e.target.checked)
                                     }
-                                    className="mt-1 h-4 w-4 rounded border-gray-300 text-black focus:ring-black"
+                                    className="mt-1 h-4 w-4 rounded border-gray-300 text-black focus:ring-black cursor-pointer"
                                 />
                                 <label
                                     htmlFor="consent"

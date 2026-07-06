@@ -22,6 +22,10 @@ import LeaderboardPage from "../../features/citizen/pages/LeaderboardPage";
 import Departments from "../../features/citizen/pages/Departments";
 import Settings from "../../features/citizen/pages/Settings";
 
+import DeptLayout from "../../features/dept/components/layout/DeptLayout";
+import DeptDashboard from "../../features/dept/pages/Dashboard";
+import DeptComplaints from "../../features/dept/pages/Complaints";
+
 const router = createBrowserRouter([
     {
         path: "/register",
@@ -107,6 +111,20 @@ const router = createBrowserRouter([
             {
                 path: "settings",
                 element: <Settings />,
+            },
+        ],
+    },
+    {
+        path: "/official",
+        element: <DeptLayout />,
+        children: [
+            {
+                path: "dashboard",
+                element: <DeptDashboard />,
+            },
+            {
+                path: "complaints",
+                element: <DeptComplaints />,
             },
         ],
     },

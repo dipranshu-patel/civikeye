@@ -232,7 +232,7 @@ async function submitTaskCompletion({ taskId, volunteerId, note, proofFile }) {
             }
 
             await notifyNearbyCitizens(client, {
-                excludeUserId: comp.reporter_id,
+                excludeUserIds: [comp.reporter_id, volunteerId],
                 lat: parseFloat(comp.latitude),
                 lon: parseFloat(comp.longitude),
                 type:       "VERIFICATION_NEEDED",
@@ -360,26 +360,36 @@ async function getLeaderboard({ page, limit }) {
 
     const sql = `
         SELECT
-            RANK() OVER (ORDER BY SUM(con.points) DESC)::INT     AS rank,
+            RANK() OVER (ORDER BY total_points DESC)::INT   AS rank,
             u.id,
             u.full_name,
-            COALESCE(up.appear_on_leaderboard, TRUE)             AS appear_on_leaderboard,
-            SUM(con.points)::INT                                  AS total_points,
-            COUNT(DISTINCT vta.id) FILTER (WHERE vta.status = 'completed')::INT AS completed_fixes,
-            ROUND(
-                COUNT(cv.id) FILTER (
-                    WHERE cv.vote = 'confirm' AND c2.status = 'resolved'
-                ) * 100.0 / NULLIF(COUNT(cv.id) FILTER (WHERE cv.vote = 'confirm'), 0), 1
-            )                                                     AS verify_rate_pct,
-            COUNT(*) OVER ()::INT                                 AS total_count
-        FROM contributions con
-        JOIN users u ON u.id = con.user_id AND u.is_deleted = FALSE
-        LEFT JOIN user_preferences             up  ON up.user_id       = u.id
-        LEFT JOIN volunteer_task_assignments vta ON vta.volunteer_id = u.id
-        LEFT JOIN complaint_verifications cv ON cv.verifier_id = u.id
-        LEFT JOIN complaints c2 ON c2.id = cv.complaint_id
-        GROUP BY u.id, u.full_name, up.appear_on_leaderboard
-        ORDER BY SUM(con.points) DESC
+            COALESCE(up.appear_on_leaderboard, TRUE)        AS appear_on_leaderboard,
+            total_points,
+            (
+                SELECT COUNT(*)::INT
+                FROM volunteer_task_assignments
+                WHERE volunteer_id = u.id AND status = 'completed'
+            )                                               AS completed_fixes,
+            (
+                SELECT ROUND(
+                    COUNT(*) FILTER (WHERE cv2.vote = 'confirm' AND c2.status = 'resolved') * 100.0
+                    / NULLIF(COUNT(*) FILTER (WHERE cv2.vote = 'confirm'), 0), 1
+                )
+                FROM complaint_verifications cv2
+                JOIN complaints c2 ON c2.id = cv2.complaint_id
+                WHERE cv2.verifier_id = u.id
+            )                                               AS verify_rate_pct,
+            COUNT(*) OVER ()::INT                           AS total_count
+        FROM (
+            SELECT
+                con.user_id,
+                SUM(con.points)::INT                        AS total_points
+            FROM contributions con
+            GROUP BY con.user_id
+        ) pts
+        JOIN users u ON u.id = pts.user_id AND u.is_deleted = FALSE
+        LEFT JOIN user_preferences up ON up.user_id = u.id
+        ORDER BY total_points DESC
         LIMIT $1 OFFSET $2;
     `;
 
@@ -388,6 +398,14 @@ async function getLeaderboard({ page, limit }) {
 }
 
 async function awardPoints(client, { userId, complaintId, taskId, points, type }) {
+    if (complaintId && type !== "community_fix") {
+        const { rows: existing } = await client.query(
+            `SELECT id FROM contributions WHERE user_id = $1 AND complaint_id = $2 AND type = $3 LIMIT 1`,
+            [userId, complaintId, type],
+        );
+        if (existing.length > 0) return existing[0];
+    }
+
     const { rows } = await client.query(
         `INSERT INTO contributions (user_id, complaint_id, task_id, points, type)
          VALUES ($1, $2, $3, $4, $5)

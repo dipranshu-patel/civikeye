@@ -2,8 +2,7 @@
 
 const { verifyAccessToken } = require("../utils/jwt");
 const AppError = require("../utils/app-error");
-const pool     = require("../../config/db");
-
+const pool = require("../../config/db");
 
 function requireAuth(req, _res, next) {
     const authHeader =
@@ -55,8 +54,8 @@ function requireAuth(req, _res, next) {
     }
 
     req.user = {
-        userId:       payload.userId,
-        role:         payload.role,
+        userId: payload.userId,
+        role: payload.role,
         departmentId: payload.deptId ?? null,
     };
 
@@ -146,7 +145,7 @@ function ensureComplaintOwner(complaintRepository) {
     return _makeOwnershipGuard(async (req) => {
         const complaint = await complaintRepository.findById(req.params.id);
         if (!complaint) return null;
-        req.complaint = complaint; 
+        req.complaint = complaint;
         return complaint.reporter_id;
     }, "complaint");
 }
@@ -155,7 +154,7 @@ function ensureVolunteerOwner(volunteerRepository) {
     return _makeOwnershipGuard(async (req) => {
         const task = await volunteerRepository.findById(req.params.id);
         if (!task) return null;
-        req.volunteerTask = task; 
+        req.volunteerTask = task;
         return task.created_by;
     }, "volunteer task");
 }
@@ -176,8 +175,12 @@ async function requireUserLocation(req, _res, next) {
             [req.user.userId],
         );
         if (rows[0]) {
-            req.user.latitude  = rows[0].latitude  ? parseFloat(rows[0].latitude)  : null;
-            req.user.longitude = rows[0].longitude ? parseFloat(rows[0].longitude) : null;
+            req.user.latitude = rows[0].latitude
+                ? parseFloat(rows[0].latitude)
+                : null;
+            req.user.longitude = rows[0].longitude
+                ? parseFloat(rows[0].longitude)
+                : null;
         }
         next();
     } catch (err) {

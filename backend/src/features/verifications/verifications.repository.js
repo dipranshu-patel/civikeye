@@ -1,15 +1,22 @@
 "use strict";
 
-const { query, withTransaction }                      = require("../../shared/db/query");
-const { minVotesCommunity, minVotesAuthority,
-        confirmThreshold, radiusKm }                  = require("../../config/verification");
-const { notify, notifyPriorVerifiers,
-        notifyNearbyCitizens }                        = require("../../shared/utils/notify");
+const { query, withTransaction } = require("../../shared/db/query");
+const {
+    minVotesCommunity,
+    minVotesAuthority,
+    confirmThreshold,
+    radiusKm,
+} = require("../../config/verification");
+const {
+    notify,
+    notifyPriorVerifiers,
+    notifyNearbyCitizens,
+} = require("../../shared/utils/notify");
 
 const MIN_VOTES_COMMUNITY = minVotesCommunity;
 const MIN_VOTES_AUTHORITY = minVotesAuthority;
-const CONFIRM_THRESHOLD   = confirmThreshold;
-const RADIUS_KM           = radiusKm;
+const CONFIRM_THRESHOLD = confirmThreshold;
+const RADIUS_KM = radiusKm;
 
 const DISTANCE_KM_SQL = (uLat, uLon, cLat, cLon) => `
     6371.0 * 2 * ASIN(SQRT(
@@ -22,7 +29,7 @@ const DISTANCE_KM_SQL = (uLat, uLon, cLat, cLon) => `
 async function getVerificationSummary(userId, userLat, userLon) {
     const sql = `
         SELECT
-            -- Pending for this user (eligible + not yet voted)
+            -- Pending for this user (eligible + not yet voted + not the fixer)
             (
                 SELECT COUNT(*)::INT
                 FROM complaints c
@@ -33,7 +40,14 @@ async function getVerificationSummary(userId, userLat, userLon) {
                       SELECT 1 FROM complaint_verifications cv
                       WHERE cv.complaint_id = c.id AND cv.verifier_id = $1
                   )
-                  AND ${DISTANCE_KM_SQL("$2", "$3", "c.latitude", "c.longitude")} <= 2
+                  AND NOT EXISTS (
+                      SELECT 1 FROM volunteer_task_assignments vta
+                      JOIN volunteer_tasks vt ON vt.id = vta.task_id
+                      WHERE vt.complaint_id = c.id
+                        AND vta.volunteer_id = $1
+                        AND vta.status IN ('pending_verification', 'completed')
+                  )
+                  AND ${DISTANCE_KM_SQL("$2", "$3", "c.latitude", "c.longitude")} <= ${RADIUS_KM}
             ) AS pending_count,
 
             -- Completed verifications by this user
@@ -61,7 +75,13 @@ async function getVerificationSummary(userId, userLat, userLon) {
     return rows[0];
 }
 
-async function findPendingVerifications({ userId, userLat, userLon, filter, search }) {
+async function findPendingVerifications({
+    userId,
+    userLat,
+    userLon,
+    filter,
+    search,
+}) {
     const conditions = [
         `c.status = 'pending_verification'`,
         `c.reporter_id != $1`,
@@ -70,14 +90,23 @@ async function findPendingVerifications({ userId, userLat, userLon, filter, sear
             SELECT 1 FROM complaint_verifications cv2
             WHERE cv2.complaint_id = c.id AND cv2.verifier_id = $1
          )`,
+        `NOT EXISTS (
+            SELECT 1 FROM volunteer_task_assignments vta
+            JOIN volunteer_tasks vt ON vt.id = vta.task_id
+            WHERE vt.complaint_id = c.id 
+              AND vta.volunteer_id = $1 
+              AND vta.status IN ('pending_verification', 'completed')
+         )`,
         `${DISTANCE_KM_SQL("$2", "$3", "c.latitude", "c.longitude")} <= ${RADIUS_KM}`,
     ];
 
     const values = [userId, userLat, userLon];
-    let   idx    = 4;
+    let idx = 4;
 
     if (search) {
-        conditions.push(`(c.title ILIKE $${idx} OR c.public_code ILIKE $${idx})`);
+        conditions.push(
+            `(c.title ILIKE $${idx} OR c.public_code ILIKE $${idx})`,
+        );
         values.push(`%${search}%`);
         idx++;
     }
@@ -226,14 +255,16 @@ async function castVoteAndResolve({ complaintId, verifierId, vote, comment }) {
         const { total, confirms, issue_type } = tally[0];
         const ratio = total > 0 ? confirms / total : 0;
 
-        const MIN_VOTES = issue_type === "community_fixable"
-            ? MIN_VOTES_COMMUNITY
-            : MIN_VOTES_AUTHORITY;
+        const MIN_VOTES =
+            issue_type === "community_fixable"
+                ? MIN_VOTES_COMMUNITY
+                : MIN_VOTES_AUTHORITY;
 
         let resolution = null;
 
         if (total >= MIN_VOTES) {
-            const newStatus = ratio >= CONFIRM_THRESHOLD ? "resolved" : "reopened";
+            const newStatus =
+                ratio >= CONFIRM_THRESHOLD ? "resolved" : "reopened";
 
             const { rows: updated } = await client.query(
                 `UPDATE complaints
@@ -282,46 +313,71 @@ async function castVoteAndResolve({ complaintId, verifierId, vote, comment }) {
                     );
                     if (reporterRows[0]?.reporter_id) {
                         await volRepo.awardPoints(client, {
-                            userId:      reporterRows[0].reporter_id,
+                            userId: reporterRows[0].reporter_id,
                             complaintId,
-                            taskId:      null,
-                            points:      volRepo.POINTS.report,
-                            type:        "report",
+                            taskId: null,
+                            points: volRepo.POINTS.report,
+                            type: "report",
                         });
 
-                        const { reporter_id, title, public_code } = reporterRows[0];
+                        const { reporter_id, title, public_code } =
+                            reporterRows[0];
 
                         await notify(client, {
-                            userId:     reporter_id,
-                            type:       "COMPLAINT_RESOLVED",
-                            title:      "🎉 Your complaint has been resolved!",
-                            body:       `Your complaint "${title}" has been successfully resolved by the community.`,
-                            data:       { publicCode: public_code, complaintId },
+                            userId: reporter_id,
+                            type: "COMPLAINT_RESOLVED",
+                            title: "🎉 Your complaint has been resolved!",
+                            body: `Your complaint "${title}" has been successfully resolved by the community.`,
+                            data: { publicCode: public_code, complaintId },
                             entityType: "complaint",
-                            entityId:   complaintId,
+                            entityId: complaintId,
                         });
 
                         await notify(client, {
-                            userId:     reporter_id,
-                            type:       "REPORT_POINTS_EARNED",
-                            title:      `+${volRepo.POINTS.report} points for your report!`,
-                            body:       `Your complaint "${title}" was resolved. You earned ${volRepo.POINTS.report} points.`,
-                            data:       { points: volRepo.POINTS.report, publicCode: public_code, complaintId },
+                            userId: reporter_id,
+                            type: "REPORT_POINTS_EARNED",
+                            title: `+${volRepo.POINTS.report} points for your report!`,
+                            body: `Your complaint "${title}" was resolved. You earned ${volRepo.POINTS.report} points.`,
+                            data: {
+                                points: volRepo.POINTS.report,
+                                publicCode: public_code,
+                                complaintId,
+                            },
                             entityType: "complaint",
-                            entityId:   complaintId,
+                            entityId: complaintId,
                         });
                     }
 
                     await notifyPriorVerifiers(client, {
-                        complaintId, excludeVerifierId: verifierId,
-                        type:       "COMPLAINT_YOU_VERIFIED_RESOLVED",
-                        title:      "A complaint you verified is resolved",
-                        body:       "A complaint you helped verify has been successfully resolved by the community.",
-                        data:       { complaintId },
+                        complaintId,
+                        excludeVerifierId: verifierId,
+                        type: "COMPLAINT_YOU_VERIFIED_RESOLVED",
+                        title: "A complaint you verified is resolved",
+                        body: "A complaint you helped verify has been successfully resolved by the community.",
+                        data: { complaintId },
                         entityType: "complaint",
-                        entityId:   complaintId,
+                        entityId: complaintId,
                     });
 
+                    // Notify the department official that their complaint was community-resolved
+                    const { rows: deptRows } = await client.query(
+                        `SELECT d.official_id, c.title, c.public_code
+                         FROM complaints c
+                         JOIN departments d ON d.id = c.department_id
+                         WHERE c.id = $1 AND d.official_id IS NOT NULL`,
+                        [complaintId],
+                    );
+                    if (deptRows[0]?.official_id) {
+                        await notify(client, {
+                            userId:     deptRows[0].official_id,
+                            type:       "COMPLAINT_COMMUNITY_RESOLVED",
+                            title:      "A complaint was resolved by the community",
+                            body:       `The complaint "${deptRows[0].title}" assigned to your department was resolved by the community without departmental action.`,
+                            data:       { publicCode: deptRows[0].public_code, complaintId },
+                            entityType: "complaint",
+                            entityId:   complaintId,
+                        });
+                    }
                 } else {
                     const { rows: compRows } = await client.query(
                         `SELECT reporter_id, title, public_code, latitude, longitude, issue_type
@@ -331,13 +387,16 @@ async function castVoteAndResolve({ complaintId, verifierId, vote, comment }) {
 
                     if (compRows[0]?.reporter_id) {
                         await notify(client, {
-                            userId:     compRows[0].reporter_id,
-                            type:       "COMPLAINT_REOPENED",
-                            title:      "Your complaint has been reopened",
-                            body:       `The community rejected the fix for "${compRows[0].title}". It has been reopened for re-review.`,
-                            data:       { publicCode: compRows[0].public_code, complaintId },
+                            userId: compRows[0].reporter_id,
+                            type: "COMPLAINT_REOPENED",
+                            title: "Your complaint has been reopened",
+                            body: `The community rejected the fix for "${compRows[0].title}". It has been reopened for re-review.`,
+                            data: {
+                                publicCode: compRows[0].public_code,
+                                complaintId,
+                            },
                             entityType: "complaint",
-                            entityId:   complaintId,
+                            entityId: complaintId,
                         });
                     }
 
@@ -350,7 +409,8 @@ async function castVoteAndResolve({ complaintId, verifierId, vote, comment }) {
                         [complaintId],
                     );
                     if (assignRows[0]) {
-                        const { volunteer_id, assignment_id, task_id } = assignRows[0];
+                        const { volunteer_id, assignment_id, task_id } =
+                            assignRows[0];
 
                         await client.query(
                             `UPDATE volunteer_task_assignments
@@ -370,24 +430,25 @@ async function castVoteAndResolve({ complaintId, verifierId, vote, comment }) {
                         );
 
                         await notify(client, {
-                            userId:     volunteer_id,
-                            type:       "FIX_REJECTED",
-                            title:      "Your fix was rejected",
-                            body:       "The community rejected your fix. The complaint has been reopened — another volunteer can now try.",
-                            data:       { complaintId },
+                            userId: volunteer_id,
+                            type: "FIX_REJECTED",
+                            title: "Your fix was rejected",
+                            body: "The community rejected your fix. The complaint has been reopened — another volunteer can now try.",
+                            data: { complaintId },
                             entityType: "complaint",
-                            entityId:   complaintId,
+                            entityId: complaintId,
                         });
                     }
 
                     await notifyPriorVerifiers(client, {
-                        complaintId, excludeVerifierId: verifierId,
-                        type:       "COMPLAINT_YOU_VERIFIED_REOPENED",
-                        title:      "A complaint you verified was reopened",
-                        body:       "The community rejected the fix. A complaint you helped verify has been reopened.",
-                        data:       { complaintId },
+                        complaintId,
+                        excludeVerifierId: verifierId,
+                        type: "COMPLAINT_YOU_VERIFIED_REOPENED",
+                        title: "A complaint you verified was reopened",
+                        body: "The community rejected the fix. A complaint you helped verify has been reopened.",
+                        data: { complaintId },
                         entityType: "complaint",
-                        entityId:   complaintId,
+                        entityId: complaintId,
                     });
 
                     if (assignRows[0]) {
@@ -398,15 +459,19 @@ async function castVoteAndResolve({ complaintId, verifierId, vote, comment }) {
 
                         if (compRows[0]?.issue_type === "community_fixable") {
                             await notifyNearbyCitizens(client, {
-                                excludeUserId: compRows[0]?.reporter_id ?? verifierId,
-                                lat:  parseFloat(compRows[0].latitude),
-                                lon:  parseFloat(compRows[0].longitude),
-                                type:       "NEW_TASK_NEARBY",
-                                title:      "Volunteer task reopened near you",
-                                body:       `A community task near you was reopened and needs a new volunteer: "${compRows[0].title}".`,
-                                data:       { publicCode: compRows[0].public_code, complaintId },
+                                excludeUserId:
+                                    compRows[0]?.reporter_id ?? verifierId,
+                                lat: parseFloat(compRows[0].latitude),
+                                lon: parseFloat(compRows[0].longitude),
+                                type: "NEW_TASK_NEARBY",
+                                title: "Volunteer task reopened near you",
+                                body: `A community task near you was reopened and needs a new volunteer: "${compRows[0].title}".`,
+                                data: {
+                                    publicCode: compRows[0].public_code,
+                                    complaintId,
+                                },
                                 entityType: "complaint",
-                                entityId:   complaintId,
+                                entityId: complaintId,
                             });
                         }
                     }
@@ -416,28 +481,33 @@ async function castVoteAndResolve({ complaintId, verifierId, vote, comment }) {
 
         const volRepo = require("../volunteer/volunteer.repository");
         await volRepo.awardPoints(client, {
-            userId:      verifierId,
+            userId: verifierId,
             complaintId,
-            taskId:      null,
-            points:      volRepo.POINTS.verification,
-            type:        "verification",
+            taskId: null,
+            points: volRepo.POINTS.verification,
+            type: "verification",
         });
 
         await notify(client, {
-            userId:     verifierId,
-            type:       "VERIFICATION_POINTS_EARNED",
-            title:      `+${volRepo.POINTS.verification} points for verifying!`,
-            body:       "Thanks for helping your community. You earned points for your verification vote.",
-            data:       { points: volRepo.POINTS.verification, complaintId, vote },
+            userId: verifierId,
+            type: "VERIFICATION_POINTS_EARNED",
+            title: `+${volRepo.POINTS.verification} points for verifying!`,
+            body: "Thanks for helping your community. You earned points for your verification vote.",
+            data: { points: volRepo.POINTS.verification, complaintId, vote },
             entityType: "complaint",
-            entityId:   complaintId,
+            entityId: complaintId,
         });
 
         return {
-            vote:       newVote,
-            tally:      { total, confirms, rejects: tally[0].rejects, ratio: Math.round(ratio * 100) },
+            vote: newVote,
+            tally: {
+                total,
+                confirms,
+                rejects: tally[0].rejects,
+                ratio: Math.round(ratio * 100),
+            },
             resolution,
-            minVotes:   MIN_VOTES,
+            minVotes: MIN_VOTES,
         };
     });
 }

@@ -19,10 +19,11 @@ export default function ExploreComplaints() {
     const statusOptions = [
         { value: "", label: "All Statuses" },
         { value: "reported", label: "Reported" },
-        { value: "assigned", label: "Assigned" },
         { value: "in_progress", label: "In Progress" },
         { value: "pending_verification", label: "Pending Verification" },
         { value: "resolved", label: "Resolved" },
+        { value: "reopened", label: "Reopened" },
+        { value: "overdue", label: "Overdue" },
     ];
 
     const [viewMode, setViewMode] = useState("overview");
@@ -50,50 +51,48 @@ export default function ExploreComplaints() {
                 let resolvedP = null;
 
                 const isResolvedFilter = filterStatus === "resolved";
+                const isFrontendFilter = filterStatus === "overdue";
+                const apiStatus = isFrontendFilter ? "" : filterStatus;
 
-                if (!filterStatus || !isResolvedFilter) {
+                if (!apiStatus || !isResolvedFilter) {
                     ongoingP = complaintsService.exploreComplaints({
                         search,
-                        status:
-                            filterStatus ||
-                            "reported,assigned,in_progress,pending_verification,reopened",
+                        status: apiStatus || "reported,assigned,in_progress,pending_verification,reopened",
+                        limit: isFrontendFilter ? 50 : 15
                     });
                 }
 
-                if (!filterStatus || isResolvedFilter) {
+                if (!apiStatus || isResolvedFilter) {
                     resolvedP = complaintsService.exploreComplaints({
                         search,
-                        status: filterStatus || "resolved",
+                        status: apiStatus || "resolved",
+                        limit: isFrontendFilter ? 50 : 15
                     });
                 }
 
                 const [resOngoing, resResolved] = await Promise.all([
-                    ongoingP ||
-                        Promise.resolve({
-                            data: {
-                                data: {
-                                    authorityRequired: [],
-                                    volunteerNeeded: [],
-                                },
-                            },
-                        }),
-                    resolvedP ||
-                        Promise.resolve({
-                            data: {
-                                data: {
-                                    authorityRequired: [],
-                                    volunteerNeeded: [],
-                                },
-                            },
-                        }),
+                    ongoingP || Promise.resolve({ data: { data: { authorityRequired: [], volunteerNeeded: [] } } }),
+                    resolvedP || Promise.resolve({ data: { data: { authorityRequired: [], volunteerNeeded: [] } } }),
                 ]);
 
-                setOngoingAuth(resOngoing.data.data.authorityRequired || []);
-                setOngoingVol(resOngoing.data.data.volunteerNeeded || []);
+                let ongoingAuthData = resOngoing.data.data.authorityRequired || [];
+                let ongoingVolData = resOngoing.data.data.volunteerNeeded || [];
+                let resolvedAuth = resResolved.data.data.authorityRequired || [];
+                let resolvedVol = resResolved.data.data.volunteerNeeded || [];
+                let resolvedAllData = [...resolvedAuth, ...resolvedVol];
 
-                const resAuth = resResolved.data.data.authorityRequired || [];
-                const resVol = resResolved.data.data.volunteerNeeded || [];
-                setResolvedAll([...resAuth, ...resVol]);
+                if (filterStatus === "overdue") {
+                    const isPast = (dateStr) => new Date(dateStr) < new Date();
+                    const checkOverdue = (c) => c.slaDeadline && isPast(c.slaDeadline) && c.status !== 'resolved' && c.status !== 'closed';
+                    
+                    ongoingAuthData = ongoingAuthData.filter(checkOverdue);
+                    ongoingVolData = ongoingVolData.filter(checkOverdue);
+                    resolvedAllData = resolvedAllData.filter(checkOverdue);
+                }
+
+                setOngoingAuth(ongoingAuthData);
+                setOngoingVol(ongoingVolData);
+                setResolvedAll(resolvedAllData);
             } catch (err) {
                 console.error(err);
             } finally {
@@ -113,16 +112,23 @@ export default function ExploreComplaints() {
             try {
                 let params = { search, page, limit: 15 };
 
+                const isFrontendFilter = filterStatus === "overdue";
+                const apiStatus = isFrontendFilter ? "" : filterStatus;
+
                 if (activeSection === "resolved") {
-                    params.status = filterStatus || "resolved";
+                    params.status = apiStatus || "resolved";
                 } else {
                     params.status =
-                        filterStatus ||
+                        apiStatus ||
                         "reported,assigned,in_progress,pending_verification,reopened";
                     if (activeSection === "authorityRequired")
                         params.issueType = "authority_required";
                     if (activeSection === "volunteerNeeded")
                         params.issueType = "community_fixable";
+                }
+
+                if (isFrontendFilter) {
+                    params.limit = 100;
                 }
 
                 const res = await complaintsService.exploreComplaints(params);
@@ -138,13 +144,23 @@ export default function ExploreComplaints() {
                     newItems = res.data.data.volunteerNeeded || [];
                 }
 
+                if (filterStatus === "overdue") {
+                    const isPast = (dateStr) => new Date(dateStr) < new Date();
+                    const checkOverdue = (c) => c.slaDeadline && isPast(c.slaDeadline) && c.status !== 'resolved' && c.status !== 'closed';
+                    newItems = newItems.filter(checkOverdue);
+                }
+
                 if (page === 1) {
                     setListData(newItems);
                 } else {
-                    setListData((prev) => [...prev, ...newItems]);
+                    setListData((prev) => {
+                        const existingIds = new Set(prev.map(item => item.id));
+                        const uniqueNewItems = newItems.filter(item => !existingIds.has(item.id));
+                        return [...prev, ...uniqueNewItems];
+                    });
                 }
 
-                setHasMore(newItems.length > 0);
+                setHasMore(res.data.data.hasMore ?? (newItems.length > 0));
             } catch (err) {
                 console.error(err);
             } finally {

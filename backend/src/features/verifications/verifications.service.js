@@ -2,6 +2,7 @@
 
 const repo     = require("./verifications.repository");
 const AppError = require("../../shared/utils/app-error");
+const { radiusKm } = require("../../config/verification");
 
 async function getMyVerifications({ user, tab, filter, search }) {
     const { userId, latitude, longitude } = user;
@@ -102,10 +103,10 @@ async function castVote({ complaintId, user, vote, comment }) {
         );
     }
 
-    if (parseFloat(eligibility.distance_km) > 2) {
+    if (parseFloat(eligibility.distance_km) > radiusKm) {
         throw new AppError(
             "OUT_OF_RANGE",
-            "You must be within 2 km of the complaint location to verify it.",
+            `You must be within ${radiusKm} km of the complaint location to verify it.`,
             403,
         );
     }

@@ -60,6 +60,7 @@ async function notifyNearbyCitizens(
     client,
     {
         excludeUserId,
+        excludeUserIds = [],
         lat,
         lon,
         type,
@@ -70,36 +71,44 @@ async function notifyNearbyCitizens(
         entityId = null,
     },
 ) {
-    await _safeQuery(
-        client,
-        `INSERT INTO notifications
+    const excluded = [excludeUserId, ...excludeUserIds].filter(Boolean);
+
+    let excludeClause = "";
+    const params = [
+        type,
+        title,
+        body,
+        JSON.stringify(data),
+        entityType,
+        entityId,
+        lat,
+        lon,
+        radiusKm,
+    ];
+
+    if (excluded.length > 0) {
+        const placeholders = excluded.map((_, i) => `$${params.length + i + 1}`).join(", ");
+        excludeClause = `AND u.id NOT IN (${placeholders})`;
+        params.push(...excluded);
+    }
+
+    const sql = `INSERT INTO notifications
              (user_id, type, title, body, data, entity_type, entity_id)
          SELECT u.id, $1, $2, $3, $4::jsonb, $5, $6::uuid
          FROM   users u
          WHERE  u.role = 'citizen'
-           AND  u.id          != $7
            AND  u.latitude    IS NOT NULL
            AND  u.longitude   IS NOT NULL
            AND  6371.0 * 2 * ASIN(SQRT(
-                    POWER(SIN(RADIANS((u.latitude  - $8) / 2)), 2) +
-                    COS(RADIANS($8)) * COS(RADIANS(u.latitude))  *
-                    POWER(SIN(RADIANS((u.longitude - $9) / 2)), 2)
-                )) <= $10`,
-        [
-            type,
-            title,
-            body,
-            JSON.stringify(data),
-            entityType,
-            entityId,
-            excludeUserId,
-            lat,
-            lon,
-            radiusKm,
-        ],
-        `nearbyCitizens ${type}`,
-    );
+                    POWER(SIN(RADIANS((u.latitude  - $7) / 2)), 2) +
+                    COS(RADIANS($7)) * COS(RADIANS(u.latitude))  *
+                    POWER(SIN(RADIANS((u.longitude - $8) / 2)), 2)
+                )) <= $9
+           ${excludeClause}`;
+
+    await _safeQuery(client, sql, params, `nearbyCitizens ${type}`);
 }
+
 
 async function notifyPriorVerifiers(
     client,
