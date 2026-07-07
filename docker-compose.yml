@@ -1,0 +1,44 @@
+services:
+  # ── Local Postgres (for local testing only) ────────────────────────────────
+  # Remove this service when deploying to AWS — use Supabase DATABASE_URL instead
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: civikeye
+      POSTGRES_PASSWORD: civikeye
+      POSTGRES_DB: civikeye_db
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U civikeye -d civikeye_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # ── Backend ────────────────────────────────────────────────────────────────
+  backend:
+    build: ./backend
+    env_file: ./backend/.env
+    environment:
+      # Overrides .env — points to local db container instead of Supabase
+      DATABASE_URL: postgres://civikeye:civikeye@db:5432/civikeye_db
+      DB_SSL: "false"
+      NODE_ENV: production
+    ports:
+      - "5000:5000"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  # ── Frontend ───────────────────────────────────────────────────────────────
+  frontend:
+    build: ./frontend
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
+
+volumes:
+  pgdata:
