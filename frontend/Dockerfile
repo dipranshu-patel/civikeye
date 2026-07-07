@@ -4,6 +4,12 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm ci
 COPY . .
+
+# Pass your backend API URL at build time:
+# docker build --build-arg VITE_API_URL=https://api.yourdomain.com/api .
+ARG VITE_API_URL
+ENV VITE_API_URL=$VITE_API_URL
+
 RUN npm run build
 
 # ---- serve stage ----
