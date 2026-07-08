@@ -15,7 +15,7 @@ function makeHandler(code, message) {
 
 const sendOtpLimiter = rateLimit({
     windowMs: ONE_HOUR_MS,
-    max: 1000,           // for pruduction - 5
+    max: 5,           // for pruduction - 5
     standardHeaders: true,
     legacyHeaders: false,
     handler: makeHandler(
@@ -26,7 +26,7 @@ const sendOtpLimiter = rateLimit({
 
 const verifyOtpLimiter = rateLimit({
     windowMs: ONE_HOUR_MS,
-    max: 1000,            // for pruduction - 10
+    max: 10,            // for pruduction - 10
     standardHeaders: true,
     legacyHeaders: false,
     handler: makeHandler(
@@ -37,7 +37,7 @@ const verifyOtpLimiter = rateLimit({
 
 const loginLimiter = rateLimit({
     windowMs: ONE_HOUR_MS,
-    max: 1000,           // for pruduction - 10
+    max: 50,           // for pruduction - 10
     standardHeaders: true,
     legacyHeaders: false,
     handler: makeHandler(
@@ -48,7 +48,7 @@ const loginLimiter = rateLimit({
 
 const registerLimiter = rateLimit({
     windowMs: ONE_HOUR_MS,
-    max: 1000,             // for pruduction - 5
+    max: 5,             // for pruduction - 5
     standardHeaders: true,
     legacyHeaders: false,
     handler: makeHandler(
@@ -59,7 +59,7 @@ const registerLimiter = rateLimit({
 
 const forgotPasswordLimiter = rateLimit({
     windowMs: ONE_HOUR_MS,
-    max: 1000,             // for production - 5
+    max: 5,             // for production - 5
     standardHeaders: true,
     legacyHeaders: false,
     handler: makeHandler(
@@ -70,7 +70,7 @@ const forgotPasswordLimiter = rateLimit({
 
 const resetPasswordLimiter = rateLimit({
     windowMs: ONE_HOUR_MS,
-    max: 1000,             // for production - 10
+    max: 5,             // for production - 5
     standardHeaders: true,
     legacyHeaders: false,
     handler: makeHandler(
@@ -81,7 +81,7 @@ const resetPasswordLimiter = rateLimit({
 
 const reportLimiter = rateLimit({
     windowMs: ONE_HOUR_MS,
-    max: 500,              // for production - 5
+    max: 5,              // for production - 5
     standardHeaders: true,
     legacyHeaders: false,
     handler: makeHandler(
@@ -92,7 +92,7 @@ const reportLimiter = rateLimit({
 
 const upvoteLimiter = rateLimit({
     windowMs: ONE_HOUR_MS,
-    max: 2000,             // for production - 30
+    max: 30,             // for production - 30
     standardHeaders: true,
     legacyHeaders: false,
     handler: makeHandler(
@@ -103,7 +103,7 @@ const upvoteLimiter = rateLimit({
 
 const verifyLimiter = rateLimit({
     windowMs: ONE_HOUR_MS,
-    max: 2000,             // for production - 20
+    max: 20,             // for production - 20
     standardHeaders: true,
     legacyHeaders: false,
     handler: makeHandler(
@@ -114,7 +114,7 @@ const verifyLimiter = rateLimit({
 
 const claimLimiter = rateLimit({
     windowMs: ONE_HOUR_MS,
-    max: 1000,             // for production - 10
+    max: 5,             // for production - 5
     standardHeaders: true,
     legacyHeaders: false,
     handler: makeHandler(
