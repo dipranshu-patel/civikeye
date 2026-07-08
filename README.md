@@ -2,7 +2,7 @@
 
 A full-stack civic issue reporting and management platform that empowers citizens to report local problems, community volunteers to verify reports, and government departments to track and resolve civic issues efficiently.
 
-**[🔗 Live Demo](https://your-live-link-here.com)** 
+**[🔗 Live Demo](https://civikeye.online/)** 
 
 ---
 
