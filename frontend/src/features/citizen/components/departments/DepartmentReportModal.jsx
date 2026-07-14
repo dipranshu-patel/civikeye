@@ -87,7 +87,7 @@ export default function DepartmentReportModal({ isOpen, onClose, department }) {
                     </div>
                     <button
                         onClick={onClose}
-                        className="w-10 h-10 shrink-0 rounded-full bg-white border border-gray-200 flex items-center justify-center text-gray-500 hover:bg-gray-50 hover:text-gray-900 transition-colors"
+                        className="w-10 h-10 shrink-0 rounded-full bg-white border border-gray-200 flex items-center justify-center text-gray-500 hover:bg-gray-50 hover:text-gray-900 transition-colors cursor-pointer"
                     >
                         <X className="w-5 h-5" />
                     </button>

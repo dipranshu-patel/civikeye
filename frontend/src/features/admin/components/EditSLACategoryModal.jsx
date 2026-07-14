@@ -140,14 +140,14 @@ export default function EditSLACategoryModal({ category, onClose, onUpdated }) {
                         form="edit-sla-form"
                         type="submit"
                         disabled={loading}
-                        className="w-full py-3 text-sm font-medium text-white bg-black rounded-xl hover:bg-gray-800 transition-colors disabled:opacity-50"
+                        className="w-full py-3 text-sm font-medium text-white bg-black rounded-xl hover:bg-gray-800 transition-colors disabled:opacity-50 cursor-pointer"
                     >
                         {loading ? "Saving..." : "Save Changes"}
                     </button>
                     <button
                         type="button"
                         onClick={onClose}
-                        className="w-full py-3 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 transition-colors"
+                        className="w-full py-3 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 transition-colors cursor-pointer"
                     >
                         Cancel
                     </button>

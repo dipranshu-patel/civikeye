@@ -367,6 +367,7 @@ export default function RegisterPage() {
                                                 onClick={handleVerifyOtp}
                                                 isLoading={loadingAction === "verifyOtp"}
                                                 disabled={otp.length !== 6 || loadingAction !== null}
+                                                className='cursor-pointer'
                                             >
                                                 {loadingAction === "verifyOtp" ? "Verifying..." : "Verify OTP"}
                                             </Button>
@@ -483,7 +484,7 @@ export default function RegisterPage() {
                             )}
 
                             <Button
-                                className="w-full"
+                                className="w-full cursor-pointer"
                                 size="lg"
                                 onClick={handleRegister}
                                 isLoading={loadingAction === "locating" || loadingAction === "register"}

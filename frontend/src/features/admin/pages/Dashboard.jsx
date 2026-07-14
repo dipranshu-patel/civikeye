@@ -289,7 +289,7 @@ export default function AdminDashboard() {
                                 {recentActivity.map((activity) => (
                                     <div
                                         key={activity.id}
-                                        className="p-5 flex items-start gap-4 hover:bg-gray-50 transition-colors cursor-pointer"
+                                        className="p-5 flex items-start gap-4 hover:bg-gray-50 transition-colors"
                                     >
                                         <div className="mt-1 w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center shrink-0 border border-gray-100">
                                             {getActivityIcon(

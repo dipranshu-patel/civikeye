@@ -88,7 +88,7 @@ export default function CreateSLACategoryModal({ onClose, onCreated }) {
                                     required
                                     value={formData.departmentId}
                                     onChange={(e) => setFormData({ ...formData, departmentId: e.target.value })}
-                                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition-colors bg-white"
+                                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition-colors bg-white cursor-pointer"
                                 >
                                     <option value="" disabled>Select department</option>
                                     {departments.map(dept => (
@@ -132,7 +132,7 @@ export default function CreateSLACategoryModal({ onClose, onCreated }) {
                     <button
                         type="button"
                         onClick={onClose}
-                        className="px-6 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 transition-colors"
+                        className="px-6 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 transition-colors cursor-pointer"
                     >
                         Cancel
                     </button>
@@ -140,7 +140,7 @@ export default function CreateSLACategoryModal({ onClose, onCreated }) {
                         form="create-sla-form"
                         type="submit"
                         disabled={loading}
-                        className="px-6 py-2.5 text-sm font-medium text-white bg-black rounded-xl hover:bg-gray-800 transition-colors disabled:opacity-50 flex items-center gap-2"
+                        className="px-6 py-2.5 text-sm font-medium text-white bg-black rounded-xl hover:bg-gray-800 transition-colors disabled:opacity-50 flex items-center gap-2 cursor-pointer"
                     >
                         {loading ? "Adding..." : "Add Category"}
                     </button>

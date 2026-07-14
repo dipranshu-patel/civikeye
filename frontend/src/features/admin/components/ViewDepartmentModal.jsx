@@ -65,7 +65,7 @@ export default function ViewDepartmentModal({ department, onClose, onUpdate }) {
                     </div>
                     <button 
                         onClick={onClose}
-                        className="p-2 bg-gray-50 text-gray-500 rounded-xl hover:bg-gray-100 transition-colors"
+                        className="p-2 bg-gray-50 text-gray-500 rounded-xl hover:bg-gray-100 transition-colors cursor-pointer"
                     >
                         <X className="w-5 h-5" />
                     </button>
@@ -125,14 +125,14 @@ export default function ViewDepartmentModal({ department, onClose, onUpdate }) {
                                             setIsResetting(false);
                                             setNewPassword("");
                                         }}
-                                        className="flex-1 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded-xl hover:bg-gray-50"
+                                        className="flex-1 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 cursor-pointer"
                                     >
                                         Cancel
                                     </button>
                                     <button 
                                         type="submit"
                                         disabled={loading || !newPassword}
-                                        className="flex-1 py-2 text-sm font-medium text-white bg-black rounded-xl hover:bg-gray-800 disabled:opacity-50"
+                                        className="flex-1 py-2 text-sm font-medium text-white bg-black rounded-xl hover:bg-gray-800 disabled:opacity-50 cursor-pointer  "
                                     >
                                         {loading ? "Saving..." : "Save Password"}
                                     </button>
@@ -146,7 +146,7 @@ export default function ViewDepartmentModal({ department, onClose, onUpdate }) {
                     {!isResetting && (
                         <button 
                             onClick={() => setIsResetting(true)}
-                            className="w-full py-3 flex items-center justify-center gap-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 transition-colors"
+                            className="w-full py-3 flex items-center justify-center gap-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 transition-colors cursor-pointer"
                         >
                             <Key className="w-4 h-4" />
                             Reset Password
@@ -156,7 +156,7 @@ export default function ViewDepartmentModal({ department, onClose, onUpdate }) {
                     <button 
                         onClick={handleToggleStatus}
                         disabled={loading}
-                        className={`w-full py-3 flex items-center justify-center gap-2 text-sm font-medium border rounded-xl transition-colors disabled:opacity-50 ${
+                        className={`w-full py-3 flex items-center justify-center gap-2 text-sm font-medium border rounded-xl transition-colors disabled:opacity-50 cursor-pointer ${
                             department.isActive
                                 ? "text-red-600 bg-red-50 border-red-100 hover:bg-red-100"
                                 : "text-green-600 bg-green-50 border-green-100 hover:bg-green-100"

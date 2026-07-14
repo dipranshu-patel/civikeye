@@ -65,7 +65,7 @@ export default function FAQSection() {
                                     >
                                         <button
                                             onClick={() => toggleFAQ(index)}
-                                            className="flex items-center w-full text-left py-4 md:py-5 hover:opacity-70 transition-opacity focus:outline-none"
+                                            className="flex items-center w-full text-left py-4 md:py-5 hover:opacity-70 transition-opacity focus:outline-none cursor-pointer"
                                             aria-expanded={isOpen}
                                         >
                                             <div className="flex-shrink-0 w-6 flex items-center justify-start text-gray-400 mr-2 md:mr-3">

@@ -280,7 +280,7 @@ export default function ResetPasswordPage() {
 
                                 <Button
                                     type="submit"
-                                    className="w-full"
+                                    className="w-full cursor-pointer"
                                     size="lg"
                                     isLoading={loading}
                                     disabled={loading || (touched.password && !isPasswordValid)}

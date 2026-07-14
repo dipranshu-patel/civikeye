@@ -146,7 +146,7 @@ export default function CreateDepartmentForm({ onCreated, onCancel }) {
                     <button
                         type="submit"
                         disabled={loading}
-                        className="flex-1 md:flex-none px-6 py-2.5 bg-black text-white text-sm font-medium rounded-xl hover:bg-gray-900 transition-colors disabled:opacity-50"
+                        className="flex-1 md:flex-none px-6 py-2.5 bg-black text-white text-sm font-medium rounded-xl hover:bg-gray-900 transition-colors disabled:opacity-50 cursor-pointer"
                     >
                         {loading ? "Creating..." : "Create Department"}
                     </button>
@@ -154,7 +154,7 @@ export default function CreateDepartmentForm({ onCreated, onCancel }) {
                         type="button"
                         onClick={onCancel}
                         disabled={loading}
-                        className="flex-1 md:flex-none px-6 py-2.5 bg-white text-gray-700 text-sm font-medium rounded-xl border border-gray-200 hover:bg-gray-50 transition-colors disabled:opacity-50"
+                        className="flex-1 md:flex-none px-6 py-2.5 bg-white text-gray-700 text-sm font-medium rounded-xl border border-gray-200 hover:bg-gray-50 transition-colors disabled:opacity-50 cursor-pointer"
                     >
                         Cancel
                     </button>
