@@ -6,7 +6,7 @@ import AboutCTASection from "../../components/about/AboutCTASection";
 
 export default function AboutPage() {
     return (
-        <div className="w-full">
+        <div className="w-full bg-[#fcfbf7] text-stone-800 min-h-screen">
             <AboutHeroSection />
             <ProblemSection />
             <PrinciplesSection />

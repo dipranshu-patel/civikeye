@@ -7,7 +7,7 @@ export const deptService = {
     updateComplaintStatus: (id, data) =>
         api.patch(`/dept/complaints/${id}/status`, data, {
             headers: {
-                'Content-Type': 'multipart/form-data',
-            }
+                "Content-Type": "multipart/form-data",
+            },
         }),
 };

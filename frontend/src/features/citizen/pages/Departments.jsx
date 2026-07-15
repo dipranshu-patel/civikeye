@@ -92,14 +92,10 @@ export default function Departments() {
     return (
         <div className="flex-1 bg-gray-50/50 flex flex-col overflow-hidden">
             <div className="flex-1 overflow-y-auto custom-scrollbar space-y-8">
-                {/* Summary Cards */}
                 {stats && <DepartmentsSummary stats={stats} />}
 
-                {/* Main Content Area */}
                 <div className="flex gap-8">
-                    {/* Left Column - Search & List */}
                     <div className="flex-1 min-w-0 space-y-6">
-                        {/* Search and Filter */}
                         <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
                             <div className="relative w-full sm:max-w-md">
                                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -118,8 +114,7 @@ export default function Departments() {
                                 <div className="flex items-center gap-2 text-gray-400 mr-2 text-sm">
                                     <SlidersHorizontal className="w-4 h-4" />
                                 </div>
-                                
-                                {/* "All" Button */}
+
                                 <button
                                     onClick={() => setSelectedCategory("All")}
                                     className={`px-4 py-1.5 rounded-full text-sm whitespace-nowrap transition-colors cursor-pointer ${
@@ -136,10 +131,11 @@ export default function Departments() {
                                     </span>
                                 </button>
 
-                                {/* Custom Dropdown for Dynamic Categories */}
                                 <div className="relative">
                                     <button
-                                        onClick={() => setIsCategoryOpen(!isCategoryOpen)}
+                                        onClick={() =>
+                                            setIsCategoryOpen(!isCategoryOpen)
+                                        }
                                         className={`flex items-center justify-between gap-2 px-4 py-1.5 rounded-full text-sm whitespace-nowrap transition-colors cursor-pointer ${
                                             selectedCategory !== "All"
                                                 ? "bg-gray-900 text-white font-medium border border-gray-900"
@@ -147,11 +143,15 @@ export default function Departments() {
                                         }`}
                                     >
                                         <span>
-                                            {selectedCategory === "All" ? "Select Category" : selectedCategory}
+                                            {selectedCategory === "All"
+                                                ? "Select Category"
+                                                : selectedCategory}
                                         </span>
                                         <ChevronDown
                                             className={`w-4 h-4 transition-transform duration-300 ${
-                                                isCategoryOpen ? "rotate-180" : ""
+                                                isCategoryOpen
+                                                    ? "rotate-180"
+                                                    : ""
                                             } ${selectedCategory !== "All" ? "text-white" : "text-gray-400"}`}
                                         />
                                     </button>
@@ -160,17 +160,25 @@ export default function Departments() {
                                         <>
                                             <div
                                                 className="fixed inset-0 z-10"
-                                                onClick={() => setIsCategoryOpen(false)}
+                                                onClick={() =>
+                                                    setIsCategoryOpen(false)
+                                                }
                                             ></div>
                                             <div className="absolute right-0 top-full mt-2 w-56 bg-slate-50/95 backdrop-blur-sm border border-gray-200 shadow-xl text-gray-900 rounded-xl py-2 z-20 overflow-hidden ring-1 ring-black/5">
                                                 {categories.map((category) => {
-                                                    const isSelected = selectedCategory === category;
+                                                    const isSelected =
+                                                        selectedCategory ===
+                                                        category;
                                                     return (
                                                         <button
                                                             key={category}
                                                             onClick={() => {
-                                                                setSelectedCategory(category);
-                                                                setIsCategoryOpen(false);
+                                                                setSelectedCategory(
+                                                                    category,
+                                                                );
+                                                                setIsCategoryOpen(
+                                                                    false,
+                                                                );
                                                             }}
                                                             className={`group w-full text-left px-5 py-2.5 text-sm transition-all duration-300 relative cursor-pointer ${
                                                                 isSelected
@@ -189,7 +197,6 @@ export default function Departments() {
                             </div>
                         </div>
 
-                        {/* Results Count & Sort Dropdown Space */}
                         <div className="flex flex-wrap items-center justify-between gap-2 text-sm text-gray-500 py-2 border-b border-gray-100">
                             <div>
                                 Showing{" "}
@@ -203,7 +210,6 @@ export default function Departments() {
                             </div>
                         </div>
 
-                        {/* List */}
                         <div className="space-y-4 pb-12">
                             {filteredDepartments.map((dept) => (
                                 <DepartmentCard
@@ -227,7 +233,6 @@ export default function Departments() {
                         </div>
                     </div>
 
-                    {/* Right Column - Leaderboard */}
                     <div className="hidden lg:block w-96 flex-shrink-0">
                         <div className="sticky top-0">
                             <DepartmentsLeaderboard departments={departments} />
@@ -236,7 +241,6 @@ export default function Departments() {
                 </div>
             </div>
 
-            {/* Profile Modal */}
             <DepartmentReportModal
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}

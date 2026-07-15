@@ -62,7 +62,6 @@ export default function DepartmentReportModal({ isOpen, onClose, department }) {
             ></div>
 
             <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-                {/* Header */}
                 <div className="flex items-start justify-between p-6 border-b border-gray-100 bg-gray-50/50">
                     <div className="flex gap-4">
                         <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center border border-gray-100 shadow-sm flex-shrink-0">
@@ -93,9 +92,7 @@ export default function DepartmentReportModal({ isOpen, onClose, department }) {
                     </button>
                 </div>
 
-                {/* Content */}
                 <div className="flex-1 overflow-y-auto custom-scrollbar p-6">
-                    {/* Performance Summary */}
                     <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider mb-4">
                         Performance Summary
                     </h3>
@@ -140,7 +137,6 @@ export default function DepartmentReportModal({ isOpen, onClose, department }) {
                         </div>
                     </div>
 
-                    {/* Recent Complaints */}
                     <div className="flex items-center justify-between mb-4">
                         <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider">
                             Recent Activity

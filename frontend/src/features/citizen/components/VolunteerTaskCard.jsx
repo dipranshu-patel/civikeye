@@ -12,7 +12,9 @@ function formatDistanceToNow(dateStr) {
     if (diffInHours < 24) return `${diffInHours}h`;
     const diffInDays = Math.floor(diffInHours / 24);
     const remainingHours = diffInHours % 24;
-    return remainingHours > 0 ? `${diffInDays}d ${remainingHours}h` : `${diffInDays}d`;
+    return remainingHours > 0
+        ? `${diffInDays}d ${remainingHours}h`
+        : `${diffInDays}d`;
 }
 
 export default function VolunteerTaskCard({
@@ -95,9 +97,13 @@ export default function VolunteerTaskCard({
     };
 
     return (
-        <div 
+        <div
             onClick={onClick}
-            className={clsx("shrink-0 bg-white border border-gray-200 rounded-2xl overflow-hidden flex flex-col hover:border-gray-300 hover:shadow-lg hover:shadow-gray-900/5 transition-all cursor-pointer", className || "w-[340px]")}>
+            className={clsx(
+                "shrink-0 bg-white border border-gray-200 rounded-2xl overflow-hidden flex flex-col hover:border-gray-300 hover:shadow-lg hover:shadow-gray-900/5 transition-all cursor-pointer",
+                className || "w-[340px]",
+            )}
+        >
             <div className="p-5 flex gap-4">
                 <div className="w-[72px] h-[72px] rounded-xl bg-gray-100 shrink-0 overflow-hidden border border-gray-100">
                     {coverPhoto ? (
@@ -148,7 +154,6 @@ export default function VolunteerTaskCard({
                 </div>
             </div>
 
-            {/* Proof Section if submitted */}
             {proofPhoto && (
                 <div className="px-5 py-3 border-t border-gray-100 flex items-start gap-3 bg-slate-50">
                     <div className="w-12 h-12 rounded-lg bg-gray-200 shrink-0 overflow-hidden border border-gray-200">

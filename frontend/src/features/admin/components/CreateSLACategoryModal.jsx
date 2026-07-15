@@ -35,7 +35,10 @@ export default function CreateSLACategoryModal({ onClose, onCreated }) {
             await adminService.createSlaCategory(formData);
             onCreated();
         } catch (err) {
-            setError(err.response?.data?.error?.message || "Failed to create SLA category");
+            setError(
+                err.response?.data?.error?.message ||
+                    "Failed to create SLA category",
+            );
         } finally {
             setLoading(false);
         }
@@ -46,8 +49,13 @@ export default function CreateSLACategoryModal({ onClose, onCreated }) {
             <div className="w-full max-w-2xl bg-white rounded-3xl shadow-xl overflow-hidden flex flex-col max-h-[90vh]">
                 <div className="flex items-center justify-between p-6 border-b border-gray-100">
                     <div>
-                        <h2 className="text-xl font-bold text-gray-900">Add SLA Category</h2>
-                        <p className="text-sm text-gray-500 mt-1">Define a new complaint category with resolution timeline</p>
+                        <h2 className="text-xl font-bold text-gray-900">
+                            Add SLA Category
+                        </h2>
+                        <p className="text-sm text-gray-500 mt-1">
+                            Define a new complaint category with resolution
+                            timeline
+                        </p>
                     </div>
                     <button
                         onClick={onClose}
@@ -64,7 +72,11 @@ export default function CreateSLACategoryModal({ onClose, onCreated }) {
                         </div>
                     )}
 
-                    <form id="create-sla-form" onSubmit={handleSubmit} className="space-y-6">
+                    <form
+                        id="create-sla-form"
+                        onSubmit={handleSubmit}
+                        className="space-y-6"
+                    >
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -75,7 +87,12 @@ export default function CreateSLACategoryModal({ onClose, onCreated }) {
                                     required
                                     placeholder="e.g. Pothole"
                                     value={formData.name}
-                                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                    onChange={(e) =>
+                                        setFormData({
+                                            ...formData,
+                                            name: e.target.value,
+                                        })
+                                    }
                                     className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition-colors"
                                 />
                             </div>
@@ -87,12 +104,21 @@ export default function CreateSLACategoryModal({ onClose, onCreated }) {
                                 <select
                                     required
                                     value={formData.departmentId}
-                                    onChange={(e) => setFormData({ ...formData, departmentId: e.target.value })}
+                                    onChange={(e) =>
+                                        setFormData({
+                                            ...formData,
+                                            departmentId: e.target.value,
+                                        })
+                                    }
                                     className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition-colors bg-white cursor-pointer"
                                 >
-                                    <option value="" disabled>Select department</option>
-                                    {departments.map(dept => (
-                                        <option key={dept.id} value={dept.id}>{dept.name}</option>
+                                    <option value="" disabled>
+                                        Select department
+                                    </option>
+                                    {departments.map((dept) => (
+                                        <option key={dept.id} value={dept.id}>
+                                            {dept.name}
+                                        </option>
                                     ))}
                                 </select>
                             </div>
@@ -108,7 +134,12 @@ export default function CreateSLACategoryModal({ onClose, onCreated }) {
                                 min="1"
                                 placeholder="e.g. 7"
                                 value={formData.slaDurationDays}
-                                onChange={(e) => setFormData({ ...formData, slaDurationDays: e.target.value })}
+                                onChange={(e) =>
+                                    setFormData({
+                                        ...formData,
+                                        slaDurationDays: e.target.value,
+                                    })
+                                }
                                 className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition-colors"
                             />
                         </div>
@@ -121,7 +152,12 @@ export default function CreateSLACategoryModal({ onClose, onCreated }) {
                                 placeholder="Brief description of this category's SLA requirements"
                                 rows="3"
                                 value={formData.description}
-                                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                                onChange={(e) =>
+                                    setFormData({
+                                        ...formData,
+                                        description: e.target.value,
+                                    })
+                                }
                                 className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition-colors resize-none"
                             ></textarea>
                         </div>

@@ -1,91 +1,83 @@
-import { Camera, Users, Wrench, BadgeCheck } from "lucide-react";
-
-const stepsData = [
-    {
-        id: 1,
-        number: "01",
-        title: "Report",
-        description: "Snap a photo, drop a pin. Auto-detect duplicates within 100m so issues consolidate, not multiply.",
-        icon: Camera,
-    },
-    {
-        id: 2,
-        number: "02",
-        title: "Prioritize",
-        description: "The community upvotes what matters most. Each issue carries a public weight and SLA timer.",
-        icon: Users,
-    },
-    {
-        id: 3,
-        number: "03",
-        title: "Resolve",
-        description: "Authorities or vetted volunteers fix it and upload before/after proof to the public record.",
-        icon: Wrench,
-    },
-    {
-        id: 4,
-        number: "04",
-        title: "Verify",
-        description: "Nearby citizens confirm or reject the resolution. Approvals close the loop; rejections reopen it.",
-        icon: BadgeCheck,
-    },
-];
-
 export default function ProcessSection() {
+    const steps = [
+        {
+            title: "Report",
+            desc: "Snap a photo, drop a pin. Auto-detect duplicates within 100m so issues consolidate, not multiply.",
+        },
+        {
+            title: "Prioritize",
+            desc: "The community upvotes what matters most. Each issue carries a public weight and SLA timer.",
+        },
+        {
+            title: "Resolve",
+            desc: "Authorities or vetted volunteers fix it and upload before/after proof to the public record.",
+        },
+        {
+            title: "Verify",
+            desc: "Nearby citizens confirm or reject the resolution. Approvals close the loop; rejections reopen it.",
+        },
+    ];
+
     return (
-        <section className="w-full bg-[#F8FAFC] py-24 lg:py-32">
-            <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
-
-                {/* ── Header ── */}
-                <div className="flex flex-col items-center text-center mb-16">
-
-                    {/* Heading */}
-                    <h2 className="font-[var(--font-satoshi)] text-4xl md:text-5xl font-bold text-gray-900 tracking-tight leading-[1.15]">
-                        A four-step civic loop, designed<br className="hidden sm:block" /> for accountability.
+        <section className="w-full py-32 relative z-10 overflow-hidden">
+            <div className="max-w-[1000px] mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="text-center mb-24">
+                    <h2 className="font-[var(--font-satoshi)] text-4xl md:text-5xl font-medium text-stone-800 mb-6">
+                        A four-step civic loop, designed for accountability.
                     </h2>
-
-                    {/* Description */}
-                    <p className="font-[var(--font-inter)] mt-6 text-[17px] md:text-lg text-gray-500 max-w-2xl mx-auto leading-relaxed">
-                        CivikEye is built around a transparent feedback cycle. No step is invisible. No outcome is unilateral.
+                    <p className="font-[var(--font-inter)] text-lg text-stone-500 max-w-2xl mx-auto">
+                        CivikEye is built around a transparent feedback cycle.
+                        No step is invisible. No outcome is unilateral.
                     </p>
                 </div>
 
-                {/* ── Steps Grid ── */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 relative">
-                    {stepsData.map((step, index) => (
-                        <div key={step.id} className="relative group flex">
-                            {/* Card */}
-                            <div className="flex-1 bg-white rounded-2xl p-8 border border-gray-100 shadow-[0_2px_12px_-4px_rgba(0,0,0,0.04)]">
-                                <div className="flex justify-between items-start mb-8">
-                                    {/* Icon Container */}
-                                    <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-gray-50 border border-gray-100/60">
-                                        <step.icon className="w-5 h-5 text-gray-700" strokeWidth={2} />
-                                    </div>
-                                    {/* Step Number */}
-                                    <span className="font-[var(--font-geistmono)] text-xs font-semibold text-slate-400/80 tracking-widest mt-1">
-                                        {step.number}
+                <div className="relative">
+                    <svg
+                        className="absolute left-1/2 -translate-x-1/2 top-0 w-[2px] h-full text-orange-200 hidden md:block"
+                        preserveAspectRatio="none"
+                        viewBox="0 0 2 1000"
+                    >
+                        <path
+                            d="M1,0 L1,1000"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeDasharray="8 8"
+                        />
+                    </svg>
+
+                    <div className="space-y-12">
+                        {steps.map((step, i) => (
+                            <div
+                                key={i}
+                                className={`relative flex flex-col md:flex-row items-center gap-8 md:gap-16 ${i % 2 !== 0 ? "md:flex-row-reverse" : ""}`}
+                            >
+                                <div className="absolute left-1/2 -translate-x-1/2 w-12 h-12 bg-white border-4 border-[#ea580c] rounded-full z-10 hidden md:flex items-center justify-center shadow-sm">
+                                    <span className="text-[#ea580c] font-bold text-base">
+                                        {i + 1}
                                     </span>
                                 </div>
 
-                                <h3 className="font-[var(--font-satoshi)] text-[22px] font-bold text-gray-900 mb-3">
-                                    {step.title}
-                                </h3>
-                                <p className="font-[var(--font-inter)] text-[15px] text-gray-500 leading-relaxed">
-                                    {step.description}
-                                </p>
-                            </div>
-
-                            {/* Connector Line (Desktop Only) */}
-                            {index < stepsData.length - 1 && (
                                 <div
-                                    className="hidden lg:block absolute top-[50%] -right-6 w-6 border-t border-gray-200"
-                                    aria-hidden="true"
-                                />
-                            )}
-                        </div>
-                    ))}
-                </div>
+                                    className={`flex-1 w-full md:w-1/2 ${i % 2 !== 0 ? "md:pl-16" : "md:pr-16"}`}
+                                >
+                                    <div className="bg-white p-8 rounded-3xl border border-stone-200 shadow-sm hover:shadow-md transition-shadow relative">
+                                        <div className="w-12 h-12 bg-orange-50 rounded-full flex items-center justify-center mb-4 text-[#ea580c] font-bold text-xl md:hidden">
+                                            {i + 1}
+                                        </div>
+                                        <h3 className="font-[var(--font-satoshi)] text-2xl font-bold text-stone-800 mb-3">
+                                            {step.title}
+                                        </h3>
+                                        <p className="font-[var(--font-inter)] text-stone-500 text-base leading-relaxed">
+                                            {step.desc}
+                                        </p>
+                                    </div>
+                                </div>
 
+                                <div className="hidden md:block flex-1"></div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
             </div>
         </section>
     );

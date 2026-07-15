@@ -1,9 +1,15 @@
-import { Building2, ArrowUpRight, CheckCircle2, Clock, AlertTriangle, ShieldCheck } from "lucide-react";
+import {
+    Building2,
+    ArrowUpRight,
+    CheckCircle2,
+    Clock,
+    AlertTriangle,
+    ShieldCheck,
+} from "lucide-react";
 
 export default function DepartmentCard({ department, onOpenReport }) {
     return (
         <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden hover:shadow-md transition-all duration-300">
-            {/* Header */}
             <div className="p-5 flex flex-col sm:flex-row gap-4 sm:justify-between sm:items-start">
                 <div className="flex gap-4 min-w-0">
                     <div className="w-12 h-12 bg-gray-50 rounded-xl flex items-center justify-center border border-gray-100 flex-shrink-0">
@@ -14,7 +20,9 @@ export default function DepartmentCard({ department, onOpenReport }) {
                             <span className="text-[10px] font-mono text-gray-400 uppercase tracking-wider">
                                 {department.code}
                             </span>
-                            <span className="text-[10px] text-gray-300 hidden sm:inline">•</span>
+                            <span className="text-[10px] text-gray-300 hidden sm:inline">
+                                •
+                            </span>
                             <span className="text-[10px] text-gray-400 uppercase tracking-wider font-medium truncate">
                                 {department.category || "General"}
                             </span>
@@ -36,7 +44,6 @@ export default function DepartmentCard({ department, onOpenReport }) {
                 </div>
             </div>
 
-            {/* Metrics Grid */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-5 pt-0">
                 <div className="bg-gray-50/50 p-4 rounded-xl border border-gray-100">
                     <div className="flex items-center gap-1 text-[10px] text-gray-500 uppercase tracking-wider font-semibold mb-1">

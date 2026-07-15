@@ -17,7 +17,17 @@ const sizeClasses = {
 };
 
 const Button = forwardRef(
-    ({ className, variant = "default", size = "default", isLoading, children, ...props }, ref) => {
+    (
+        {
+            className,
+            variant = "default",
+            size = "default",
+            isLoading,
+            children,
+            ...props
+        },
+        ref,
+    ) => {
         return (
             <button
                 ref={ref}
@@ -26,13 +36,39 @@ const Button = forwardRef(
                     "inline-flex items-center justify-center whitespace-nowrap font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-2 disabled:opacity-50",
                     variantClasses[variant],
                     sizeClasses[size],
-                    className
+                    className,
                 )}
                 style={{
-                    backgroundColor: variant === "default" ? "#111827" : variant === "primary" ? "#2563eb" : variant === "secondary" ? "#4b5563" : undefined,
-                    color: (variant === "default" || variant === "primary" || variant === "secondary") ? "#ffffff" : undefined,
-                    paddingTop: size === "lg" ? "0.875rem" : size === "sm" ? "0.375rem" : size === "icon" ? undefined : "0.625rem",
-                    paddingBottom: size === "lg" ? "0.875rem" : size === "sm" ? "0.375rem" : size === "icon" ? undefined : "0.625rem",
+                    backgroundColor:
+                        variant === "default"
+                            ? "#111827"
+                            : variant === "primary"
+                              ? "#2563eb"
+                              : variant === "secondary"
+                                ? "#4b5563"
+                                : undefined,
+                    color:
+                        variant === "default" ||
+                        variant === "primary" ||
+                        variant === "secondary"
+                            ? "#ffffff"
+                            : undefined,
+                    paddingTop:
+                        size === "lg"
+                            ? "0.875rem"
+                            : size === "sm"
+                              ? "0.375rem"
+                              : size === "icon"
+                                ? undefined
+                                : "0.625rem",
+                    paddingBottom:
+                        size === "lg"
+                            ? "0.875rem"
+                            : size === "sm"
+                              ? "0.375rem"
+                              : size === "icon"
+                                ? undefined
+                                : "0.625rem",
                 }}
                 {...props}
             >
@@ -43,7 +79,14 @@ const Button = forwardRef(
                         fill="none"
                         viewBox="0 0 24 24"
                     >
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <circle
+                            className="opacity-25"
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="currentColor"
+                            strokeWidth="4"
+                        ></circle>
                         <path
                             className="opacity-75"
                             fill="currentColor"
@@ -54,7 +97,7 @@ const Button = forwardRef(
                 {children}
             </button>
         );
-    }
+    },
 );
 Button.displayName = "Button";
 
