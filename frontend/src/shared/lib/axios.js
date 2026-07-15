@@ -1,19 +1,19 @@
-import axios from 'axios';
+import axios from "axios";
 
 const api = axios.create({
-    baseURL: '/api',
+    baseURL: "/api",
     headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
     },
-    withCredentials: true, 
+    withCredentials: true,
 });
 
 const refreshApi = axios.create({
-    baseURL: '/api',
+    baseURL: "/api",
     headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
     },
-    withCredentials: true, 
+    withCredentials: true,
 });
 
 let isRefreshing = false;
@@ -30,7 +30,7 @@ function addRefreshSubscriber(cb) {
 
 api.interceptors.request.use(
     (config) => {
-        const token = localStorage.getItem('accessToken');
+        const token = localStorage.getItem("accessToken");
         if (token) {
             config.headers.Authorization = `Bearer ${token}`;
         }
@@ -38,19 +38,22 @@ api.interceptors.request.use(
     },
     (error) => {
         return Promise.reject(error);
-    }
+    },
 );
 
 api.interceptors.response.use(
     (response) => response,
     async (error) => {
         const originalRequest = error.config;
-        
+
         if (error.response?.status === 401 && !originalRequest._retry) {
-            if (originalRequest.url === '/auth/refresh' || originalRequest.url === '/auth/login') {
+            if (
+                originalRequest.url === "/auth/refresh" ||
+                originalRequest.url === "/auth/login"
+            ) {
                 return Promise.reject(error);
             }
-            
+
             if (isRefreshing) {
                 return new Promise((resolve, reject) => {
                     addRefreshSubscriber((err, token) => {
@@ -66,16 +69,16 @@ api.interceptors.response.use(
 
             originalRequest._retry = true;
             isRefreshing = true;
-            
+
             try {
-                const response = await refreshApi.post('/auth/refresh');
+                const response = await refreshApi.post("/auth/refresh");
                 const newAccessToken = response.data?.data?.accessToken;
-                
+
                 if (newAccessToken) {
-                    localStorage.setItem('accessToken', newAccessToken);
+                    localStorage.setItem("accessToken", newAccessToken);
                     isRefreshing = false;
                     onRefreshed(null, newAccessToken);
-                    
+
                     originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
                     return api(originalRequest);
                 } else {
@@ -85,14 +88,14 @@ api.interceptors.response.use(
                 console.error("Token refresh failed:", refreshError);
                 isRefreshing = false;
                 onRefreshed(refreshError, null);
-                localStorage.removeItem('accessToken');
-                window.location.href = '/login';
+                localStorage.removeItem("accessToken");
+                window.location.href = "/login";
                 return Promise.reject(refreshError);
             }
         }
-        
+
         return Promise.reject(error);
-    }
+    },
 );
 
 export default api;

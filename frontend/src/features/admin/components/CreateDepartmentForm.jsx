@@ -33,7 +33,11 @@ export default function CreateDepartmentForm({ onCreated, onCancel }) {
             await adminService.createDepartment(formData);
             onCreated();
         } catch (err) {
-            setError(err.response?.data?.errors?.[0]?.msg || err.response?.data?.error?.message || "Failed to create department");
+            setError(
+                err.response?.data?.errors?.[0]?.msg ||
+                    err.response?.data?.error?.message ||
+                    "Failed to create department",
+            );
         } finally {
             setLoading(false);
         }
@@ -42,10 +46,14 @@ export default function CreateDepartmentForm({ onCreated, onCancel }) {
     return (
         <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm mb-6 animate-fade-in">
             <div className="mb-6">
-                <h3 className="text-lg font-bold text-gray-900">Create Department</h3>
-                <p className="text-sm text-gray-500">Add a new civic department to the platform</p>
+                <h3 className="text-lg font-bold text-gray-900">
+                    Create Department
+                </h3>
+                <p className="text-sm text-gray-500">
+                    Add a new civic department to the platform
+                </p>
             </div>
-            
+
             {error && (
                 <p className="mb-6 text-red-500 text-sm font-medium">{error}</p>
             )}
@@ -61,7 +69,12 @@ export default function CreateDepartmentForm({ onCreated, onCancel }) {
                             required
                             placeholder="e.g. Roads Department"
                             value={formData.name}
-                            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                            onChange={(e) =>
+                                setFormData({
+                                    ...formData,
+                                    name: e.target.value,
+                                })
+                            }
                             className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition-colors"
                         />
                     </div>
@@ -74,7 +87,12 @@ export default function CreateDepartmentForm({ onCreated, onCancel }) {
                             required
                             placeholder="e.g. roads@city.gov"
                             value={formData.email}
-                            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                            onChange={(e) =>
+                                setFormData({
+                                    ...formData,
+                                    email: e.target.value,
+                                })
+                            }
                             className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition-colors"
                         />
                     </div>
@@ -87,22 +105,36 @@ export default function CreateDepartmentForm({ onCreated, onCancel }) {
                             onClick={() => setIsCategoryOpen(!isCategoryOpen)}
                             className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition-colors bg-white flex items-center justify-between text-left h-[42px]"
                         >
-                            <span className={formData.category ? "text-black" : "text-gray-400"}>
+                            <span
+                                className={
+                                    formData.category
+                                        ? "text-black"
+                                        : "text-gray-400"
+                                }
+                            >
                                 {formData.category || "Select category"}
                             </span>
-                            <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${isCategoryOpen ? 'rotate-180 text-black' : ''}`} />
+                            <ChevronDown
+                                className={`w-4 h-4 text-gray-400 transition-transform ${isCategoryOpen ? "rotate-180 text-black" : ""}`}
+                            />
                         </button>
-                        
+
                         {isCategoryOpen && (
                             <>
-                                <div className="fixed inset-0 z-10" onClick={() => setIsCategoryOpen(false)}></div>
+                                <div
+                                    className="fixed inset-0 z-10"
+                                    onClick={() => setIsCategoryOpen(false)}
+                                ></div>
                                 <div className="absolute left-0 right-0 top-[calc(100%+8px)] bg-white border border-gray-200 rounded-xl shadow-lg z-20 max-h-60 overflow-y-auto py-1">
                                     {categories.map((c) => (
                                         <button
                                             key={c}
                                             type="button"
                                             onClick={() => {
-                                                setFormData({ ...formData, category: c });
+                                                setFormData({
+                                                    ...formData,
+                                                    category: c,
+                                                });
                                                 setIsCategoryOpen(false);
                                             }}
                                             className="w-full text-left px-4 py-2 hover:bg-gray-50 text-sm transition-colors text-gray-700"
@@ -124,7 +156,12 @@ export default function CreateDepartmentForm({ onCreated, onCancel }) {
                             minLength={6}
                             placeholder="Enter password"
                             value={formData.password}
-                            onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                            onChange={(e) =>
+                                setFormData({
+                                    ...formData,
+                                    password: e.target.value,
+                                })
+                            }
                             className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition-colors"
                         />
                     </div>
@@ -135,7 +172,12 @@ export default function CreateDepartmentForm({ onCreated, onCancel }) {
                         <textarea
                             placeholder="Brief description of the department's responsibilities"
                             value={formData.description}
-                            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                            onChange={(e) =>
+                                setFormData({
+                                    ...formData,
+                                    description: e.target.value,
+                                })
+                            }
                             rows={3}
                             className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition-colors resize-none"
                         ></textarea>

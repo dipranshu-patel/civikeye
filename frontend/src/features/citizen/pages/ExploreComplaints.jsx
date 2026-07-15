@@ -57,8 +57,10 @@ export default function ExploreComplaints() {
                 if (!apiStatus || !isResolvedFilter) {
                     ongoingP = complaintsService.exploreComplaints({
                         search,
-                        status: apiStatus || "reported,assigned,in_progress,pending_verification,reopened",
-                        limit: isFrontendFilter ? 50 : 15
+                        status:
+                            apiStatus ||
+                            "reported,assigned,in_progress,pending_verification,reopened",
+                        limit: isFrontendFilter ? 50 : 15,
                     });
                 }
 
@@ -66,25 +68,47 @@ export default function ExploreComplaints() {
                     resolvedP = complaintsService.exploreComplaints({
                         search,
                         status: apiStatus || "resolved",
-                        limit: isFrontendFilter ? 50 : 15
+                        limit: isFrontendFilter ? 50 : 15,
                     });
                 }
 
                 const [resOngoing, resResolved] = await Promise.all([
-                    ongoingP || Promise.resolve({ data: { data: { authorityRequired: [], volunteerNeeded: [] } } }),
-                    resolvedP || Promise.resolve({ data: { data: { authorityRequired: [], volunteerNeeded: [] } } }),
+                    ongoingP ||
+                        Promise.resolve({
+                            data: {
+                                data: {
+                                    authorityRequired: [],
+                                    volunteerNeeded: [],
+                                },
+                            },
+                        }),
+                    resolvedP ||
+                        Promise.resolve({
+                            data: {
+                                data: {
+                                    authorityRequired: [],
+                                    volunteerNeeded: [],
+                                },
+                            },
+                        }),
                 ]);
 
-                let ongoingAuthData = resOngoing.data.data.authorityRequired || [];
+                let ongoingAuthData =
+                    resOngoing.data.data.authorityRequired || [];
                 let ongoingVolData = resOngoing.data.data.volunteerNeeded || [];
-                let resolvedAuth = resResolved.data.data.authorityRequired || [];
+                let resolvedAuth =
+                    resResolved.data.data.authorityRequired || [];
                 let resolvedVol = resResolved.data.data.volunteerNeeded || [];
                 let resolvedAllData = [...resolvedAuth, ...resolvedVol];
 
                 if (filterStatus === "overdue") {
                     const isPast = (dateStr) => new Date(dateStr) < new Date();
-                    const checkOverdue = (c) => c.slaDeadline && isPast(c.slaDeadline) && c.status !== 'resolved' && c.status !== 'closed';
-                    
+                    const checkOverdue = (c) =>
+                        c.slaDeadline &&
+                        isPast(c.slaDeadline) &&
+                        c.status !== "resolved" &&
+                        c.status !== "closed";
+
                     ongoingAuthData = ongoingAuthData.filter(checkOverdue);
                     ongoingVolData = ongoingVolData.filter(checkOverdue);
                     resolvedAllData = resolvedAllData.filter(checkOverdue);
@@ -146,7 +170,11 @@ export default function ExploreComplaints() {
 
                 if (filterStatus === "overdue") {
                     const isPast = (dateStr) => new Date(dateStr) < new Date();
-                    const checkOverdue = (c) => c.slaDeadline && isPast(c.slaDeadline) && c.status !== 'resolved' && c.status !== 'closed';
+                    const checkOverdue = (c) =>
+                        c.slaDeadline &&
+                        isPast(c.slaDeadline) &&
+                        c.status !== "resolved" &&
+                        c.status !== "closed";
                     newItems = newItems.filter(checkOverdue);
                 }
 
@@ -154,13 +182,17 @@ export default function ExploreComplaints() {
                     setListData(newItems);
                 } else {
                     setListData((prev) => {
-                        const existingIds = new Set(prev.map(item => item.id));
-                        const uniqueNewItems = newItems.filter(item => !existingIds.has(item.id));
+                        const existingIds = new Set(
+                            prev.map((item) => item.id),
+                        );
+                        const uniqueNewItems = newItems.filter(
+                            (item) => !existingIds.has(item.id),
+                        );
                         return [...prev, ...uniqueNewItems];
                     });
                 }
 
-                setHasMore(res.data.data.hasMore ?? (newItems.length > 0));
+                setHasMore(res.data.data.hasMore ?? newItems.length > 0);
             } catch (err) {
                 console.error(err);
             } finally {
@@ -246,7 +278,6 @@ export default function ExploreComplaints() {
 
     return (
         <div className="max-w-[1400px] mx-auto">
-            {/* Header / Search Bar */}
             <div className="flex flex-col md:flex-row gap-4 mb-8 bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
                 {viewMode === "list" && (
                     <button
@@ -332,7 +363,6 @@ export default function ExploreComplaints() {
                 </div>
             </div>
 
-            {/* Overview Mode */}
             {viewMode === "overview" && (
                 <div className="min-h-[60vh]">
                     <SectionRow
@@ -376,7 +406,6 @@ export default function ExploreComplaints() {
                 </div>
             )}
 
-            {/* List Mode */}
             {viewMode === "list" && (
                 <div className="min-h-[60vh]">
                     <div className="mb-6 flex items-center justify-between">

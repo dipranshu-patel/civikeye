@@ -1,21 +1,22 @@
-import { createSlice } from '@reduxjs/toolkit';
+import { createSlice } from "@reduxjs/toolkit";
 
 const initialState = {
-  isSidebarOpen: typeof window !== 'undefined' ? window.innerWidth >= 768 : true,
-  pageTitle: 'Dashboard',
+    isSidebarOpen:
+        typeof window !== "undefined" ? window.innerWidth >= 768 : true,
+    pageTitle: "Dashboard",
 };
 
 const uiSlice = createSlice({
-  name: 'ui',
-  initialState,
-  reducers: {
-    toggleSidebar: (state) => {
-      state.isSidebarOpen = !state.isSidebarOpen;
+    name: "ui",
+    initialState,
+    reducers: {
+        toggleSidebar: (state) => {
+            state.isSidebarOpen = !state.isSidebarOpen;
+        },
+        setPageTitle: (state, action) => {
+            state.pageTitle = action.payload;
+        },
     },
-    setPageTitle: (state, action) => {
-      state.pageTitle = action.payload;
-    },
-  },
 });
 
 export const { toggleSidebar, setPageTitle } = uiSlice.actions;

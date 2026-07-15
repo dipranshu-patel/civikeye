@@ -1,6 +1,7 @@
 import { Provider } from "react-redux";
 import { Outlet, useLocation } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import ScrollToTop from "../../../../shared/components/ScrollToTop";
 import { LayoutDashboard, List, Settings as SettingsIcon } from "lucide-react";
 import Sidebar from "../../../../shared/components/layout/Sidebar";
 import TopNav from "../../../../shared/components/layout/TopNav";
@@ -43,6 +44,7 @@ function PageTitleUpdater() {
 
 export default function DeptLayout() {
     const [profile, setProfile] = useState(null);
+    const mainRef = useRef(null);
 
     useEffect(() => {
         api.get("/me")
@@ -57,9 +59,13 @@ export default function DeptLayout() {
             <div className="flex min-h-screen bg-white font-sans text-gray-900 selection:bg-gray-200">
                 <Sidebar navGroups={deptNavGroups} brandName="CivikEye Dept" />
                 <div className="flex-1 flex flex-col min-w-0">
+                    <ScrollToTop containerRef={mainRef} />
                     <PageTitleUpdater />
                     <TopNav profile={profile} settingsLink={null} />
-                    <main className="flex-1 overflow-y-scroll px-[16px] py-6 md:p-8 lg:p-12 xl:p-8 bg-[#F8FAFC]">
+                    <main
+                        ref={mainRef}
+                        className="flex-1 overflow-y-scroll px-[16px] py-6 md:p-8 lg:p-12 xl:p-8 bg-[#F8FAFC]"
+                    >
                         <Outlet />
                     </main>
                 </div>

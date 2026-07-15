@@ -22,7 +22,10 @@ export default function EditSLACategoryModal({ category, onClose, onUpdated }) {
             });
             onUpdated();
         } catch (err) {
-            setError(err.response?.data?.error?.message || "Failed to update SLA category");
+            setError(
+                err.response?.data?.error?.message ||
+                    "Failed to update SLA category",
+            );
         } finally {
             setLoading(false);
         }
@@ -47,7 +50,9 @@ export default function EditSLACategoryModal({ category, onClose, onUpdated }) {
                         <p className="text-xs font-semibold tracking-wider text-gray-500 uppercase mb-1">
                             Edit SLA Configuration
                         </p>
-                        <h2 className="text-2xl font-bold text-gray-900">{category.name}</h2>
+                        <h2 className="text-2xl font-bold text-gray-900">
+                            {category.name}
+                        </h2>
                     </div>
                     <button
                         onClick={onClose}
@@ -71,20 +76,35 @@ export default function EditSLACategoryModal({ category, onClose, onUpdated }) {
                         <div className="space-y-4">
                             <div className="flex justify-between text-sm">
                                 <span className="text-gray-500">Category</span>
-                                <span className="font-medium text-gray-900">{category.name}</span>
+                                <span className="font-medium text-gray-900">
+                                    {category.name}
+                                </span>
                             </div>
                             <div className="flex justify-between text-sm">
-                                <span className="text-gray-500">Department</span>
-                                <span className="font-medium text-gray-900">{category.department?.name || "N/A"}</span>
+                                <span className="text-gray-500">
+                                    Department
+                                </span>
+                                <span className="font-medium text-gray-900">
+                                    {category.department?.name || "N/A"}
+                                </span>
                             </div>
                             <div className="flex justify-between text-sm">
-                                <span className="text-gray-500">Current SLA</span>
-                                <span className="font-medium text-gray-900">{category.slaDurationDays} Days</span>
+                                <span className="text-gray-500">
+                                    Current SLA
+                                </span>
+                                <span className="font-medium text-gray-900">
+                                    {category.slaDurationDays} Days
+                                </span>
                             </div>
                         </div>
                         <div className="mt-4 pt-4 border-t border-gray-100">
-                            <h4 className="text-xs font-semibold tracking-wider text-gray-500 uppercase mb-2">Description</h4>
-                            <p className="text-sm text-gray-700">{category.description || "No description provided."}</p>
+                            <h4 className="text-xs font-semibold tracking-wider text-gray-500 uppercase mb-2">
+                                Description
+                            </h4>
+                            <p className="text-sm text-gray-700">
+                                {category.description ||
+                                    "No description provided."}
+                            </p>
                         </div>
                     </div>
 
@@ -92,7 +112,11 @@ export default function EditSLACategoryModal({ category, onClose, onUpdated }) {
                         <h3 className="text-xs font-semibold tracking-wider text-gray-500 uppercase mb-4">
                             Update Configuration
                         </h3>
-                        <form id="edit-sla-form" onSubmit={handleSubmit} className="space-y-4">
+                        <form
+                            id="edit-sla-form"
+                            onSubmit={handleSubmit}
+                            className="space-y-4"
+                        >
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
                                     SLA Duration (Days)
@@ -102,7 +126,12 @@ export default function EditSLACategoryModal({ category, onClose, onUpdated }) {
                                     required
                                     min="1"
                                     value={formData.slaDurationDays}
-                                    onChange={(e) => setFormData({ ...formData, slaDurationDays: e.target.value })}
+                                    onChange={(e) =>
+                                        setFormData({
+                                            ...formData,
+                                            slaDurationDays: e.target.value,
+                                        })
+                                    }
                                     className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition-colors"
                                 />
                             </div>
@@ -114,7 +143,12 @@ export default function EditSLACategoryModal({ category, onClose, onUpdated }) {
                                 <textarea
                                     rows="3"
                                     value={formData.description}
-                                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                                    onChange={(e) =>
+                                        setFormData({
+                                            ...formData,
+                                            description: e.target.value,
+                                        })
+                                    }
                                     className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-black focus:border-black transition-colors resize-none"
                                 ></textarea>
                             </div>
@@ -125,7 +159,13 @@ export default function EditSLACategoryModal({ category, onClose, onUpdated }) {
                         <div className="flex flex-col gap-2 text-sm text-gray-600">
                             <div className="flex items-center gap-2">
                                 <Calendar className="w-4 h-4 text-gray-500" />
-                                <span>Last Updated: {formatDate(category.updatedAt || category.createdAt)}</span>
+                                <span>
+                                    Last Updated:{" "}
+                                    {formatDate(
+                                        category.updatedAt ||
+                                            category.createdAt,
+                                    )}
+                                </span>
                             </div>
                             <div className="flex items-center gap-2">
                                 <User className="w-4 h-4 text-gray-500" />

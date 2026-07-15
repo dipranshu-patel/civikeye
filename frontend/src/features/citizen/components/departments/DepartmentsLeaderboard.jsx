@@ -9,9 +9,7 @@ export default function DepartmentsLeaderboard({ departments }) {
         <div className="bg-white border border-gray-200 rounded-2xl p-6">
             <div className="flex items-center gap-2 mb-6">
                 <Trophy className="w-5 h-5 text-emerald-500" />
-                <h2 className="font-bold text-gray-900">
-                    Top performers
-                </h2>
+                <h2 className="font-bold text-gray-900">Top performers</h2>
             </div>
 
             <div className="space-y-1">

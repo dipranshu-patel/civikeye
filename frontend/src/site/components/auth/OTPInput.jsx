@@ -17,7 +17,7 @@ export function OTPInput({ length = 6, value = "", onChange, error }) {
 
     const handleChange = (e, index) => {
         const text = e.target.value;
-        if (!/^[0-9]*$/.test(text)) return; // Only allow numbers
+        if (!/^[0-9]*$/.test(text)) return;
 
         const val = text.substring(text.length - 1);
         const newOtp = [...otp];
@@ -25,7 +25,6 @@ export function OTPInput({ length = 6, value = "", onChange, error }) {
         setOtp(newOtp);
         onChange(newOtp.join(""));
 
-        // Move to next input if there's a value
         if (val && index < length - 1) {
             inputRefs.current[index + 1].focus();
         }
@@ -34,7 +33,6 @@ export function OTPInput({ length = 6, value = "", onChange, error }) {
     const handleKeyDown = (e, index) => {
         if (e.key === "Backspace") {
             if (!otp[index] && index > 0) {
-                // If empty, move to previous and clear it
                 const newOtp = [...otp];
                 newOtp[index - 1] = "";
                 setOtp(newOtp);
@@ -46,7 +44,10 @@ export function OTPInput({ length = 6, value = "", onChange, error }) {
 
     const handlePaste = (e) => {
         e.preventDefault();
-        const pasteData = e.clipboardData.getData("text/plain").slice(0, length).replace(/[^0-9]/g, "");
+        const pasteData = e.clipboardData
+            .getData("text/plain")
+            .slice(0, length)
+            .replace(/[^0-9]/g, "");
         if (!pasteData) return;
 
         const newOtp = [...otp];
@@ -56,7 +57,6 @@ export function OTPInput({ length = 6, value = "", onChange, error }) {
         setOtp(newOtp);
         onChange(newOtp.join(""));
 
-        // Focus the next empty input or the last one
         const nextIndex = Math.min(pasteData.length, length - 1);
         inputRefs.current[nextIndex].focus();
     };
@@ -77,7 +77,7 @@ export function OTPInput({ length = 6, value = "", onChange, error }) {
                         onPaste={handlePaste}
                         className={cn(
                             "w-12 h-12 text-center text-lg font-semibold rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all",
-                            error && "border-red-500 focus:ring-red-500"
+                            error && "border-red-500 focus:ring-red-500",
                         )}
                     />
                 ))}

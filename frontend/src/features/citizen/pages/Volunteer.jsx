@@ -15,7 +15,7 @@ import {
     User,
     Star,
     Award,
-    Target
+    Target,
 } from "lucide-react";
 import clsx from "clsx";
 
@@ -48,18 +48,28 @@ export default function Volunteer() {
 
     useEffect(() => {
         if (mainTabsRef.current) {
-            const activeEl = mainTabsRef.current.querySelector(`[data-tab-id="${activeTab}"]`);
+            const activeEl = mainTabsRef.current.querySelector(
+                `[data-tab-id="${activeTab}"]`,
+            );
             if (activeEl) {
-                setMainPillStyle({ left: activeEl.offsetLeft, width: activeEl.offsetWidth });
+                setMainPillStyle({
+                    left: activeEl.offsetLeft,
+                    width: activeEl.offsetWidth,
+                });
             }
         }
     }, [activeTab]);
 
     useEffect(() => {
         if (subTabsRef.current) {
-            const activeEl = subTabsRef.current.querySelector(`[data-tab-id="${myTasksTab}"]`);
+            const activeEl = subTabsRef.current.querySelector(
+                `[data-tab-id="${myTasksTab}"]`,
+            );
             if (activeEl) {
-                setSubPillStyle({ left: activeEl.offsetLeft, width: activeEl.offsetWidth });
+                setSubPillStyle({
+                    left: activeEl.offsetLeft,
+                    width: activeEl.offsetWidth,
+                });
             }
         }
     }, [myTasksTab, activeTab]);
@@ -91,13 +101,15 @@ export default function Volunteer() {
         try {
             const [myRes, impRes] = await Promise.all([
                 volunteerService.getMyTasks({ tab: "active" }),
-                volunteerService.getImpact()
+                volunteerService.getImpact(),
             ]);
             setGlobalSummary({
                 active: myRes.data.data.summary.active || 0,
-                pendingVerification: myRes.data.data.summary.pendingVerification || 0,
+                pendingVerification:
+                    myRes.data.data.summary.pendingVerification || 0,
                 completed: myRes.data.data.summary.completed || 0,
-                verificationRatePct: impRes.data.data.personal.verificationRatePct
+                verificationRatePct:
+                    impRes.data.data.personal.verificationRatePct,
             });
         } catch (error) {
             console.error("Failed to fetch global summary", error);
@@ -134,14 +146,16 @@ export default function Volunteer() {
         setClaimError(null);
         try {
             await volunteerService.claimTask(task.taskId);
-            fetchGlobalSummary(); // Refresh summary
+            fetchGlobalSummary();
             setActiveTab("my-tasks");
             setMyTasksTab("active");
         } catch (error) {
             console.error("Failed to claim task:", error);
             setClaimError({
                 taskId: task.taskId,
-                msg: error.response?.data?.error?.message || "Failed to claim task.",
+                msg:
+                    error.response?.data?.error?.message ||
+                    "Failed to claim task.",
             });
         } finally {
             setClaimingId(null);
@@ -151,7 +165,7 @@ export default function Volunteer() {
     const handleCompleteSubmit = async (formData) => {
         if (!completingTask) return;
         await volunteerService.completeTask(completingTask.taskId, formData);
-        fetchGlobalSummary(); // Refresh summary
+        fetchGlobalSummary();
         setCompletingTask(null);
         setMyTasksTab("pending_verification");
     };
@@ -170,7 +184,6 @@ export default function Volunteer() {
 
     return (
         <div className="max-w-[1400px] mx-auto">
-            {/* Global Summary Cards */}
             {globalSummary && (
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
                     <div className="bg-gradient-to-br from-indigo-500 to-blue-600 rounded-2xl p-6 text-white shadow-lg shadow-blue-900/20 relative overflow-hidden">
@@ -236,12 +249,17 @@ export default function Volunteer() {
                 </div>
             )}
 
-            {/* Main Tabs */}
             <div className="inline-flex max-w-full overflow-x-auto hide-scrollbar bg-gray-100/80 p-1 rounded-xl mb-8">
-                <div className="relative flex w-max min-w-full" ref={mainTabsRef}>
-                    <div 
+                <div
+                    className="relative flex w-max min-w-full"
+                    ref={mainTabsRef}
+                >
+                    <div
                         className="absolute top-0 bottom-0 bg-white rounded-lg shadow-sm ring-1 ring-gray-900/5 transition-all duration-300 ease-out z-0"
-                        style={{ left: mainPillStyle.left, width: mainPillStyle.width }}
+                        style={{
+                            left: mainPillStyle.left,
+                            width: mainPillStyle.width,
+                        }}
                     />
                     {TABS.map((tab) => {
                         const Icon = tab.icon;
@@ -255,7 +273,7 @@ export default function Volunteer() {
                                     "relative z-10 flex items-center justify-center gap-2 px-3 sm:px-5 py-2.5 text-sm font-semibold whitespace-nowrap transition-colors duration-300 cursor-pointer",
                                     isActive
                                         ? "text-gray-900"
-                                        : "text-gray-500 hover:text-gray-700"
+                                        : "text-gray-500 hover:text-gray-700",
                                 )}
                             >
                                 <Icon
@@ -263,7 +281,7 @@ export default function Volunteer() {
                                         "w-4 h-4",
                                         isActive
                                             ? "text-gray-900"
-                                            : "text-gray-400"
+                                            : "text-gray-400",
                                     )}
                                 />
                                 {tab.label}
@@ -273,7 +291,6 @@ export default function Volunteer() {
                 </div>
             </div>
 
-            {/* Discover Tasks View */}
             {activeTab === "discover" && (
                 <div>
                     <div className="mb-8">
@@ -318,8 +335,16 @@ export default function Volunteer() {
                                         }
                                         actionIcon={HandHeart}
                                         onAction={handleClaimTask}
-                                        errorMsg={claimError?.taskId === task.taskId ? claimError.msg : null}
-                                        onClick={() => setSelectedComplaintId(task.complaintId || task.taskId)}
+                                        errorMsg={
+                                            claimError?.taskId === task.taskId
+                                                ? claimError.msg
+                                                : null
+                                        }
+                                        onClick={() =>
+                                            setSelectedComplaintId(
+                                                task.complaintId || task.taskId,
+                                            )
+                                        }
                                     />
                                 ))}
                             </div>
@@ -328,14 +353,19 @@ export default function Volunteer() {
                 </div>
             )}
 
-            {/* My Tasks View */}
             {activeTab === "my-tasks" && (
                 <div>
                     <div className="inline-flex max-w-full overflow-x-auto hide-scrollbar bg-gray-100/80 p-1 rounded-xl mb-8">
-                        <div className="relative flex w-max min-w-full" ref={subTabsRef}>
-                            <div 
+                        <div
+                            className="relative flex w-max min-w-full"
+                            ref={subTabsRef}
+                        >
+                            <div
                                 className="absolute top-0 bottom-0 bg-white rounded-lg shadow-sm ring-1 ring-gray-900/5 transition-all duration-300 ease-out z-0"
-                                style={{ left: subPillStyle.left, width: subPillStyle.width }}
+                                style={{
+                                    left: subPillStyle.left,
+                                    width: subPillStyle.width,
+                                }}
                             />
                             {MY_TASKS_TABS.map((tab) => (
                                 <button
@@ -346,7 +376,7 @@ export default function Volunteer() {
                                         "relative z-10 px-3 sm:px-5 py-2.5 text-sm font-semibold whitespace-nowrap transition-colors duration-300 cursor-pointer text-center",
                                         myTasksTab === tab.id
                                             ? "text-gray-900"
-                                            : "text-gray-500 hover:text-gray-700"
+                                            : "text-gray-500 hover:text-gray-700",
                                     )}
                                 >
                                     {tab.label}
@@ -385,7 +415,11 @@ export default function Volunteer() {
                                                 ? () => setCompletingTask(task)
                                                 : undefined
                                         }
-                                        onClick={() => setSelectedComplaintId(task.complaintId || task.taskId)}
+                                        onClick={() =>
+                                            setSelectedComplaintId(
+                                                task.complaintId || task.taskId,
+                                            )
+                                        }
                                     />
                                 ))}
                             </div>
@@ -393,8 +427,6 @@ export default function Volunteer() {
                     </div>
                 </div>
             )}
-
-            {/* End Views */}
 
             {completingTask && (
                 <CompleteTaskModal

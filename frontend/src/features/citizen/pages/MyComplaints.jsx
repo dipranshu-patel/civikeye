@@ -24,9 +24,14 @@ export default function MyComplaints() {
 
     useEffect(() => {
         if (tabsRef.current) {
-            const activeEl = tabsRef.current.querySelector(`[data-tab-id="${activeTab}"]`);
+            const activeEl = tabsRef.current.querySelector(
+                `[data-tab-id="${activeTab}"]`,
+            );
             if (activeEl) {
-                setPillStyle({ left: activeEl.offsetLeft, width: activeEl.offsetWidth });
+                setPillStyle({
+                    left: activeEl.offsetLeft,
+                    width: activeEl.offsetWidth,
+                });
             }
         }
     }, [activeTab]);
@@ -111,7 +116,6 @@ export default function MyComplaints() {
 
     return (
         <div className="max-w-[1400px] mx-auto">
-            {/* Summary Cards */}
             {summary && (
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
                     <div className="bg-gradient-to-br from-slate-700 to-gray-900 rounded-2xl p-6 text-white shadow-lg shadow-gray-900/20 relative overflow-hidden">
@@ -178,14 +182,18 @@ export default function MyComplaints() {
                 </div>
             )}
 
-            {/* Tabs & Filters */}
             <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4 mb-8">
-                {/* Tabs */}
                 <div className="inline-flex max-w-full overflow-x-auto hide-scrollbar bg-gray-100/80 p-1 rounded-xl">
-                    <div className="relative flex w-max min-w-full" ref={tabsRef}>
-                        <div 
+                    <div
+                        className="relative flex w-max min-w-full"
+                        ref={tabsRef}
+                    >
+                        <div
                             className="absolute top-0 bottom-0 bg-white rounded-lg shadow-sm ring-1 ring-gray-900/5 transition-all duration-300 ease-out z-0"
-                            style={{ left: pillStyle.left, width: pillStyle.width }}
+                            style={{
+                                left: pillStyle.left,
+                                width: pillStyle.width,
+                            }}
                         />
                         {tabs.map((tab) => {
                             const Icon = tab.icon;
@@ -199,7 +207,7 @@ export default function MyComplaints() {
                                         "relative z-10 flex items-center justify-center gap-2 px-3 sm:px-4 py-2.5 text-sm font-semibold whitespace-nowrap transition-colors duration-300 cursor-pointer",
                                         isActive
                                             ? "text-gray-900"
-                                            : "text-gray-500 hover:text-gray-700"
+                                            : "text-gray-500 hover:text-gray-700",
                                     )}
                                 >
                                     <Icon
@@ -207,7 +215,7 @@ export default function MyComplaints() {
                                             "w-4 h-4 shrink-0",
                                             isActive
                                                 ? "text-gray-900"
-                                                : "text-gray-400"
+                                                : "text-gray-400",
                                         )}
                                     />
                                     {tab.label}
@@ -217,7 +225,6 @@ export default function MyComplaints() {
                     </div>
                 </div>
 
-                {/* Search and Filters */}
                 <div className="flex flex-row gap-3">
                     <div className="relative flex-1 sm:w-64">
                         <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -293,7 +300,6 @@ export default function MyComplaints() {
                 </div>
             </div>
 
-            {/* Content List */}
             <div className="min-h-[60vh]">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                     {complaints.map((c) => (
@@ -311,7 +317,7 @@ export default function MyComplaints() {
                         <div className="w-6 h-6 border-2 border-gray-900/30 border-t-gray-900 rounded-full animate-spin"></div>
                     </div>
                 )}
-                
+
                 {loading && page === 1 && complaints.length === 0 && (
                     <div className="flex justify-center py-24">
                         <RefreshCw className="w-8 h-8 text-gray-400 animate-spin" />
@@ -344,7 +350,6 @@ export default function MyComplaints() {
                 )}
             </div>
 
-            {/* Detail Modal */}
             {selectedComplaintId && (
                 <ComplaintDetailsModal
                     complaintId={selectedComplaintId}

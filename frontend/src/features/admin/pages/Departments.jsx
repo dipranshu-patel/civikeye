@@ -256,7 +256,7 @@ export default function Departments() {
                     onClose={() => setViewDepartment(null)}
                     onUpdate={() => {
                         fetchDepartments();
-                        setViewDepartment(null); 
+                        setViewDepartment(null);
                     }}
                 />
             )}

@@ -13,12 +13,18 @@ export default function ViewDepartmentModal({ department, onClose, onUpdate }) {
         setError(null);
         setLoading(true);
         try {
-            await adminService.resetDepartmentPassword(department.id, newPassword);
+            await adminService.resetDepartmentPassword(
+                department.id,
+                newPassword,
+            );
             setIsResetting(false);
             setNewPassword("");
             onUpdate();
         } catch (err) {
-            setError(err.response?.data?.errors?.[0]?.msg || "Failed to reset password");
+            setError(
+                err.response?.data?.errors?.[0]?.msg ||
+                    "Failed to reset password",
+            );
         } finally {
             setLoading(false);
         }
@@ -31,7 +37,9 @@ export default function ViewDepartmentModal({ department, onClose, onUpdate }) {
             await adminService.updateDepartmentStatus(department.id);
             onUpdate();
         } catch (err) {
-            setError(err.response?.data?.error?.message || "Failed to update status");
+            setError(
+                err.response?.data?.error?.message || "Failed to update status",
+            );
         } finally {
             setLoading(false);
         }
@@ -48,11 +56,11 @@ export default function ViewDepartmentModal({ department, onClose, onUpdate }) {
 
     return (
         <div className="fixed inset-0 z-50 flex justify-end">
-            <div 
-                className="absolute inset-0 bg-black/20 backdrop-blur-sm" 
+            <div
+                className="absolute inset-0 bg-black/20 backdrop-blur-sm"
                 onClick={onClose}
             ></div>
-            
+
             <div className="relative w-full max-w-md bg-white h-full shadow-2xl flex flex-col animate-slide-left">
                 <div className="flex items-center justify-between p-6 border-b border-gray-100">
                     <div>
@@ -63,7 +71,7 @@ export default function ViewDepartmentModal({ department, onClose, onUpdate }) {
                             {department.name}
                         </h2>
                     </div>
-                    <button 
+                    <button
                         onClick={onClose}
                         className="p-2 bg-gray-50 text-gray-500 rounded-xl hover:bg-gray-100 transition-colors cursor-pointer"
                     >
@@ -73,53 +81,74 @@ export default function ViewDepartmentModal({ department, onClose, onUpdate }) {
 
                 <div className="flex-1 overflow-y-auto p-6 space-y-8">
                     {error && (
-                        <div className="text-red-500 text-sm">
-                            {error}
-                        </div>
+                        <div className="text-red-500 text-sm">{error}</div>
                     )}
 
                     <div className="space-y-4">
                         <div className="flex items-center justify-between py-2 border-b border-gray-50">
-                            <span className="text-gray-500 text-sm">Status</span>
-                            <span className={`px-2.5 py-1 text-xs font-medium rounded-full ${
-                                department.isActive 
-                                    ? "bg-green-50 text-green-700" 
-                                    : "bg-gray-100 text-gray-600"
-                            }`}>
+                            <span className="text-gray-500 text-sm">
+                                Status
+                            </span>
+                            <span
+                                className={`px-2.5 py-1 text-xs font-medium rounded-full ${
+                                    department.isActive
+                                        ? "bg-green-50 text-green-700"
+                                        : "bg-gray-100 text-gray-600"
+                                }`}
+                            >
                                 {department.isActive ? "Active" : "Inactive"}
                             </span>
                         </div>
                         <div className="flex items-center justify-between py-2 border-b border-gray-50">
-                            <span className="text-gray-500 text-sm">Official Email</span>
-                            <span className="text-gray-900 font-medium text-sm">{department.email}</span>
+                            <span className="text-gray-500 text-sm">
+                                Official Email
+                            </span>
+                            <span className="text-gray-900 font-medium text-sm">
+                                {department.email}
+                            </span>
                         </div>
                         <div className="flex items-center justify-between py-2 border-b border-gray-50">
-                            <span className="text-gray-500 text-sm">Category</span>
-                            <span className="text-gray-900 font-medium text-sm">{department.category}</span>
+                            <span className="text-gray-500 text-sm">
+                                Category
+                            </span>
+                            <span className="text-gray-900 font-medium text-sm">
+                                {department.category}
+                            </span>
                         </div>
                         <div className="flex items-center justify-between py-2 border-b border-gray-50">
-                            <span className="text-gray-500 text-sm">Created Date</span>
-                            <span className="text-gray-900 font-medium text-sm">{formatDate(department.createdAt)}</span>
+                            <span className="text-gray-500 text-sm">
+                                Created Date
+                            </span>
+                            <span className="text-gray-900 font-medium text-sm">
+                                {formatDate(department.createdAt)}
+                            </span>
                         </div>
                     </div>
 
                     {isResetting && (
                         <div className="bg-gray-50 p-4 rounded-2xl border border-gray-200">
-                            <h4 className="font-semibold text-gray-900 text-sm mb-3">Reset Password</h4>
-                            <form onSubmit={handleResetPassword} className="space-y-3">
+                            <h4 className="font-semibold text-gray-900 text-sm mb-3">
+                                Reset Password
+                            </h4>
+                            <form
+                                onSubmit={handleResetPassword}
+                                className="space-y-3"
+                            >
                                 <div>
-                                    <input 
-                                        type="text" 
+                                    <input
+                                        type="text"
                                         placeholder="Enter new password"
                                         value={newPassword}
-                                        onChange={e => setNewPassword(e.target.value)}
+                                        onChange={(e) =>
+                                            setNewPassword(e.target.value)
+                                        }
                                         className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-black focus:border-black text-sm"
                                         required
                                         minLength={6}
                                     />
                                 </div>
                                 <div className="flex gap-2">
-                                    <button 
+                                    <button
                                         type="button"
                                         onClick={() => {
                                             setIsResetting(false);
@@ -129,12 +158,14 @@ export default function ViewDepartmentModal({ department, onClose, onUpdate }) {
                                     >
                                         Cancel
                                     </button>
-                                    <button 
+                                    <button
                                         type="submit"
                                         disabled={loading || !newPassword}
                                         className="flex-1 py-2 text-sm font-medium text-white bg-black rounded-xl hover:bg-gray-800 disabled:opacity-50 cursor-pointer  "
                                     >
-                                        {loading ? "Saving..." : "Save Password"}
+                                        {loading
+                                            ? "Saving..."
+                                            : "Save Password"}
                                     </button>
                                 </div>
                             </form>
@@ -144,7 +175,7 @@ export default function ViewDepartmentModal({ department, onClose, onUpdate }) {
 
                 <div className="p-6 border-t border-gray-100 bg-gray-50 flex flex-col gap-3">
                     {!isResetting && (
-                        <button 
+                        <button
                             onClick={() => setIsResetting(true)}
                             className="w-full py-3 flex items-center justify-center gap-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 transition-colors cursor-pointer"
                         >
@@ -152,8 +183,8 @@ export default function ViewDepartmentModal({ department, onClose, onUpdate }) {
                             Reset Password
                         </button>
                     )}
-                    
-                    <button 
+
+                    <button
                         onClick={handleToggleStatus}
                         disabled={loading}
                         className={`w-full py-3 flex items-center justify-center gap-2 text-sm font-medium border rounded-xl transition-colors disabled:opacity-50 cursor-pointer ${
@@ -163,7 +194,9 @@ export default function ViewDepartmentModal({ department, onClose, onUpdate }) {
                         }`}
                     >
                         <Power className="w-4 h-4" />
-                        {department.isActive ? "Deactivate Department" : "Activate Department"}
+                        {department.isActive
+                            ? "Deactivate Department"
+                            : "Activate Department"}
                     </button>
                 </div>
             </div>

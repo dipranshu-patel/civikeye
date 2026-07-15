@@ -11,15 +11,15 @@ export default function HomePage() {
     const navigate = useNavigate();
 
     useEffect(() => {
-        const token = localStorage.getItem('accessToken');
-        const role = localStorage.getItem('userRole');
+        const token = localStorage.getItem("accessToken");
+        const role = localStorage.getItem("userRole");
         if (token) {
-            navigate(`/${role || 'citizen'}/dashboard`);
+            navigate(`/${role || "citizen"}/dashboard`);
         }
     }, [navigate]);
 
     return (
-        <div className="w-full">
+        <div className="w-full bg-[#fcfbf7] text-stone-800 relative flex flex-col min-h-screen font-[var(--font-inter)] selection:bg-orange-200 selection:text-orange-900">
             <HeroSection />
             <StatsSection />
             <ProcessSection />

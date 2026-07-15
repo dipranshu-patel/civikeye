@@ -1,6 +1,15 @@
 import { useState } from "react";
 import { Link, Navigate, useNavigate } from "react-router-dom";
-import { Eye, EyeOff, CheckCircle2, ShieldCheck, Users, Mail, Lock, MoveRight } from "lucide-react";
+import {
+    Eye,
+    EyeOff,
+    CheckCircle2,
+    ShieldCheck,
+    Users,
+    Mail,
+    Lock,
+    MoveRight,
+} from "lucide-react";
 import { authService } from "../../services/auth.service";
 import { Input } from "../../../shared/components/ui/Input";
 import { Button } from "../../../shared/components/ui/Button";
@@ -9,7 +18,6 @@ import LogoSVG from "../../assets/logo.svg";
 export default function LoginPage() {
     const navigate = useNavigate();
 
-    // All hooks must come before any early returns (Rules of Hooks)
     const [loading, setLoading] = useState(false);
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
@@ -18,23 +26,21 @@ export default function LoginPage() {
     const [fieldErrors, setFieldErrors] = useState({});
     const [globalError, setGlobalError] = useState(null);
 
-    // Synchronous check — avoids any flicker before redirect
     const token = localStorage.getItem("accessToken");
-    const role  = localStorage.getItem("userRole");
+    const role = localStorage.getItem("userRole");
     if (token) {
         return <Navigate to={`/${role || "citizen"}/dashboard`} replace />;
     }
 
-
     const handleLogin = async (e) => {
         e.preventDefault();
-        
+
         setFieldErrors({});
         setGlobalError(null);
-        
+
         let hasError = false;
         const errs = {};
-        
+
         if (!email.trim()) {
             errs.email = "Email is required.";
             hasError = true;
@@ -42,7 +48,7 @@ export default function LoginPage() {
             errs.email = "Please provide a valid email address.";
             hasError = true;
         }
-        
+
         if (!password) {
             errs.password = "Password is required.";
             hasError = true;
@@ -56,16 +62,16 @@ export default function LoginPage() {
         setLoading(true);
         try {
             const response = await authService.login(email, password);
-            
+
             const user = response?.data?.user;
             const token = response?.data?.accessToken;
-            
+
             if (token) {
-                localStorage.setItem('accessToken', token);
-                localStorage.setItem('userRole', user?.role || 'citizen');
-                localStorage.setItem('userId', user?.id);
+                localStorage.setItem("accessToken", token);
+                localStorage.setItem("userRole", user?.role || "citizen");
+                localStorage.setItem("userId", user?.id);
             }
-            
+
             if (user?.role === "citizen") {
                 navigate("/citizen/dashboard");
             } else if (user?.role === "official") {
@@ -78,8 +84,8 @@ export default function LoginPage() {
         } catch (err) {
             setGlobalError(
                 err.response?.data?.error?.message ||
-                err.response?.data?.errors?.[0]?.message ||
-                "Invalid credentials. Please try again."
+                    err.response?.data?.errors?.[0]?.message ||
+                    "Invalid credentials. Please try again.",
             );
         } finally {
             setLoading(false);
@@ -87,11 +93,9 @@ export default function LoginPage() {
     };
 
     return (
-        <div className="min-h-screen bg-white font-sans text-gray-900 selection:bg-gray-200">
+        <div className="min-h-screen bg-[#fcfbf7] font-[var(--font-inter)] text-stone-800 selection:bg-orange-200 selection:text-orange-900">
             <div className="flex min-h-screen">
-                <div className="hidden lg:flex lg:w-1/2 flex-col justify-between p-12 bg-gray-50 relative">
-                    <div className="absolute inset-0 bg-gradient-to-br from-gray-50 to-gray-100 pointer-events-none" />
-
+                <div className="hidden lg:flex lg:w-1/2 flex-col justify-between p-12 bg-[#f4f3ed] relative">
                     <div className="relative z-10">
                         <div className="flex items-center gap-2 mb-10">
                             <img
@@ -99,44 +103,47 @@ export default function LoginPage() {
                                 alt="CivikEye Logo"
                                 className="h-16"
                             />
-                            <span className="font-bold text-3xl tracking-tight">
+                            <span className="font-[var(--font-satoshi)] font-bold text-3xl tracking-tight text-stone-800">
                                 CivikEye
                             </span>
                         </div>
 
-                        <h1 className="text-5xl font-bold tracking-tight text-gray-900 mb-6 max-w-xl leading-[1.1]">
-                            Every civic issue<br />
+                        <h1 className="font-[var(--font-satoshi)] text-5xl font-bold tracking-tight text-stone-800 mb-6 max-w-xl leading-[1.1]">
+                            Every civic issue
+                            <br />
                             deserves public visibility.
                         </h1>
-                        <p className="text-lg text-gray-600 max-w-md leading-relaxed">
-                            Track issues. Verify resolutions. Build accountability - together.
+                        <p className="text-lg text-stone-500 max-w-md leading-relaxed">
+                            Track issues. Verify resolutions. Build
+                            accountability - together.
                         </p>
                     </div>
 
-                    <div className="relative z-10 flex items-center gap-8 text-sm font-medium text-gray-500">
+                    <div className="relative z-10 flex items-center gap-8 text-sm font-medium text-stone-500">
                         <div className="flex items-center gap-2">
-                            <ShieldCheck className="w-5 h-5 text-gray-400" />
+                            <ShieldCheck className="w-5 h-5 text-orange-500" />
                             Public accountability by design
                         </div>
                         <div className="flex items-center gap-2">
-                            <Users className="w-5 h-5 text-gray-400" />
+                            <Users className="w-5 h-5 text-orange-500" />
                             Community verified
                         </div>
                     </div>
                 </div>
 
-                <div className="w-full lg:w-1/2 flex flex-col items-center justify-center p-8 py-12 min-h-screen bg-white">
+                <div className="w-full lg:w-1/2 flex flex-col items-center justify-center p-8 py-12 min-h-screen bg-[#fcfbf7]">
                     <div className="w-full max-w-md">
-                        <h2 className="text-3xl font-bold tracking-tight text-gray-900 mb-3">
+                        <h2 className="font-[var(--font-satoshi)] text-3xl font-bold tracking-tight text-stone-800 mb-3">
                             Welcome back.
                         </h2>
-                        <p className="text-gray-500 mb-8 text-sm leading-relaxed">
-                            Continue tracking issues, verifying resolutions, and holding your city to a public clock.
+                        <p className="text-stone-500 mb-8 text-sm leading-relaxed">
+                            Continue tracking issues, verifying resolutions, and
+                            holding your city to a public clock.
                         </p>
 
                         <form onSubmit={handleLogin} className="space-y-6">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                                <label className="block text-sm font-medium text-stone-700 mb-1.5">
                                     Email address
                                 </label>
                                 <Input
@@ -151,31 +158,41 @@ export default function LoginPage() {
 
                             <div>
                                 <div className="flex items-center justify-between mb-1.5">
-                                    <label className="block text-sm font-medium text-gray-700">
+                                    <label className="block text-sm font-medium text-stone-700">
                                         Password
                                     </label>
                                     <Link
                                         to="/forgot-password"
-                                        className="text-sm font-medium text-gray-900 hover:underline"
+                                        className="text-sm font-medium text-orange-600 hover:text-orange-700 hover:underline"
                                     >
                                         Forgot password?
                                     </Link>
                                 </div>
                                 <div className="relative">
                                     <Input
-                                        type={showPassword ? "text" : "password"}
+                                        type={
+                                            showPassword ? "text" : "password"
+                                        }
                                         placeholder="Enter your password"
                                         value={password}
-                                        onChange={(e) => setPassword(e.target.value)}
+                                        onChange={(e) =>
+                                            setPassword(e.target.value)
+                                        }
                                         icon={Lock}
                                         error={fieldErrors.password}
                                     />
                                     <button
                                         type="button"
-                                        onClick={() => setShowPassword(!showPassword)}
+                                        onClick={() =>
+                                            setShowPassword(!showPassword)
+                                        }
                                         className="absolute right-3 top-5 -translate-y-1/2 text-gray-400 hover:text-gray-600 cursor-pointer"
                                     >
-                                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                                        {showPassword ? (
+                                            <EyeOff className="w-4 h-4" />
+                                        ) : (
+                                            <Eye className="w-4 h-4" />
+                                        )}
                                     </button>
                                 </div>
                             </div>
@@ -192,20 +209,23 @@ export default function LoginPage() {
                                 size="lg"
                                 isLoading={loading}
                             >
-                                {loading ? "Signing in..." : (
+                                {loading ? (
+                                    "Signing in..."
+                                ) : (
                                     <span className="flex items-center gap-2 cursor-pointer">
-                                        Sign in <MoveRight className="w-5 h-5" />
+                                        Sign in{" "}
+                                        <MoveRight className="w-5 h-5" />
                                     </span>
                                 )}
                             </Button>
                         </form>
 
                         <div className="mt-8 text-center">
-                            <p className="text-sm text-gray-600">
+                            <p className="text-sm text-stone-500">
                                 New to CivikEye?{" "}
                                 <Link
                                     to="/register"
-                                    className="font-semibold text-gray-900 hover:underline"
+                                    className="font-semibold text-orange-600 hover:text-orange-700 hover:underline"
                                 >
                                     Create an account
                                 </Link>
@@ -213,8 +233,13 @@ export default function LoginPage() {
                         </div>
 
                         <div className="mt-8 text-center space-y-1">
-                            <p className="text-xs text-gray-500">Protected by community-verified workflows.</p>
-                            <p className="text-xs text-gray-500">Issue records remain part of the public ledger after sign-in.</p>
+                            <p className="text-xs text-stone-400">
+                                Protected by community-verified workflows.
+                            </p>
+                            <p className="text-xs text-stone-400">
+                                Issue records remain part of the public ledger
+                                after sign-in.
+                            </p>
                         </div>
                     </div>
                 </div>

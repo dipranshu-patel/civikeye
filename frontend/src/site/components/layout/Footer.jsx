@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { SiGithub, SiX, SiLinkerd } from "@icons-pack/react-simple-icons";
+import { SiGithub } from "@icons-pack/react-simple-icons";
 import logo from "../../assets/logo.svg";
 
 const columns = [
@@ -38,7 +38,7 @@ const socialLinks = [
 function LinkColumn({ heading, links }) {
     return (
         <div className="flex flex-col gap-5 min-w-[120px]">
-            <h3 className="font-[var(--font-inter)] font-semibold text-[15px] text-[#18181b]">
+            <h3 className="font-[var(--font-satoshi)] font-bold text-[16px] text-stone-800">
                 {heading}
             </h3>
             <ul className="flex flex-col gap-4">
@@ -46,7 +46,7 @@ function LinkColumn({ heading, links }) {
                     <li key={to}>
                         <Link
                             to={to}
-                            className="font-[var(--font-inter)] text-[14px] text-[#71717a] hover:text-[#18181b] transition-colors duration-150"
+                            className="font-[var(--font-inter)] text-[15px] font-medium text-stone-500 hover:text-[#ea580c] transition-colors duration-150"
                         >
                             {label}
                         </Link>
@@ -60,27 +60,29 @@ function LinkColumn({ heading, links }) {
 export default function Footer() {
     return (
         <footer
-            className="w-full bg-[#F8FAFC] px-4 pt-12 sm:px-8 pb-0 relative overflow-hidden flex flex-col items-center"
+            className="w-full bg-[#fcfbf7] px-4 pt-12 sm:px-8 pb-0 relative overflow-hidden flex flex-col items-center"
             aria-label="Site footer"
         >
-            <div className="max-w-[1200px] w-full mx-auto bg-white rounded-2xl p-10 md:p-16 shadow-[0_4px_24px_rgba(0,0,0,0.02)] border border-[#e4e4e7]/70 relative z-10">
+            <div className="max-w-[1200px] w-full mx-auto bg-white rounded-[2.5rem] p-10 md:p-16 shadow-sm border border-stone-200 relative z-10">
                 <div className="flex flex-col md:flex-row gap-12 md:gap-16 lg:gap-32 justify-between">
                     {/* ── Left: Brand block ── */}
                     <div className="flex flex-col gap-6 max-w-[340px] shrink-0">
                         <Link
                             to="/"
-                            className="font-[var(--font-satoshi)] font-bold text-lg text-[#18181b] flex items-center gap-3 w-fit tracking-tight"
+                            className="font-[var(--font-satoshi)] font-bold text-stone-800 flex items-center gap-3 w-fit tracking-tight"
                             aria-label="CivikEye home"
                         >
                             <img
                                 src={logo}
                                 alt="CivikEye logo"
-                                className="h-7 w-auto"
+                                className="h-8 w-auto"
                             />
-                            <span className="text-[22px]">CivikEye</span>
+                            <span className="text-2xl tracking-[0.05em]">
+                                CivikEye
+                            </span>
                         </Link>
 
-                        <p className="font-[var(--font-inter)] text-[15px] text-[#71717a] leading-[1.6]">
+                        <p className="font-[var(--font-inter)] text-base font-medium text-stone-500 leading-relaxed">
                             Public infrastructure for civic accountability.
                             Built for citizens, volunteers, and the institutions
                             that serve them.
@@ -94,7 +96,7 @@ export default function Footer() {
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     aria-label={label}
-                                    className="text-[#18181b] hover:text-[#71717a] transition-colors duration-150"
+                                    className="w-10 h-10 rounded-full bg-orange-50 text-orange-500 flex items-center justify-center hover:bg-orange-100 hover:text-orange-600 transition-colors duration-150"
                                 >
                                     <Icon
                                         className="h-5 w-5"
@@ -118,8 +120,8 @@ export default function Footer() {
             </div>
 
             {/* ── Bottom Watermark Text ── */}
-            <div className="-mt-2 md:-mt-6 pointer-events-none select-none flex justify-center w-full translate-y-6 sm:translate-y-10 md:translate-y-16">
-                <span className="font-[var(--font-satoshi)] font-bold text-[24vw] md:text-[22vw] leading-none text-black/[0.03] tracking-tight">
+            <div className="-mt-2 md:-mt-6 pointer-events-none select-none flex justify-center w-full translate-y-6 sm:translate-y-10 md:translate-y-16 [mask-image:linear-gradient(to_bottom,black_40%,transparent_100%)] [-webkit-mask-image:linear-gradient(to_bottom,black_40%,transparent_100%)]">
+                <span className="font-[var(--font-satoshi)] font-bold text-[24vw] md:text-[22vw] leading-none text-orange-100/50 tracking-tight">
                     CivikEye
                 </span>
             </div>

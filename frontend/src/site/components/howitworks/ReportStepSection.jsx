@@ -1,125 +1,151 @@
-import { MapPin, Globe, Eye, AlertTriangle, Upload, Circle } from "lucide-react";
-
-const features = [
-    { icon: MapPin, text: "GPS location captured automatically" },
-    { icon: Globe, text: "Report in any supported language" },
-    { icon: Eye, text: "Instantly visible on public map" },
-];
+import { Image as ImageIcon, MapPin, Copy, Camera } from "lucide-react";
 
 export default function ReportStepSection() {
     return (
-        <section className="w-full bg-[#F8FAFC] py-24 lg:py-32">
-            <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="flex flex-col lg:flex-row items-center gap-8 lg:gap-12">
+        <section className="relative w-full bg-[#fcfbf7] py-24">
+            <div className="absolute inset-0 w-full max-w-[1440px] mx-auto pointer-events-none hidden lg:block z-0">
+                <svg
+                    className="w-full h-full overflow-visible"
+                    preserveAspectRatio="none"
+                    viewBox="0 0 100 100"
+                >
+                    <path
+                        d="M 48 15 C 70 20, 85 80, 50 100"
+                        fill="none"
+                        stroke="#fed7aa"
+                        strokeWidth="3"
+                        strokeDasharray="8 8"
+                        vectorEffect="non-scaling-stroke"
+                        strokeLinecap="round"
+                    />
+                </svg>
+            </div>
 
+            <div className="absolute top-[15%] left-[48%] -translate-x-1/2 -translate-y-1/2 flex w-12 h-12 lg:w-16 lg:h-16 bg-[#fcfbf7] border-4 border-white shadow-[0_0_0_2px_#fed7aa] rounded-full items-center justify-center z-20 hover:bg-orange-500 transition-colors duration-300 group">
+                <span className="font-[var(--font-satoshi)] text-xl lg:text-2xl font-bold text-orange-500 group-hover:text-white transition-colors duration-300">
+                    1
+                </span>
+            </div>
+
+            <div className="relative z-10 max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="flex flex-col lg:flex-row items-center lg:items-stretch">
                     {/* ── Left: Content ── */}
-                    <div className="flex-1 flex flex-col items-start">
+                    <div className="w-full lg:w-1/2 flex flex-col items-start justify-center lg:pr-12 xl:pr-20 pb-16 lg:pb-0">
+                        <h2 className="font-[var(--font-satoshi)] text-4xl md:text-5xl font-medium text-stone-800 tracking-tight leading-[1.1]">
+                            A citizen reports a pothole.
+                        </h2>
 
-                        {/* Step Heading Block */}
-                        <div className="border-l-2 border-[#e4e4e7] pl-5 flex flex-col gap-3 mb-2">
-                            <span className="font-[var(--font-inter)] text-[14px] font-semibold tracking-[0.2em] text-[#71717a] uppercase">
-                                01 // Intake Signal
-                            </span>
-                            <h2 className="font-[var(--font-satoshi)] text-4xl md:text-[44px] font-bold text-[#18181b] tracking-tight leading-[1.1]">
-                                A citizen reports a pothole.
-                            </h2>
-                        </div>
-
-                        {/* Description */}
-                        <p className="font-[var(--font-inter)] mt-5 text-[17px] text-gray-500 leading-relaxed max-w-[420px]">
-                            Snap a photo, drop a pin. The system auto-detects duplicates within 100m so issues consolidate, not multiply. Every report is instantly public.
+                        <p className="font-[var(--font-inter)] mt-6 text-lg text-stone-500 leading-relaxed">
+                            Snap a photo, drop a pin. The system auto-detects
+                            duplicates within 100m so issues consolidate, not
+                            multiply. Every report is instantly public,
+                            capturing GPS data and details without bureaucratic
+                            friction.
                         </p>
 
-                        {/* Feature List */}
-                        <ul className="mt-10 flex flex-col gap-6" role="list">
-                            {features.map(({ icon: Icon, text }) => (
-                                <li key={text} className="flex items-center gap-4">
-                                    <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-white border border-gray-100 shadow-sm shrink-0">
-                                        <Icon className="w-4 h-4 text-gray-500" strokeWidth={1.75} />
-                                    </div>
-                                    <span className="font-[var(--font-inter)] text-[15px] text-gray-700">
-                                        {text}
-                                    </span>
-                                </li>
-                            ))}
-                        </ul>
-                    </div>
-
-                    {/* ── Right: Issue Preview Card ── */}
-                    <div className="flex-1 w-full max-w-[520px]">
-                        <div className="bg-white rounded-2xl border border-gray-200/80 shadow-[0_8px_40px_-12px_rgba(0,0,0,0.08)] p-6 flex flex-col gap-4">
-
-                            {/* Card Header */}
-                            <div className="flex items-start justify-between gap-4">
-                                <div className="flex items-center gap-3">
-                                    <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-orange-50 border border-orange-100 shrink-0">
-                                        <AlertTriangle className="w-5 h-5 text-orange-500" strokeWidth={2} />
-                                    </div>
-                                    <div>
-                                        <p className="font-[var(--font-satoshi)] text-[15px] font-bold text-gray-900 leading-tight">
-                                            Pothole on Main Street
-                                        </p>
-                                        <p className="font-[var(--font-inter)] text-[13px] text-gray-400 mt-0.5">
-                                            Roads &amp; Infrastructure
-                                        </p>
-                                    </div>
+                        <div className="mt-10 flex flex-col gap-5">
+                            <div className="flex items-center gap-4">
+                                <div className="w-10 h-10 rounded-[12px] bg-orange-50 border border-orange-100 flex items-center justify-center shrink-0">
+                                    <MapPin
+                                        className="w-4 h-4 text-orange-500"
+                                        strokeWidth={2}
+                                    />
                                 </div>
-                                <span className="font-[var(--font-inter)] text-[11px] font-bold tracking-widest text-blue-600 bg-blue-50 border border-blue-100 px-2.5 py-1 rounded-full uppercase shrink-0">
-                                    NEW
+                                <span className="font-[var(--font-inter)] text-base font-medium text-stone-700">
+                                    GPS location captured automatically
                                 </span>
                             </div>
-
-                            {/* Image Upload Area */}
-                            <div className="w-full bg-gray-50 border border-gray-100 rounded-2xl flex flex-col items-center justify-center py-20 gap-3">
-                                <Upload className="w-7 h-7 text-gray-300" strokeWidth={1.5} />
-                                <span className="font-[var(--font-inter)] text-[13px] text-gray-400">
-                                    pothole_img_001.jpg
-                                </span>
-                            </div>
-
-                            {/* Metadata Row */}
-                            <div className="grid grid-cols-2 gap-3">
-                                <div className="bg-gray-50 rounded-xl px-4 py-3 border border-gray-100/80">
-                                    <p className="font-[var(--font-inter)] text-[11px] text-gray-400 mb-1">Issue ID</p>
-                                    <p className="font-[var(--font-geistmono)] text-[15px] font-semibold text-gray-800 tracking-wide">
-                                        #CE-2847
-                                    </p>
+                            <div className="flex items-center gap-4">
+                                <div className="w-10 h-10 rounded-[12px] bg-orange-50 border border-orange-100 flex items-center justify-center shrink-0">
+                                    <Copy
+                                        className="w-4 h-4 text-orange-500"
+                                        strokeWidth={2}
+                                    />
                                 </div>
-                                <div className="bg-gray-50 rounded-xl px-4 py-3 border border-gray-100/80">
-                                    <p className="font-[var(--font-inter)] text-[11px] text-gray-400 mb-1">Reported</p>
-                                    <p className="font-[var(--font-satoshi)] text-[15px] font-semibold text-gray-800">
-                                        Just now
-                                    </p>
+                                <span className="font-[var(--font-inter)] text-base font-medium text-stone-700">
+                                    Smart duplicate detection within 100m
+                                </span>
+                            </div>
+                            <div className="flex items-center gap-4">
+                                <div className="w-10 h-10 rounded-[12px] bg-orange-50 border border-orange-100 flex items-center justify-center shrink-0">
+                                    <Camera
+                                        className="w-4 h-4 text-orange-500"
+                                        strokeWidth={2}
+                                    />
                                 </div>
-                            </div>
-
-                            {/* Tags Row */}
-                            <div className="flex flex-wrap items-center gap-2">
-                                <span className="inline-flex items-center gap-1.5 font-[var(--font-inter)] text-[12px] font-medium text-emerald-700 bg-emerald-50 border border-emerald-100 px-3 py-1 rounded-full">
-                                    <Circle className="w-2 h-2 fill-emerald-500 text-emerald-500" strokeWidth={0} />
-                                    Public
-                                </span>
-                                <span className="inline-flex items-center gap-1.5 font-[var(--font-inter)] text-[12px] font-medium text-gray-600 bg-gray-50 border border-gray-200 px-3 py-1 rounded-full">
-                                    <Globe className="w-3 h-3 text-gray-400" strokeWidth={1.75} />
-                                    English
-                                </span>
-                                <span className="inline-flex items-center gap-1.5 font-[var(--font-inter)] text-[12px] font-medium text-gray-600 bg-gray-50 border border-gray-200 px-3 py-1 rounded-full">
-                                    <AlertTriangle className="w-3 h-3 text-gray-400" strokeWidth={1.75} />
-                                    Authority Required
+                                <span className="font-[var(--font-inter)] text-base font-medium text-stone-700">
+                                    Requires photo evidence of the issue
                                 </span>
                             </div>
-
-                            {/* Bottom Alert */}
-                            <div className="flex items-center gap-2.5 bg-blue-50 border border-blue-100 rounded-xl px-4 py-3">
-                                <Circle className="w-2 h-2 fill-blue-500 text-blue-500 shrink-0" strokeWidth={0} />
-                                <span className="font-[var(--font-inter)] text-[13px] font-medium text-blue-700">
-                                    2 similar complaints within 100m detected
-                                </span>
-                            </div>
-
                         </div>
                     </div>
 
+                    {/* ── Right: Image Placeholder ── */}
+                    <div className="w-full lg:w-1/2 flex justify-center items-center lg:justify-start lg:pl-12 xl:pl-20">
+                        <div className="relative shrink-0 w-full max-w-[480px] lg:w-full lg:max-w-[540px]">
+                            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80%] h-[80%] bg-orange-500/10 blur-[100px] rounded-full" />
+
+                            <div className="relative w-full h-[320px] sm:h-[360px] bg-white/70 backdrop-blur-xl rounded-2xl border border-white/80 shadow-[0_20px_50px_-15px_rgba(0,0,0,0.1)] flex flex-col overflow-hidden group hover:scale-[1.01] transition-transform duration-500">
+                                <div className="flex-1 w-full flex p-4 sm:p-5 gap-4 sm:gap-6 overflow-hidden bg-stone-50/30">
+                                    {/* Left: Form */}
+                                    <div className="flex-1 flex flex-col gap-5">
+                                        <div className="space-y-2.5">
+                                            <div className="w-1/3 h-2.5 bg-stone-300 rounded-full"></div>
+                                            <div className="w-full h-10 bg-white border border-stone-200/80 rounded-xl shadow-sm flex items-center px-3">
+                                                <div className="w-2/3 h-2 bg-stone-100 rounded-full"></div>
+                                            </div>
+                                        </div>
+                                        <div className="space-y-2.5">
+                                            <div className="w-1/2 h-2.5 bg-stone-300 rounded-full"></div>
+                                            <div className="w-full h-24 bg-white border border-stone-200/80 rounded-xl shadow-sm p-3 flex flex-col gap-2">
+                                                <div className="w-3/4 h-2 bg-stone-100 rounded-full"></div>
+                                                <div className="w-1/2 h-2 bg-stone-100 rounded-full"></div>
+                                            </div>
+                                        </div>
+                                        <div className="mt-auto w-full h-11 bg-orange-50 rounded-xl border border-orange-100/50 flex items-center justify-center">
+                                            <div className="w-1/3 h-2.5 bg-orange-200 rounded-full"></div>
+                                        </div>
+                                    </div>
+
+                                    {/* Right: Live Preview */}
+                                    <div className="flex-[1.2] bg-white border border-stone-200 rounded-2xl shadow-xl shadow-stone-200/50 flex flex-col overflow-hidden relative">
+                                        <div className="px-3 py-2.5 border-b border-stone-50 flex items-center justify-between bg-stone-50/50">
+                                            <div className="flex items-center gap-2">
+                                                <div className="w-2 h-2 rounded-full bg-emerald-400"></div>
+                                                <div className="w-16 h-2 bg-stone-300 rounded-full"></div>
+                                            </div>
+                                            <div className="w-8 h-4 bg-orange-50 rounded-full flex items-center justify-center">
+                                                <div className="w-4 h-1.5 bg-orange-200 rounded-full"></div>
+                                            </div>
+                                        </div>
+
+                                        <div className="w-full h-28 sm:h-32 bg-gradient-to-br from-stone-50 to-orange-50/50 flex items-center justify-center relative overflow-hidden group-hover:scale-105 transition-transform duration-700">
+                                            <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMiIgY3k9IjIiIHI9IjIiIGZpbGw9IiNlN2U1ZTQiLz48L3N2Zz4=')] opacity-50"></div>
+                                            <ImageIcon className="w-10 h-10 text-orange-200 relative z-10 drop-shadow-sm" />
+                                        </div>
+
+                                        <div className="p-4 flex flex-col gap-3.5 bg-white relative z-10">
+                                            <div className="w-3/4 h-3.5 bg-stone-400 rounded-full"></div>
+                                            <div className="space-y-2">
+                                                <div className="w-full h-2 bg-stone-200 rounded-full"></div>
+                                                <div className="w-4/5 h-2 bg-stone-200 rounded-full"></div>
+                                            </div>
+
+                                            <div className="w-full p-2.5 bg-stone-50 rounded-xl mt-1 border border-stone-100 flex items-center gap-2.5">
+                                                <div className="w-7 h-7 shrink-0 rounded-full bg-orange-50 flex items-center justify-center">
+                                                    <MapPin className="w-3.5 h-3.5 text-orange-300" />
+                                                </div>
+                                                <div className="flex-1 space-y-1.5">
+                                                    <div className="w-1/2 h-2 bg-stone-300 rounded-full"></div>
+                                                    <div className="w-1/3 h-1.5 bg-stone-200 rounded-full"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </section>

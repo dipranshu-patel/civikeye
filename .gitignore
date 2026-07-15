@@ -4,6 +4,7 @@ node_modules/
 # Environment secrets
 .env
 *.local
+*.pem
 
 # Frontend build output
 dist/

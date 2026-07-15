@@ -1,4 +1,10 @@
-import { Building2, Clock, CheckCircle2, AlertTriangle, ShieldCheck } from "lucide-react";
+import {
+    Building2,
+    Clock,
+    CheckCircle2,
+    AlertTriangle,
+    ShieldCheck,
+} from "lucide-react";
 
 export default function DepartmentsSummary({ stats }) {
     if (!stats) return null;
@@ -11,7 +17,7 @@ export default function DepartmentsSummary({ stats }) {
             icon: Building2,
             gradient: "from-purple-500 to-fuchsia-600",
             shadow: "shadow-purple-900/20",
-            textLight: "text-purple-100"
+            textLight: "text-purple-100",
         },
         {
             title: "Avg Response",
@@ -20,16 +26,18 @@ export default function DepartmentsSummary({ stats }) {
             icon: Clock,
             gradient: "from-blue-500 to-cyan-600",
             shadow: "shadow-blue-900/20",
-            textLight: "text-blue-100"
+            textLight: "text-blue-100",
         },
         {
             title: "Resolution",
-            value: stats.avgResolutionRatePct ? `${stats.avgResolutionRatePct}%` : "0%",
+            value: stats.avgResolutionRatePct
+                ? `${stats.avgResolutionRatePct}%`
+                : "0%",
             desc: "system-wide avg",
             icon: CheckCircle2,
             gradient: "from-emerald-500 to-teal-600",
             shadow: "shadow-emerald-900/20",
-            textLight: "text-emerald-100"
+            textLight: "text-emerald-100",
         },
         {
             title: "Overdue",
@@ -38,17 +46,19 @@ export default function DepartmentsSummary({ stats }) {
             icon: AlertTriangle,
             gradient: "from-amber-500 to-orange-600",
             shadow: "shadow-amber-900/20",
-            textLight: "text-amber-100"
+            textLight: "text-amber-100",
         },
         {
             title: "Verified",
-            value: stats.publicVerificationPct ? `${stats.publicVerificationPct}%` : "0%",
+            value: stats.publicVerificationPct
+                ? `${stats.publicVerificationPct}%`
+                : "0%",
             desc: "by community",
             icon: ShieldCheck,
             gradient: "from-indigo-500 to-blue-600",
             shadow: "shadow-indigo-900/20",
-            textLight: "text-indigo-100"
-        }
+            textLight: "text-indigo-100",
+        },
     ];
 
     return (
@@ -56,15 +66,23 @@ export default function DepartmentsSummary({ stats }) {
             {summaryCards.map((card, idx) => {
                 const Icon = card.icon;
                 return (
-                    <div 
-                        key={idx} 
+                    <div
+                        key={idx}
                         className={`bg-gradient-to-br ${card.gradient} rounded-2xl p-6 text-white shadow-lg ${card.shadow} relative overflow-hidden`}
                     >
                         <div className="relative z-10">
-                            <p className={`${card.textLight} font-medium text-sm mb-1`}>{card.title}</p>
+                            <p
+                                className={`${card.textLight} font-medium text-sm mb-1`}
+                            >
+                                {card.title}
+                            </p>
                             <div className="flex flex-col">
-                                <h3 className="text-3xl font-bold">{card.value}</h3>
-                                <p className={`text-[10px] uppercase tracking-wider mt-1 opacity-70 ${card.textLight}`}>
+                                <h3 className="text-3xl font-bold">
+                                    {card.value}
+                                </h3>
+                                <p
+                                    className={`text-[10px] uppercase tracking-wider mt-1 opacity-70 ${card.textLight}`}
+                                >
                                     {card.desc}
                                 </p>
                             </div>

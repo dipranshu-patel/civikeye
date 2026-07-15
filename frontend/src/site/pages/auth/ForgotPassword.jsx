@@ -10,19 +10,19 @@ export default function ForgotPasswordPage() {
     const [email, setEmail] = useState("");
     const [loading, setLoading] = useState(false);
     const [success, setSuccess] = useState(false);
-    
+
     const [fieldErrors, setFieldErrors] = useState({});
     const [globalError, setGlobalError] = useState(null);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        
+
         setFieldErrors({});
         setGlobalError(null);
-        
+
         let hasError = false;
         const errs = {};
-        
+
         if (!email.trim()) {
             errs.email = "Email is required.";
             hasError = true;
@@ -30,7 +30,7 @@ export default function ForgotPasswordPage() {
             errs.email = "Please provide a valid email address.";
             hasError = true;
         }
-        
+
         if (hasError) {
             setFieldErrors(errs);
             return;
@@ -42,7 +42,9 @@ export default function ForgotPasswordPage() {
             setSuccess(true);
         } catch (err) {
             if (!err.response || err.response.status >= 500) {
-                setGlobalError("Server is currently unavailable. Please try again later.");
+                setGlobalError(
+                    "Server is currently unavailable. Please try again later.",
+                );
             } else {
                 setSuccess(true);
             }
@@ -52,12 +54,10 @@ export default function ForgotPasswordPage() {
     };
 
     return (
-        <div className="min-h-screen bg-white font-sans text-gray-900 selection:bg-gray-200">
+        <div className="min-h-screen bg-[#fcfbf7] font-[var(--font-inter)] text-stone-800 selection:bg-orange-200 selection:text-orange-900">
             <div className="flex min-h-screen">
                 {/* Left Panel */}
-                <div className="hidden lg:flex lg:w-1/2 flex-col justify-between p-12 bg-gray-50 relative">
-                    <div className="absolute inset-0 bg-gradient-to-br from-gray-50 to-gray-100 pointer-events-none" />
-
+                <div className="hidden lg:flex lg:w-1/2 flex-col justify-between p-12 bg-[#f4f3ed] relative">
                     <div className="relative z-10">
                         <div className="flex items-center gap-2 mb-10">
                             <img
@@ -65,59 +65,65 @@ export default function ForgotPasswordPage() {
                                 alt="CivikEye Logo"
                                 className="h-16"
                             />
-                            <span className="font-bold text-3xl tracking-tight">
+                            <span className="font-[var(--font-satoshi)] font-bold text-3xl tracking-tight text-stone-800">
                                 CivikEye
                             </span>
                         </div>
 
-                        <h1 className="text-5xl font-bold tracking-tight text-gray-900 mb-6 max-w-xl leading-[1.1]">
-                            Every civic issue<br />
+                        <h1 className="font-[var(--font-satoshi)] text-5xl font-bold tracking-tight text-stone-800 mb-6 max-w-xl leading-[1.1]">
+                            Every civic issue
+                            <br />
                             deserves public visibility.
                         </h1>
-                        <p className="text-lg text-gray-600 max-w-md leading-relaxed">
-                            Track issues. Verify resolutions. Build accountability - together.
+                        <p className="text-lg text-stone-500 max-w-md leading-relaxed">
+                            Track issues. Verify resolutions. Build
+                            accountability - together.
                         </p>
                     </div>
 
-                    <div className="relative z-10 flex items-center gap-8 text-sm font-medium text-gray-500">
+                    <div className="relative z-10 flex items-center gap-8 text-sm font-medium text-stone-500">
                         <div className="flex items-center gap-2">
-                            <ShieldCheck className="w-5 h-5 text-gray-400" />
+                            <ShieldCheck className="w-5 h-5 text-orange-500" />
                             Public accountability by design
                         </div>
                         <div className="flex items-center gap-2">
-                            <Users className="w-5 h-5 text-gray-400" />
+                            <Users className="w-5 h-5 text-orange-500" />
                             Community verified
                         </div>
                     </div>
                 </div>
 
                 {/* Right Panel */}
-                <div className="w-full lg:w-1/2 flex flex-col items-center justify-center p-8 py-12 min-h-screen bg-white">
+                <div className="w-full lg:w-1/2 flex flex-col items-center justify-center p-8 py-12 min-h-screen bg-[#fcfbf7]">
                     <div className="w-full max-w-md">
-                        <h2 className="text-3xl font-bold tracking-tight text-gray-900 mb-3">
+                        <h2 className="font-[var(--font-satoshi)] text-3xl font-bold tracking-tight text-stone-800 mb-3">
                             Forgot your password?
                         </h2>
-                        <p className="text-gray-500 mb-8 text-sm leading-relaxed">
-                            Enter your email address and we'll send you a password reset link.
+                        <p className="text-stone-500 mb-8 text-sm leading-relaxed">
+                            Enter your email address and we'll send you a
+                            password reset link.
                         </p>
 
                         {success ? (
                             <div className="bg-green-50 text-green-800 p-4 rounded-lg border border-green-200 mb-6">
                                 <p className="text-sm font-medium">
-                                    If an account exists, we've sent a password reset link. Please check your inbox.
+                                    If an account exists, we've sent a password
+                                    reset link. Please check your inbox.
                                 </p>
                             </div>
                         ) : (
                             <form onSubmit={handleSubmit} className="space-y-6">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                                    <label className="block text-sm font-medium text-stone-700 mb-1.5">
                                         Email address
                                     </label>
                                     <Input
                                         type="email"
                                         placeholder="user@example.com"
                                         value={email}
-                                        onChange={(e) => setEmail(e.target.value)}
+                                        onChange={(e) =>
+                                            setEmail(e.target.value)
+                                        }
                                         icon={Mail}
                                         error={fieldErrors.email}
                                         disabled={loading}
@@ -137,9 +143,12 @@ export default function ForgotPasswordPage() {
                                     isLoading={loading}
                                     disabled={loading}
                                 >
-                                    {loading ? "Sending..." : (
+                                    {loading ? (
+                                        "Sending..."
+                                    ) : (
                                         <span className="flex items-center gap-2">
-                                            Send Reset Link <MoveRight className="w-5 h-5" />
+                                            Send Reset Link{" "}
+                                            <MoveRight className="w-5 h-5" />
                                         </span>
                                     )}
                                 </Button>
@@ -149,7 +158,7 @@ export default function ForgotPasswordPage() {
                         <div className="mt-8 text-center">
                             <Link
                                 to="/login"
-                                className="inline-flex items-center gap-2 text-sm font-semibold text-gray-900 hover:underline"
+                                className="inline-flex items-center gap-2 text-sm font-semibold text-orange-600 hover:text-orange-700 hover:underline"
                             >
                                 <ArrowLeft className="w-4 h-4" /> Back to Login
                             </Link>

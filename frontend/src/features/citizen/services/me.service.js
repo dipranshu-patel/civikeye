@@ -1,39 +1,39 @@
-import api from '../../../shared/lib/axios';
+import api from "../../../shared/lib/axios";
 
 export const meService = {
     async getProfile() {
-        return api.get('/me');
+        return api.get("/me");
     },
 
     async updateProfile(data) {
-        return api.patch('/me/profile', data);
+        return api.patch("/me/profile", data);
     },
 
     async requestEmailChange(newEmail) {
-        return api.post('/me/request-email-change', { newEmail });
+        return api.post("/me/request-email-change", { newEmail });
     },
 
     async confirmEmailChange(otp) {
-        return api.post('/me/confirm-email-change', { otp });
+        return api.post("/me/confirm-email-change", { otp });
     },
-    
+
     async updateLocation(data) {
-        return api.patch('/me/location', data);
+        return api.patch("/me/location", data);
     },
 
     async getPreferences() {
-        return api.get('/me/preferences');
+        return api.get("/me/preferences");
     },
 
     async updatePreferences(data) {
-        return api.patch('/me/preferences', data);
+        return api.patch("/me/preferences", data);
     },
 
     async changePassword(data) {
-        return api.post('/me/change-password', data);
+        return api.post("/me/change-password", data);
     },
 
     async deleteAccount(data) {
-        return api.delete('/me/account', { data });
-    }
+        return api.delete("/me/account", { data });
+    },
 };

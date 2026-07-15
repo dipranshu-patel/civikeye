@@ -1,6 +1,18 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Eye, EyeOff, CheckCircle2, ShieldCheck, Users, X, User, Mail, Lock, MoveRight, MapPin } from "lucide-react";
+import {
+    Eye,
+    EyeOff,
+    CheckCircle2,
+    ShieldCheck,
+    Users,
+    X,
+    User,
+    Mail,
+    Lock,
+    MoveRight,
+    MapPin,
+} from "lucide-react";
 import { authService } from "../../services/auth.service";
 import { Input } from "../../../shared/components/ui/Input";
 import { Button } from "../../../shared/components/ui/Button";
@@ -9,7 +21,7 @@ import LogoSVG from "../../assets/logo.svg";
 
 export default function RegisterPage() {
     const navigate = useNavigate();
-    const [step, setStep] = useState(1); 
+    const [step, setStep] = useState(1);
     const [loadingAction, setLoadingAction] = useState(null);
     const [error, setError] = useState(null);
 
@@ -177,7 +189,13 @@ export default function RegisterPage() {
 
                 setLoadingAction("register");
                 try {
-                    await authService.register(fullName, email, password, latitude, longitude);
+                    await authService.register(
+                        fullName,
+                        email,
+                        password,
+                        latitude,
+                        longitude,
+                    );
                     navigate("/login?registered=true");
                 } catch (err) {
                     setError(
@@ -200,9 +218,7 @@ export default function RegisterPage() {
                         "Your location is currently unavailable. Please check your device settings and try again.",
                     );
                 } else {
-                    setError(
-                        "Location request timed out. Please try again.",
-                    );
+                    setError("Location request timed out. Please try again.");
                 }
             },
             {
@@ -217,22 +233,20 @@ export default function RegisterPage() {
 
     const isLoading = loadingAction !== null;
     const buttonLabel =
-        loadingAction === "locating"
-            ? "Getting your location..."
-            : loadingAction === "register"
-              ? "Creating account..."
-              : (
-                    <span className="flex items-center gap-2">
-                        Create account <MoveRight className="w-5 h-5" />
-                    </span>
-                );
+        loadingAction === "locating" ? (
+            "Getting your location..."
+        ) : loadingAction === "register" ? (
+            "Creating account..."
+        ) : (
+            <span className="flex items-center gap-2">
+                Create account <MoveRight className="w-5 h-5" />
+            </span>
+        );
 
     return (
-        <div className="flex min-h-screen">
+        <div className="flex min-h-screen bg-[#fcfbf7] font-[var(--font-inter)] text-stone-800 selection:bg-orange-200 selection:text-orange-900">
             {/* Left Panel */}
-            <div className="hidden lg:flex lg:w-1/2 flex-col justify-between p-12 bg-gray-50 relative">
-                <div className="absolute inset-0 bg-gradient-to-br from-gray-50 to-gray-100 pointer-events-none" />
-
+            <div className="hidden lg:flex lg:w-1/2 flex-col justify-between p-12 bg-[#f4f3ed] relative">
                 <div className="relative z-10">
                     <div className="flex items-center gap-2 mb-10">
                         <img
@@ -240,44 +254,43 @@ export default function RegisterPage() {
                             alt="CivikEye Logo"
                             className="h-16"
                         />
-                        <span className="font-bold text-3xl tracking-tight">
+                        <span className="font-[var(--font-satoshi)] font-bold text-3xl tracking-tight text-stone-800">
                             CivikEye
                         </span>
                     </div>
 
-                    <h1 className="text-5xl font-bold tracking-tight text-gray-900 mb-6 max-w-xl leading-[1.1]">
+                    <h1 className="font-[var(--font-satoshi)] text-5xl font-bold tracking-tight text-stone-800 mb-6 max-w-xl leading-[1.1]">
                         Join a city built
                         <br />
                         on public accountability.
                     </h1>
 
-                    <p className="text-lg text-gray-600 max-w-md leading-relaxed">
+                    <p className="text-lg text-stone-500 max-w-md leading-relaxed">
                         Report what matters. Help resolve what others can't.
                         Hold institutions to a public clock.
                     </p>
                 </div>
 
-                <div className="relative z-10 flex gap-8 text-sm text-gray-500">
+                <div className="relative z-10 flex gap-8 text-sm font-medium text-stone-500">
                     <div className="flex items-center gap-2">
-                        <ShieldCheck className="h-5 w-5" />
+                        <ShieldCheck className="h-5 w-5 text-orange-500" />
                         <span>Public accountability by design</span>
                     </div>
                     <div className="flex items-center gap-2">
-                        <Users className="h-5 w-5" />
+                        <Users className="h-5 w-5 text-orange-500" />
                         <span>Community verified</span>
                     </div>
                 </div>
             </div>
 
             {/* Right Panel */}
-            <div className="w-full lg:w-1/2 flex flex-col items-center justify-center p-8 py-12 min-h-screen bg-white">
+            <div className="w-full lg:w-1/2 flex flex-col items-center justify-center p-8 py-12 min-h-screen bg-[#fcfbf7]">
                 <div className="w-full max-w-md">
-
-                    <h2 className="text-3xl font-bold tracking-tight text-gray-900 mb-3">
+                    <h2 className="font-[var(--font-satoshi)] text-3xl font-bold tracking-tight text-stone-800 mb-3">
                         Join the public ledger.
                     </h2>
 
-                    <p className="text-sm text-gray-600 mb-8 leading-relaxed">
+                    <p className="text-sm text-stone-500 mb-8 leading-relaxed">
                         A free account lets you report issues, verify
                         resolutions, and contribute to community accountability.
                     </p>
@@ -285,7 +298,7 @@ export default function RegisterPage() {
                     <div className="space-y-6">
                         <div className="space-y-4">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                                <label className="block text-sm font-medium text-stone-700 mb-1.5">
                                     Full name
                                 </label>
                                 <Input
@@ -302,7 +315,7 @@ export default function RegisterPage() {
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                                <label className="block text-sm font-medium text-stone-700 mb-1.5">
                                     Email address
                                 </label>
                                 <div className="flex gap-3">
@@ -329,11 +342,17 @@ export default function RegisterPage() {
                                         <Button
                                             variant="primary"
                                             onClick={handleSendOtp}
-                                            isLoading={loadingAction === "sendOtp"}
-                                            disabled={!email || loadingAction !== null}
+                                            isLoading={
+                                                loadingAction === "sendOtp"
+                                            }
+                                            disabled={
+                                                !email || loadingAction !== null
+                                            }
                                             className="cursor-pointer"
                                         >
-                                            {loadingAction === "sendOtp" ? "Verifying..." : "Verify"}
+                                            {loadingAction === "sendOtp"
+                                                ? "Verifying..."
+                                                : "Verify"}
                                         </Button>
                                     )}
                                 </div>
@@ -343,7 +362,7 @@ export default function RegisterPage() {
                         {step === 2 && (
                             <div className="space-y-4 animate-in fade-in slide-in-from-top-4 duration-500">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                                    <label className="block text-sm font-medium text-stone-700 mb-1.5">
                                         Enter OTP
                                     </label>
                                     <div
@@ -365,21 +384,35 @@ export default function RegisterPage() {
                                             <Button
                                                 variant="secondary"
                                                 onClick={handleVerifyOtp}
-                                                isLoading={loadingAction === "verifyOtp"}
-                                                disabled={otp.length !== 6 || loadingAction !== null}
-                                                className='cursor-pointer'
+                                                isLoading={
+                                                    loadingAction ===
+                                                    "verifyOtp"
+                                                }
+                                                disabled={
+                                                    otp.length !== 6 ||
+                                                    loadingAction !== null
+                                                }
+                                                className="cursor-pointer"
                                             >
-                                                {loadingAction === "verifyOtp" ? "Verifying..." : "Verify OTP"}
+                                                {loadingAction === "verifyOtp"
+                                                    ? "Verifying..."
+                                                    : "Verify OTP"}
                                             </Button>
 
                                             <button
                                                 onClick={handleSendOtp}
-                                                disabled={timer > 0 || loadingAction !== null}
+                                                disabled={
+                                                    timer > 0 ||
+                                                    loadingAction !== null
+                                                }
                                                 className="text-sm text-blue-600 hover:text-blue-700 disabled:text-gray-400 font-medium cursor-pointer disabled:cursor-not-allowed"
                                             >
                                                 {timer > 0
                                                     ? `Resend in ${timer}s`
-                                                    : loadingAction === "sendOtp" ? "Sending..." : "Resend OTP"}
+                                                    : loadingAction ===
+                                                        "sendOtp"
+                                                      ? "Sending..."
+                                                      : "Resend OTP"}
                                             </button>
                                         </div>
                                     )}
@@ -389,7 +422,7 @@ export default function RegisterPage() {
 
                         <div className="space-y-6">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                                <label className="block text-sm font-medium text-stone-700 mb-1.5">
                                     Password
                                 </label>
                                 <div className="relative">
@@ -420,37 +453,39 @@ export default function RegisterPage() {
                                     </button>
                                 </div>
 
-                                {(!isPasswordValid && (password.length > 0 || touched.password)) && (
-                                    <div className="mt-3 p-4 bg-white border border-gray-100 rounded-lg shadow-sm space-y-2">
-                                        <p className="text-sm font-semibold text-gray-900 mb-2">
-                                            Password requirements:
-                                        </p>
-                                        {passwordRules.map((rule) => (
-                                            <div
-                                                key={rule.id}
-                                                className="flex items-center text-sm"
-                                            >
-                                                {rule.passed ? (
-                                                    <CheckCircle2 className="w-4 h-4 text-green-500 mr-2 shrink-0" />
-                                                ) : (
-                                                    <X className="w-4 h-4 text-red-500 mr-2 shrink-0 stroke-[3]" />
-                                                )}
-                                                <span
-                                                    className={
-                                                        rule.passed
-                                                            ? "text-green-700"
-                                                            : "text-red-500"
-                                                    }
+                                {!isPasswordValid &&
+                                    (password.length > 0 ||
+                                        touched.password) && (
+                                        <div className="mt-3 p-4 bg-white border border-gray-100 rounded-lg shadow-sm space-y-2">
+                                            <p className="text-sm font-semibold text-stone-800 mb-2">
+                                                Password requirements:
+                                            </p>
+                                            {passwordRules.map((rule) => (
+                                                <div
+                                                    key={rule.id}
+                                                    className="flex items-center text-sm"
                                                 >
-                                                    {rule.label}
-                                                </span>
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
+                                                    {rule.passed ? (
+                                                        <CheckCircle2 className="w-4 h-4 text-green-500 mr-2 shrink-0" />
+                                                    ) : (
+                                                        <X className="w-4 h-4 text-red-500 mr-2 shrink-0 stroke-[3]" />
+                                                    )}
+                                                    <span
+                                                        className={
+                                                            rule.passed
+                                                                ? "text-green-700"
+                                                                : "text-red-500"
+                                                        }
+                                                    >
+                                                        {rule.label}
+                                                    </span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
                             </div>
 
-                            <div className="flex items-start gap-3 bg-gray-50 p-4 rounded-lg border border-gray-100">
+                            <div className="flex items-start gap-3 bg-stone-50 p-4 rounded-lg border border-stone-200">
                                 <input
                                     type="checkbox"
                                     id="consent"
@@ -458,16 +493,16 @@ export default function RegisterPage() {
                                     onChange={(e) =>
                                         setConsent(e.target.checked)
                                     }
-                                    className="mt-1 h-4 w-4 rounded border-gray-300 text-black focus:ring-black cursor-pointer"
+                                    className="mt-1 h-4 w-4 rounded border-stone-300 text-orange-600 focus:ring-orange-600 cursor-pointer"
                                 />
                                 <label
                                     htmlFor="consent"
-                                    className="text-sm text-gray-600 leading-relaxed"
+                                    className="text-sm text-stone-600 leading-relaxed"
                                 >
                                     I understand that issues I report and
                                     verifications I cast become part of
                                     CivikEye's{" "}
-                                    <span className="font-semibold text-gray-900">
+                                    <span className="font-semibold text-stone-800">
                                         public ledger
                                     </span>
                                     .
@@ -487,27 +522,38 @@ export default function RegisterPage() {
                                 className="w-full cursor-pointer"
                                 size="lg"
                                 onClick={handleRegister}
-                                isLoading={loadingAction === "locating" || loadingAction === "register"}
+                                isLoading={
+                                    loadingAction === "locating" ||
+                                    loadingAction === "register"
+                                }
                                 disabled={loadingAction !== null}
                             >
                                 {buttonLabel}
                             </Button>
 
-                            <div className="flex items-start gap-3 bg-blue-50 p-4 rounded-lg border border-blue-100">
-                                <MapPin className="h-5 w-5 text-blue-500 shrink-0 mt-0.5" />
-                                <p className="text-sm text-blue-700 leading-relaxed">
-                                    When you click <span className="font-semibold">Create account</span>, your browser will ask for your location to verify your home address for nearby civic issues. Once registered, you can safely turn off location access until you report an issue.
+                            <div className="flex items-start gap-3 bg-stone-50 p-4 rounded-lg border border-stone-200">
+                                <MapPin className="h-5 w-5 text-orange-500 shrink-0 mt-0.5" />
+                                <p className="text-sm text-stone-500 leading-relaxed">
+                                    When you click{" "}
+                                    <span className="font-semibold text-stone-700">
+                                        Create account
+                                    </span>
+                                    , your browser will ask for your location to
+                                    verify your home address for nearby civic
+                                    issues. Once registered, you can safely turn
+                                    off location access until you report an
+                                    issue.
                                 </p>
                             </div>
                         </div>
                     </div>
 
-                    <div className="mt-8 pt-6 border-t border-gray-100 text-center">
-                        <p className="text-sm text-gray-600">
+                    <div className="mt-8 text-center">
+                        <p className="text-sm text-stone-500">
                             Already have an account?{" "}
                             <Link
                                 to="/login"
-                                className="font-semibold text-gray-900 hover:underline"
+                                className="font-semibold text-orange-600 hover:text-orange-700 hover:underline"
                             >
                                 Sign in
                             </Link>

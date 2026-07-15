@@ -26,9 +26,14 @@ export default function VerificationRequests() {
 
     useEffect(() => {
         if (tabsRef.current) {
-            const activeEl = tabsRef.current.querySelector(`[data-tab-id="${activeTab}"]`);
+            const activeEl = tabsRef.current.querySelector(
+                `[data-tab-id="${activeTab}"]`,
+            );
             if (activeEl) {
-                setPillStyle({ left: activeEl.offsetLeft, width: activeEl.offsetWidth });
+                setPillStyle({
+                    left: activeEl.offsetLeft,
+                    width: activeEl.offsetWidth,
+                });
             }
         }
     }, [activeTab]);
@@ -176,13 +181,18 @@ export default function VerificationRequests() {
                 </div>
             </div>
 
-            {/* Tabs & Filters */}
             <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4 mb-8">
                 <div className="inline-flex max-w-full overflow-x-auto hide-scrollbar bg-gray-100/80 p-1 rounded-xl">
-                    <div className="relative flex w-max min-w-full" ref={tabsRef}>
-                        <div 
+                    <div
+                        className="relative flex w-max min-w-full"
+                        ref={tabsRef}
+                    >
+                        <div
                             className="absolute top-0 bottom-0 bg-white rounded-lg shadow-sm ring-1 ring-gray-900/5 transition-all duration-300 ease-out z-0"
-                            style={{ left: pillStyle.left, width: pillStyle.width }}
+                            style={{
+                                left: pillStyle.left,
+                                width: pillStyle.width,
+                            }}
                         />
                         {TABS.map((tab) => (
                             <button
@@ -193,7 +203,7 @@ export default function VerificationRequests() {
                                     "relative z-10 px-4 sm:px-5 py-2.5 text-sm font-semibold whitespace-nowrap transition-colors duration-300 cursor-pointer text-center",
                                     activeTab === tab.id
                                         ? "text-gray-900"
-                                        : "text-gray-500 hover:text-gray-700"
+                                        : "text-gray-500 hover:text-gray-700",
                                 )}
                             >
                                 {tab.label}
@@ -281,7 +291,6 @@ export default function VerificationRequests() {
                 )}
             </div>
 
-            {/* Content List */}
             <div className="min-h-[60vh]">
                 {locationError ? (
                     <div className="bg-red-50 text-red-700 p-6 rounded-2xl flex flex-col items-center justify-center min-h-[300px]">
@@ -320,7 +329,9 @@ export default function VerificationRequests() {
                         {data.items.map((item) => (
                             <VerificationCard
                                 key={
-                                    activeTab === "history" ? item.voteId : item.id
+                                    activeTab === "history"
+                                        ? item.voteId
+                                        : item.id
                                 }
                                 item={item}
                                 type={activeTab}
@@ -333,7 +344,6 @@ export default function VerificationRequests() {
                 )}
             </div>
 
-            {/* Modal for displaying details */}
             {selectedComplaintId && (
                 <ComplaintDetailsModal
                     complaintId={selectedComplaintId}
