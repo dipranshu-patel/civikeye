@@ -57,7 +57,13 @@ async function register(req, res, next) {
         if (rejectIfInvalid(validateRegister, req.body, res)) return;
 
         const { fullName, email, password, latitude, longitude } = req.body;
-        const user = await service.register({ fullName, email, password, latitude, longitude });
+        const user = await service.register({
+            fullName,
+            email,
+            password,
+            latitude,
+            longitude,
+        });
 
         res.status(201).json({ success: true, data: { user } });
     } catch (err) {
@@ -153,7 +159,8 @@ async function forgotPassword(req, res, next) {
 
         res.status(200).json({
             success: true,
-            message: "If an account exists, a password reset link has been sent.",
+            message:
+                "If an account exists, a password reset link has been sent.",
         });
     } catch (err) {
         next(err);
@@ -168,7 +175,8 @@ async function resetPassword(req, res, next) {
 
         res.status(200).json({
             success: true,
-            message: "Password has been reset successfully. Please log in with your new password.",
+            message:
+                "Password has been reset successfully. Please log in with your new password.",
         });
     } catch (err) {
         next(err);

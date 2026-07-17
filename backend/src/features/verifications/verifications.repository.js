@@ -359,7 +359,6 @@ async function castVoteAndResolve({ complaintId, verifierId, vote, comment }) {
                         entityId: complaintId,
                     });
 
-                    // Notify the department official that their complaint was community-resolved
                     const { rows: deptRows } = await client.query(
                         `SELECT d.user_id AS official_id, c.title, c.public_code
                          FROM complaints c
@@ -369,13 +368,16 @@ async function castVoteAndResolve({ complaintId, verifierId, vote, comment }) {
                     );
                     if (deptRows[0]?.official_id) {
                         await notify(client, {
-                            userId:     deptRows[0].official_id,
-                            type:       "COMPLAINT_COMMUNITY_RESOLVED",
-                            title:      "A complaint was resolved by the community",
-                            body:       `The complaint "${deptRows[0].title}" assigned to your department was resolved by the community without departmental action.`,
-                            data:       { publicCode: deptRows[0].public_code, complaintId },
+                            userId: deptRows[0].official_id,
+                            type: "COMPLAINT_COMMUNITY_RESOLVED",
+                            title: "A complaint was resolved by the community",
+                            body: `The complaint "${deptRows[0].title}" assigned to your department was resolved by the community without departmental action.`,
+                            data: {
+                                publicCode: deptRows[0].public_code,
+                                complaintId,
+                            },
                             entityType: "complaint",
-                            entityId:   complaintId,
+                            entityId: complaintId,
                         });
                     }
                 } else {

@@ -2,7 +2,10 @@
 
 const { Router } = require("express");
 const controller = require("./sla.controller");
-const { requireAuth, requireRole } = require("../../shared/middlewares/auth.middleware");
+const {
+    requireAuth,
+    requireRole,
+} = require("../../shared/middlewares/auth.middleware");
 
 const adminRouter = Router();
 

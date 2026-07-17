@@ -87,7 +87,9 @@ async function notifyNearbyCitizens(
     ];
 
     if (excluded.length > 0) {
-        const placeholders = excluded.map((_, i) => `$${params.length + i + 1}`).join(", ");
+        const placeholders = excluded
+            .map((_, i) => `$${params.length + i + 1}`)
+            .join(", ");
         excludeClause = `AND u.id NOT IN (${placeholders})`;
         params.push(...excluded);
     }
@@ -108,7 +110,6 @@ async function notifyNearbyCitizens(
 
     await _safeQuery(client, sql, params, `nearbyCitizens ${type}`);
 }
-
 
 async function notifyPriorVerifiers(
     client,

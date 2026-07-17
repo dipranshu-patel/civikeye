@@ -2,7 +2,7 @@ import { Image as ImageIcon } from "lucide-react";
 
 export default function PrioritizeStepSection() {
     return (
-        <section className="relative w-full bg-[#fcfbf7] py-24">
+        <section className="relative w-full bg-[#fcfbf7] py-10 lg:py-24">
             <div className="absolute inset-0 w-full max-w-[1440px] mx-auto pointer-events-none hidden lg:block z-0">
                 <svg
                     className="w-full h-full overflow-visible"
@@ -21,7 +21,7 @@ export default function PrioritizeStepSection() {
                 </svg>
             </div>
 
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 flex w-12 h-12 lg:w-16 lg:h-16 bg-[#fcfbf7] border-4 border-white shadow-[0_0_0_2px_#fed7aa] rounded-full items-center justify-center z-10 hover:bg-orange-500 transition-colors duration-300 group">
+            <div className="hidden lg:flex absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 w-12 h-12 lg:w-16 lg:h-16 bg-[#fcfbf7] border-4 border-white shadow-[0_0_0_2px_#fed7aa] rounded-full items-center justify-center z-10 hover:bg-orange-500 transition-colors duration-300 group">
                 <span className="font-[var(--font-satoshi)] text-xl lg:text-2xl font-bold text-orange-500 group-hover:text-white transition-colors duration-300">
                     2
                 </span>
@@ -30,7 +30,7 @@ export default function PrioritizeStepSection() {
             <div className="relative z-10 max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex flex-col-reverse lg:flex-row items-center lg:items-stretch">
                     {/* ── Left: Image Placeholder ── */}
-                    <div className="w-full lg:w-1/2 flex justify-center items-center lg:justify-end lg:pr-12 xl:pr-20 pt-16 lg:pt-0">
+                    <div className="hidden lg:flex w-full lg:w-1/2 justify-center items-center lg:justify-end lg:pr-12 xl:pr-20 pt-16 lg:pt-0">
                         <div className="relative shrink-0 w-full max-w-[480px] lg:w-full lg:max-w-[540px]">
                             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80%] h-[80%] bg-orange-500/10 blur-[100px] rounded-full" />
 
@@ -117,6 +117,11 @@ export default function PrioritizeStepSection() {
 
                     {/* ── Right: Content ── */}
                     <div className="w-full lg:w-1/2 flex flex-col items-start justify-center lg:pl-12 xl:pl-20">
+                        <div className="flex lg:hidden w-10 h-10 mb-4 bg-[#fcfbf7] border-4 border-white shadow-[0_0_0_2px_#fed7aa] rounded-full items-center justify-center">
+                            <span className="font-[var(--font-satoshi)] text-lg font-bold text-orange-500">
+                                2
+                            </span>
+                        </div>
                         <h2 className="font-[var(--font-satoshi)] text-4xl md:text-5xl font-medium text-stone-800 tracking-tight leading-[1.1]">
                             Communities decide what matters most.
                         </h2>

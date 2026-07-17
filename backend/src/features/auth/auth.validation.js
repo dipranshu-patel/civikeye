@@ -118,15 +118,27 @@ function validateRegister(body) {
     const lng = parseFloat(longitude);
 
     if (latitude === undefined || latitude === null || isNaN(lat)) {
-        errors.push({ field: "latitude", message: "Location is required. Please allow location access." });
+        errors.push({
+            field: "latitude",
+            message: "Location is required. Please allow location access.",
+        });
     } else if (lat < -90 || lat > 90) {
-        errors.push({ field: "latitude", message: "Latitude must be between -90 and 90." });
+        errors.push({
+            field: "latitude",
+            message: "Latitude must be between -90 and 90.",
+        });
     }
 
     if (longitude === undefined || longitude === null || isNaN(lng)) {
-        errors.push({ field: "longitude", message: "Location is required. Please allow location access." });
+        errors.push({
+            field: "longitude",
+            message: "Location is required. Please allow location access.",
+        });
     } else if (lng < -180 || lng > 180) {
-        errors.push({ field: "longitude", message: "Longitude must be between -180 and 180." });
+        errors.push({
+            field: "longitude",
+            message: "Longitude must be between -180 and 180.",
+        });
     }
 
     return errors;

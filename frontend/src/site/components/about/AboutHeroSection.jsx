@@ -14,7 +14,7 @@ export default function AboutHeroSection() {
                 <p className="font-[var(--font-inter)] mt-7 text-base md:text-[18px] text-stone-500 max-w-[600px] text-center leading-relaxed">
                     CivikEye exists because civic systems fail when
                     accountability disappears. We are building the public ledger
-                    for city issues — visible, verifiable, and time-bound by
+                    for city issues - visible, verifiable, and time-bound by
                     design.
                 </p>
             </div>

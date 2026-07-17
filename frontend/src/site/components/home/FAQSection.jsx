@@ -11,11 +11,11 @@ export default function FAQSection() {
         },
         {
             q: "How do I get started?",
-            a: "Sign up with your email and phone number, verify your identity, and you can immediately start reporting issues. Choose a location, describe the problem, upload a photo, and select the issue category. Your complaint will be visible to other demo users who can upvote or add comments.",
+            a: "Sign up with your email, verify your identity, and you can immediately start reporting issues. Choose a location, describe the problem, upload a photo, and select the issue category. Your complaint will be visible to other demo users who can upvote your complaint.",
         },
         {
             q: "How does CivikEye prevent fake or spam complaints?",
-            a: "The system only allows one complaint per location within a 50m radius — nearby reports automatically suggest existing issues for upvoting instead of duplication. Suspected spam is reviewed before being displayed. Users are encouraged to verify their identity to build trust.",
+            a: "The system only allows one complaint per location per category within a 100m radius - nearby reports automatically suggest existing issues for upvoting instead of duplication. Users are encouraged to verify their identity to build trust.",
         },
         {
             q: "Can I report any type of issue?",
@@ -36,7 +36,7 @@ export default function FAQSection() {
                     </h2>
                     <p className="font-[var(--font-inter)] text-lg text-stone-500 max-w-2xl mx-auto">
                         Transparency starts with how we explain ourselves. If
-                        something here is unclear, write to us — and we'll add
+                        something here is unclear, write to us - and we'll add
                         it.
                     </p>
                 </div>

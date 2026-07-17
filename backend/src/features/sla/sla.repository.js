@@ -2,7 +2,12 @@
 
 const { query } = require("../../shared/db/query");
 
-async function insertSlaCategory({ name, departmentId, slaDurationDays, description }) {
+async function insertSlaCategory({
+    name,
+    departmentId,
+    slaDurationDays,
+    description,
+}) {
     const sql = `
         INSERT INTO sla_categories
             (name, department_id, sla_duration_days, description)
@@ -22,16 +27,23 @@ async function insertSlaCategory({ name, departmentId, slaDurationDays, descript
 }
 
 async function updateSlaCategory(id, fields) {
-    const allowed = ["name", "department_id", "sla_duration_days", "description"];
+    const allowed = [
+        "name",
+        "department_id",
+        "sla_duration_days",
+        "description",
+    ];
     const setClauses = [];
     const values = [];
     let idx = 1;
 
     for (const col of allowed) {
         const inputKey =
-            col === "department_id"     ? "departmentId" :
-            col === "sla_duration_days" ? "slaDurationDays" :
-            col;
+            col === "department_id"
+                ? "departmentId"
+                : col === "sla_duration_days"
+                  ? "slaDurationDays"
+                  : col;
 
         if (Object.prototype.hasOwnProperty.call(fields, inputKey)) {
             setClauses.push(`${col} = $${idx}`);

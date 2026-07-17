@@ -6,7 +6,7 @@ const principles = [
         icon: Eye,
         title: "Transparency by default",
         description:
-            "Issues, timelines, and outcomes are public unless there is a clear reason — like personal safety — for them not to be.",
+            "Issues, timelines, and outcomes are public unless there is a clear reason - like personal safety - for them not to be.",
     },
     {
         number: "02",
@@ -20,7 +20,7 @@ const principles = [
         icon: Scale,
         title: "Time-bound accountability",
         description:
-            "Every category has a deadline. Overdue issues stay visibly overdue — they do not disappear because someone closed a ticket.",
+            "Every category has a deadline. Overdue issues stay visibly overdue - they do not disappear because someone closed a ticket.",
     },
 ];
 
@@ -47,7 +47,7 @@ export default function PrinciplesSection() {
 
                         <p className="font-[var(--font-inter)] text-[16px] text-stone-500 leading-relaxed">
                             CivikEye is built on a small number of design
-                            commitments. They are not features — they are the
+                            commitments. They are not features - they are the
                             constraints the platform refuses to break.
                         </p>
                     </div>
@@ -60,7 +60,7 @@ export default function PrinciplesSection() {
                                 be trusted with its successes."
                             </blockquote>
                             <p className="font-[var(--font-inter)] text-[14px] text-stone-500 relative z-10">
-                                — CivikEye design principle 01
+                                - CivikEye design principle 01
                             </p>
                         </div>
 

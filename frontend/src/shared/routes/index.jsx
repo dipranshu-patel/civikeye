@@ -6,6 +6,7 @@ import AboutPage from "../../site/pages/public/AboutPage";
 import PrivacyPolicyPage from "../../site/pages/public/PrivacyPolicyPage";
 import TermsOfServicePage from "../../site/pages/public/TermsOfServicePage";
 import FAQPage from "../../site/pages/public/FAQPage";
+import APIDocsPage from "../../site/pages/public/APIDocsPage";
 import RegisterPage from "../../site/pages/auth/RegisterPage";
 import LoginPage from "../../site/pages/auth/LoginPage";
 import ForgotPasswordPage from "../../site/pages/auth/ForgotPassword";
@@ -77,6 +78,10 @@ const router = createBrowserRouter([
             {
                 path: "/faqs",
                 element: <FAQPage />,
+            },
+            {
+                path: "/docs/api",
+                element: <APIDocsPage />,
             },
         ],
     },

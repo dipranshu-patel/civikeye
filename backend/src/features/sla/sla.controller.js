@@ -1,7 +1,10 @@
 "use strict";
 
 const service = require("./sla.service");
-const { validateCreateSlaCategory, validateUpdateSlaCategory } = require("./sla.validation");
+const {
+    validateCreateSlaCategory,
+    validateUpdateSlaCategory,
+} = require("./sla.validation");
 const asyncHandler = require("../../shared/utils/async-handler");
 const { sendSuccess } = require("../../shared/utils/respond");
 
@@ -13,7 +16,10 @@ const createSlaCategory = asyncHandler(async (req, res) => {
 
     const { name, departmentId, slaDurationDays, description } = req.body;
     const category = await service.createSlaCategory({
-        name, departmentId, slaDurationDays, description,
+        name,
+        departmentId,
+        slaDurationDays,
+        description,
         actorId: req.user.userId,
     });
     return sendSuccess(res, { category }, 201);
@@ -30,7 +36,11 @@ const updateSlaCategory = asyncHandler(async (req, res) => {
         return res.status(422).json({ success: false, errors });
     }
 
-    const category = await service.updateSlaCategory(req.params.id, req.body, req.user.userId);
+    const category = await service.updateSlaCategory(
+        req.params.id,
+        req.body,
+        req.user.userId,
+    );
     return sendSuccess(res, { category });
 });
 

@@ -2,7 +2,7 @@ const statsData = [
     { id: 1, value: "48,219", label: "Issues resolved" },
     { id: 2, value: "92.7%", label: "Citizen-verified" },
     { id: 3, value: "4.2d", label: "Avg resolution time" },
-    { id: 4, value: "84", label: "Wards on record" },
+    { id: 4, value: "84", label: "Departments on record" },
     { id: 5, value: "1,204", label: "Active volunteers" },
 ];
 

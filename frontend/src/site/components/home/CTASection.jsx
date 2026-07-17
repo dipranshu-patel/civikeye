@@ -10,7 +10,7 @@ export default function CTASection() {
                 </h2>
 
                 <p className="font-[var(--font-inter)] text-lg text-stone-500 max-w-xl mx-auto mb-10 leading-relaxed">
-                    Every report, every resolution, every overdue day — visible
+                    Every report, every resolution, every overdue day - visible
                     to the people it affects. Start with one issue.
                 </p>
 

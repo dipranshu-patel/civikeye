@@ -17,10 +17,16 @@ async function findUserById(userId) {
 async function updateProfile(userId, { fullName, email }) {
     const fields = [];
     const values = [userId];
-    let   idx    = 2;
+    let idx = 2;
 
-    if (fullName !== undefined) { fields.push(`full_name = $${idx++}`); values.push(fullName.trim()); }
-    if (email    !== undefined) { fields.push(`email = $${idx++}`);     values.push(email.trim().toLowerCase()); }
+    if (fullName !== undefined) {
+        fields.push(`full_name = $${idx++}`);
+        values.push(fullName.trim());
+    }
+    if (email !== undefined) {
+        fields.push(`email = $${idx++}`);
+        values.push(email.trim().toLowerCase());
+    }
 
     if (!fields.length) return findUserById(userId);
 
@@ -32,7 +38,11 @@ async function updateProfile(userId, { fullName, email }) {
     return rows[0] ?? null;
 }
 
-async function updateUserLocation(userId, { latitude, longitude }, client = null) {
+async function updateUserLocation(
+    userId,
+    { latitude, longitude },
+    client = null,
+) {
     const q = client
         ? (sql, params) => client.query(sql, params)
         : (sql, params) => query(sql, params);
@@ -59,21 +69,21 @@ async function findOrCreatePreferences(userId) {
 
 async function updatePreferences(userId, fields) {
     const KEY_MAP = {
-        showNameOnComplaints:    "show_name_on_complaints",
-        appearOnLeaderboard:     "appear_on_leaderboard",
+        showNameOnComplaints: "show_name_on_complaints",
+        appearOnLeaderboard: "appear_on_leaderboard",
         showContributionHistory: "show_contribution_history",
-        show_name_on_complaints:   "show_name_on_complaints",
-        appear_on_leaderboard:     "appear_on_leaderboard",
+        show_name_on_complaints: "show_name_on_complaints",
+        appear_on_leaderboard: "appear_on_leaderboard",
         show_contribution_history: "show_contribution_history",
     };
 
     const setClauses = [];
-    const values     = [userId];
-    let   idx        = 2;
+    const values = [userId];
+    let idx = 2;
 
     for (const [inputKey, dbCol] of Object.entries(KEY_MAP)) {
         if (fields[inputKey] !== undefined) {
-            if (!setClauses.some(c => c.startsWith(dbCol))) {
+            if (!setClauses.some((c) => c.startsWith(dbCol))) {
                 setClauses.push(`${dbCol} = $${idx++}`);
                 values.push(Boolean(fields[inputKey]));
             }
@@ -157,20 +167,17 @@ async function softDeleteUser(userId) {
             [userId],
         );
 
-        await client.query(
-            `DELETE FROM refresh_tokens WHERE user_id = $1`,
-            [userId],
-        );
+        await client.query(`DELETE FROM refresh_tokens WHERE user_id = $1`, [
+            userId,
+        ]);
 
-        await client.query(
-            `DELETE FROM notifications WHERE user_id = $1`,
-            [userId],
-        );
+        await client.query(`DELETE FROM notifications WHERE user_id = $1`, [
+            userId,
+        ]);
 
-        await client.query(
-            `DELETE FROM user_preferences WHERE user_id = $1`,
-            [userId],
-        );
+        await client.query(`DELETE FROM user_preferences WHERE user_id = $1`, [
+            userId,
+        ]);
 
         return true;
     });

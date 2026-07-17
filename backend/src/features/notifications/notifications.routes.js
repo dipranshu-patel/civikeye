@@ -1,7 +1,7 @@
 "use strict";
 
-const { Router }   = require("express");
-const controller   = require("./notifications.controller");
+const { Router } = require("express");
+const controller = require("./notifications.controller");
 const { requireAuth } = require("../../shared/middlewares/auth.middleware");
 
 const router = Router();

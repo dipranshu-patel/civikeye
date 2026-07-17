@@ -7,7 +7,7 @@ import {
 
 export default function ResolveStepSection() {
     return (
-        <section className="relative w-full bg-[#fcfbf7] py-24">
+        <section className="relative w-full bg-[#fcfbf7] py-10 lg:py-24">
             <div className="absolute inset-0 w-full max-w-[1440px] mx-auto pointer-events-none hidden lg:block z-0">
                 <svg
                     className="w-full h-full overflow-visible"
@@ -26,7 +26,7 @@ export default function ResolveStepSection() {
                 </svg>
             </div>
 
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 flex w-12 h-12 lg:w-16 lg:h-16 bg-[#fcfbf7] border-4 border-white shadow-[0_0_0_2px_#fed7aa] rounded-full items-center justify-center z-10 hover:bg-orange-500 transition-colors duration-300 group">
+            <div className="hidden lg:flex absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 w-12 h-12 lg:w-16 lg:h-16 bg-[#fcfbf7] border-4 border-white shadow-[0_0_0_2px_#fed7aa] rounded-full items-center justify-center z-10 hover:bg-orange-500 transition-colors duration-300 group">
                 <span className="font-[var(--font-satoshi)] text-xl lg:text-2xl font-bold text-orange-500 group-hover:text-white transition-colors duration-300">
                     3
                 </span>
@@ -36,6 +36,11 @@ export default function ResolveStepSection() {
                 <div className="flex flex-col lg:flex-row items-center lg:items-stretch">
                     {/* ── Left: Content ── */}
                     <div className="w-full lg:w-1/2 flex flex-col items-start justify-center lg:pr-12 xl:pr-20 pb-16 lg:pb-0">
+                        <div className="flex lg:hidden w-10 h-10 mb-4 bg-[#fcfbf7] border-4 border-white shadow-[0_0_0_2px_#fed7aa] rounded-full items-center justify-center">
+                            <span className="font-[var(--font-satoshi)] text-lg font-bold text-orange-500">
+                                3
+                            </span>
+                        </div>
                         <h2 className="font-[var(--font-satoshi)] text-4xl md:text-5xl font-medium text-stone-800 tracking-tight leading-[1.1]">
                             SLA countdown. Department accountability.
                         </h2>
@@ -43,7 +48,7 @@ export default function ResolveStepSection() {
                         <p className="font-[var(--font-inter)] mt-6 text-lg text-stone-500 leading-relaxed">
                             Every category has predefined deadlines. Pothole? 7
                             days. Streetlight? 3 days. If the deadline passes,
-                            the status turns overdue — publicly marking the
+                            the status turns overdue - publicly marking the
                             department's delay.
                         </p>
 
@@ -85,7 +90,7 @@ export default function ResolveStepSection() {
                     </div>
 
                     {/* ── Right: Image Placeholder ── */}
-                    <div className="w-full lg:w-1/2 flex justify-center items-center lg:justify-start lg:pl-12 xl:pl-20">
+                    <div className="hidden lg:flex w-full lg:w-1/2 justify-center items-center lg:justify-start lg:pl-12 xl:pl-20">
                         <div className="relative shrink-0 w-full max-w-[480px] lg:w-full lg:max-w-[540px]">
                             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80%] h-[80%] bg-orange-500/10 blur-[100px] rounded-full" />
 

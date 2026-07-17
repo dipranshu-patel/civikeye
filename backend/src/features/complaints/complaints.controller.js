@@ -16,10 +16,7 @@ const createComplaint = asyncHandler(async (req, res) => {
         return res.status(422).json({ success: false, errors });
     }
 
-    const { title, description, categoryId, issueType, addressText, latitude, longitude } = req.body;
-
-    const result = await service.createComplaint({
-        reporterId:  req.user.userId,
+    const {
         title,
         description,
         categoryId,
@@ -27,12 +24,22 @@ const createComplaint = asyncHandler(async (req, res) => {
         addressText,
         latitude,
         longitude,
-        files:       req.files,
+    } = req.body;
+
+    const result = await service.createComplaint({
+        reporterId: req.user.userId,
+        title,
+        description,
+        categoryId,
+        issueType,
+        addressText,
+        latitude,
+        longitude,
+        files: req.files,
     });
 
     return sendSuccess(res, { complaint: result }, 201);
 });
-
 
 const exploreComplaints = asyncHandler(async (req, res) => {
     const errors = validateExploreQuery(req.query);
@@ -40,13 +47,20 @@ const exploreComplaints = asyncHandler(async (req, res) => {
         return res.status(422).json({ success: false, errors });
     }
 
-    const { search, status, issue_type, category_id, department_id, sort } = req.query;
-    const page  = parseInt(req.query.page, 10)  || 1;
+    const { search, status, issue_type, category_id, department_id, sort } =
+        req.query;
+    const page = parseInt(req.query.page, 10) || 1;
     const limit = parseInt(req.query.limit, 10) || 20;
 
     const data = await service.exploreComplaints({
-        search, status, issueType: issue_type, categoryId: category_id,
-        departmentId: department_id, sort, page, limit,
+        search,
+        status,
+        issueType: issue_type,
+        categoryId: category_id,
+        departmentId: department_id,
+        sort,
+        page,
+        limit,
     });
 
     return sendSuccess(res, data);
@@ -58,8 +72,8 @@ const getNearby = asyncHandler(async (req, res) => {
         return res.status(422).json({ success: false, errors });
     }
 
-    const lat    = parseFloat(req.query.lat);
-    const lng    = parseFloat(req.query.lng);
+    const lat = parseFloat(req.query.lat);
+    const lng = parseFloat(req.query.lng);
     const radius = parseInt(req.query.radius, 10) || 1000;
 
     const complaints = await service.getNearbyComplaints({ lat, lng, radius });
@@ -72,13 +86,18 @@ const getSimilar = asyncHandler(async (req, res) => {
     if (!lat || !lng || !category_id) {
         return res.status(422).json({
             success: false,
-            errors:  [{ field: "query", message: "lat, lng and category_id are required." }],
+            errors: [
+                {
+                    field: "query",
+                    message: "lat, lng and category_id are required.",
+                },
+            ],
         });
     }
 
     const complaints = await service.getSimilarComplaints({
-        lat:        parseFloat(lat),
-        lng:        parseFloat(lng),
+        lat: parseFloat(lat),
+        lng: parseFloat(lng),
         categoryId: category_id,
     });
 
@@ -87,7 +106,10 @@ const getSimilar = asyncHandler(async (req, res) => {
 
 const getComplaintDetail = asyncHandler(async (req, res) => {
     const requestingUserId = req.user?.userId ?? null;
-    const data = await service.getComplaintDetail(req.params.id, requestingUserId);
+    const data = await service.getComplaintDetail(
+        req.params.id,
+        requestingUserId,
+    );
     return sendSuccess(res, { complaint: data });
 });
 
@@ -98,12 +120,16 @@ const getMyComplaints = asyncHandler(async (req, res) => {
     }
 
     const { tab, search, sort } = req.query;
-    const page  = parseInt(req.query.page, 10)  || 1;
+    const page = parseInt(req.query.page, 10) || 1;
     const limit = parseInt(req.query.limit, 10) || 20;
 
     const data = await service.getMyComplaints({
         reporterId: req.user.userId,
-        tab, search, sort, page, limit,
+        tab,
+        search,
+        sort,
+        page,
+        limit,
     });
 
     return sendSuccess(res, data);

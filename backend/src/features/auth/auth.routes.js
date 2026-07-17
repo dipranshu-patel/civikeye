@@ -22,7 +22,11 @@ router.post("/login", loginLimiter, controller.login);
 router.post("/refresh", controller.refresh);
 router.post("/logout", controller.logout);
 
-router.post("/forgot-password", forgotPasswordLimiter, controller.forgotPassword);
+router.post(
+    "/forgot-password",
+    forgotPasswordLimiter,
+    controller.forgotPassword,
+);
 router.post("/reset-password", resetPasswordLimiter, controller.resetPassword);
 
 module.exports = router;

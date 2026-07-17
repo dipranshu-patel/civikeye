@@ -38,11 +38,11 @@ const COMPLAINT_JOINS = `
 `;
 
 const TAB_STATUS = {
-    assigned:             ["reported"],
-    in_progress:          ["in_progress"],
+    assigned: ["reported"],
+    in_progress: ["in_progress"],
     pending_verification: ["pending_verification"],
-    resolved:             ["resolved"],
-    reopened:             ["reopened"],
+    resolved: ["resolved"],
+    reopened: ["reopened"],
 };
 
 async function getDeptSummaryCounts(departmentId) {
@@ -132,15 +132,17 @@ async function findDeptComplaints({ departmentId, tab, search, page, limit }) {
         `c.status = ANY($2::text[])`,
     ];
     const values = [departmentId, statuses];
-    let   idx    = 3;
+    let idx = 3;
 
     if (search) {
-        conditions.push(`(c.title ILIKE $${idx} OR c.public_code ILIKE $${idx})`);
+        conditions.push(
+            `(c.title ILIKE $${idx} OR c.public_code ILIKE $${idx})`,
+        );
         values.push(`%${search}%`);
         idx++;
     }
 
-    const where  = `WHERE ${conditions.join(" AND ")}`;
+    const where = `WHERE ${conditions.join(" AND ")}`;
     const offset = (page - 1) * limit;
 
     const sql = `
@@ -223,7 +225,11 @@ async function applyStatusTransition({
             const result = await uploadBufferToCloudinary(file.buffer, {
                 folder: "civikeye/resolution",
             });
-            uploadedPhotos.push({ url: result.url, publicId: result.publicId, position: i });
+            uploadedPhotos.push({
+                url: result.url,
+                publicId: result.publicId,
+                position: i,
+            });
         }
     }
 
@@ -234,7 +240,9 @@ async function applyStatusTransition({
 
         if (toStatus === "pending_verification") {
             updateFields.push(`verification_started_at = NOW()`);
-            updateFields.push(`verification_deadline = NOW() + INTERVAL '72 hours'`);
+            updateFields.push(
+                `verification_deadline = NOW() + INTERVAL '72 hours'`,
+            );
         }
         if (toStatus === "in_progress" || toStatus === "pending_verification") {
         }

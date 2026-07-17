@@ -23,7 +23,14 @@ async function findUserByEmail(email) {
     return rows[0] ?? null;
 }
 
-async function insertUser({ fullName, email, passwordHash, role = "citizen", latitude = null, longitude = null }) {
+async function insertUser({
+    fullName,
+    email,
+    passwordHash,
+    role = "citizen",
+    latitude = null,
+    longitude = null,
+}) {
     const sql = `
     INSERT INTO users (full_name, email, password_hash, role, latitude, longitude)
     VALUES ($1, $2, $3, $4, $5, $6)
@@ -259,4 +266,3 @@ module.exports = {
     updateUserPassword,
     deleteExpiredPasswordResetTokens,
 };
-

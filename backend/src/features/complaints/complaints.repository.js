@@ -2,21 +2,17 @@
 
 const { query } = require("../../shared/db/query");
 
-// ─── Haversine distance (metres) — pure JS, no PostGIS needed ────────────────
-
 function haversineMetres(lat1, lng1, lat2, lng2) {
-    const R  = 6_371_000;
+    const R = 6_371_000;
     const φ1 = (lat1 * Math.PI) / 180;
     const φ2 = (lat2 * Math.PI) / 180;
     const Δφ = ((lat2 - lat1) * Math.PI) / 180;
     const Δλ = ((lng2 - lng1) * Math.PI) / 180;
-    const a  =
+    const a =
         Math.sin(Δφ / 2) ** 2 +
         Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) ** 2;
     return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
-
-// ─── Shared SELECT columns for complaint list/detail ─────────────────────────
 
 const COMPLAINT_COLS = `
     c.id,
@@ -56,11 +52,20 @@ const COMPLAINT_JOINS = `
     LEFT JOIN user_preferences   up_r  ON up_r.user_id = c.reporter_id
 `;
 
-// ─── Insert ───────────────────────────────────────────────────────────────────
-
 async function insertComplaint(
     client,
-    { reporterId, title, description, categoryId, departmentId, issueType, addressText, latitude, longitude, slaDeadline },
+    {
+        reporterId,
+        title,
+        description,
+        categoryId,
+        departmentId,
+        issueType,
+        addressText,
+        latitude,
+        longitude,
+        slaDeadline,
+    },
 ) {
     const sql = `
         INSERT INTO complaints
@@ -71,8 +76,16 @@ async function insertComplaint(
     `;
 
     const { rows } = await client.query(sql, [
-        reporterId, title, description ?? null, categoryId, departmentId,
-        issueType, addressText ?? null, latitude, longitude, slaDeadline ?? null,
+        reporterId,
+        title,
+        description ?? null,
+        categoryId,
+        departmentId,
+        issueType,
+        addressText ?? null,
+        latitude,
+        longitude,
+        slaDeadline ?? null,
     ]);
     return rows[0];
 }
@@ -83,11 +96,19 @@ async function insertPhoto(client, { complaintId, url, publicId, position }) {
         VALUES ($1, $2, $3, $4)
         RETURNING id, url, public_id, position;
     `;
-    const { rows } = await client.query(sql, [complaintId, url, publicId, position]);
+    const { rows } = await client.query(sql, [
+        complaintId,
+        url,
+        publicId,
+        position,
+    ]);
     return rows[0];
 }
 
-async function insertStatusHistory(client, { complaintId, fromStatus, toStatus, actorId, actorRole, note }) {
+async function insertStatusHistory(
+    client,
+    { complaintId, fromStatus, toStatus, actorId, actorRole, note },
+) {
     const sql = `
         INSERT INTO complaint_status_history
             (complaint_id, from_status, to_status, actor_id, actor_role, note)
@@ -95,12 +116,15 @@ async function insertStatusHistory(client, { complaintId, fromStatus, toStatus, 
         RETURNING id;
     `;
     const { rows } = await client.query(sql, [
-        complaintId, fromStatus ?? null, toStatus, actorId ?? null, actorRole ?? "system", note ?? null,
+        complaintId,
+        fromStatus ?? null,
+        toStatus,
+        actorId ?? null,
+        actorRole ?? "system",
+        note ?? null,
     ]);
     return rows[0];
 }
-
-// ─── Read — single ────────────────────────────────────────────────────────────
 
 async function findComplaintById(id) {
     const sql = `
@@ -149,12 +173,19 @@ async function findStatusHistory(complaintId) {
     return rows;
 }
 
-// ─── Read — Explore (paginated) ───────────────────────────────────────────────
-
-async function findComplaintsExplore({ search, statusList, issueType, categoryId, departmentId, sort, page, limit }) {
+async function findComplaintsExplore({
+    search,
+    statusList,
+    issueType,
+    categoryId,
+    departmentId,
+    sort,
+    page,
+    limit,
+}) {
     const conditions = [];
-    const values     = [];
-    let   idx        = 1;
+    const values = [];
+    let idx = 1;
 
     if (search) {
         conditions.push(`c.title ILIKE $${idx}`);
@@ -187,7 +218,7 @@ async function findComplaintsExplore({ search, statusList, issueType, categoryId
     const orderMap = {
         most_upvoted: "c.upvote_count DESC",
         sla_deadline: "c.sla_deadline ASC NULLS LAST",
-        recent:       "c.created_at DESC",
+        recent: "c.created_at DESC",
     };
     const orderBy = orderMap[sort] ?? "c.created_at DESC";
 
@@ -208,12 +239,9 @@ async function findComplaintsExplore({ search, statusList, issueType, categoryId
     return rows;
 }
 
-// ─── Read — Nearby ────────────────────────────────────────────────────────────
-
 async function findNearbyComplaints({ lat, lng, radiusMetres }) {
-    // Bounding box pre-filter (~1 deg lat ≈ 111 km)
     const delta = radiusMetres / 111_000;
-    const sql   = `
+    const sql = `
         SELECT ${COMPLAINT_COLS},
                (SELECT url FROM complaint_photos WHERE complaint_id = c.id ORDER BY position ASC LIMIT 1) AS cover_photo
         ${COMPLAINT_JOINS}
@@ -223,17 +251,22 @@ async function findNearbyComplaints({ lat, lng, radiusMetres }) {
         ORDER BY c.created_at DESC
         LIMIT 50;
     `;
-    const { rows } = await query(sql, [lat - delta, lat + delta, lng - delta, lng + delta]);
+    const { rows } = await query(sql, [
+        lat - delta,
+        lat + delta,
+        lng - delta,
+        lng + delta,
+    ]);
 
-    // JS Haversine exact filter
-    return rows.filter((r) => haversineMetres(lat, lng, r.latitude, r.longitude) <= radiusMetres);
+    return rows.filter(
+        (r) =>
+            haversineMetres(lat, lng, r.latitude, r.longitude) <= radiusMetres,
+    );
 }
 
-// ─── Read — Similar (duplicate panel, 100 m + same category) ─────────────────
-
 async function findSimilarComplaints({ lat, lng, categoryId, excludeId }) {
-    const delta = 0.001; // ~111 m box
-    const sql   = `
+    const delta = 0.001;
+    const sql = `
         SELECT ${COMPLAINT_COLS},
                (SELECT url FROM complaint_photos WHERE complaint_id = c.id ORDER BY position ASC LIMIT 1) AS cover_photo
         ${COMPLAINT_JOINS}
@@ -245,39 +278,59 @@ async function findSimilarComplaints({ lat, lng, categoryId, excludeId }) {
         ORDER BY c.upvote_count DESC
         LIMIT 10;
     `;
-    const { rows } = await query(sql, [categoryId, excludeId ?? "00000000-0000-0000-0000-000000000000", lat - delta, lat + delta, lng - delta, lng + delta]);
-    return rows.filter((r) => haversineMetres(lat, lng, r.latitude, r.longitude) <= 100);
+    const { rows } = await query(sql, [
+        categoryId,
+        excludeId ?? "00000000-0000-0000-0000-000000000000",
+        lat - delta,
+        lat + delta,
+        lng - delta,
+        lng + delta,
+    ]);
+    return rows.filter(
+        (r) => haversineMetres(lat, lng, r.latitude, r.longitude) <= 100,
+    );
 }
 
-// ─── Read — My Complaints ─────────────────────────────────────────────────────
-
-async function findMyComplaints({ reporterId, tab, search, sort, page, limit }) {
+async function findMyComplaints({
+    reporterId,
+    tab,
+    search,
+    sort,
+    page,
+    limit,
+}) {
     const conditions = [`c.reporter_id = $1`];
-    const values     = [reporterId];
-    let   idx        = 2;
+    const values = [reporterId];
+    let idx = 2;
 
-    // Map tab → status filter
-    if (tab === "active")               conditions.push(`c.status IN ('reported','in_progress','reopened')`);
-    if (tab === "pending_verification") conditions.push(`c.status = 'pending_verification'`);
-    if (tab === "resolved")             conditions.push(`c.status = 'resolved'`);
-    if (tab === "reopened")             conditions.push(`c.status = 'reopened'`);
-    if (tab === "overdue")              conditions.push(`c.status != 'resolved' AND current_timestamp > (c.created_at + (cat.sla_duration_days || ' days')::interval)`);
+    if (tab === "active")
+        conditions.push(`c.status IN ('reported','in_progress','reopened')`);
+    if (tab === "pending_verification")
+        conditions.push(`c.status = 'pending_verification'`);
+    if (tab === "resolved") conditions.push(`c.status = 'resolved'`);
+    if (tab === "reopened") conditions.push(`c.status = 'reopened'`);
+    if (tab === "overdue")
+        conditions.push(
+            `c.status != 'resolved' AND current_timestamp > (c.created_at + (cat.sla_duration_days || ' days')::interval)`,
+        );
 
     if (search) {
-        conditions.push(`(c.title ILIKE $${idx} OR c.public_code ILIKE $${idx})`);
+        conditions.push(
+            `(c.title ILIKE $${idx} OR c.public_code ILIKE $${idx})`,
+        );
         values.push(`%${search}%`);
         idx++;
     }
 
     const orderMap = {
-        most_upvoted:          "c.upvote_count DESC",
-        sla_breached:          "c.sla_deadline ASC NULLS LAST",
+        most_upvoted: "c.upvote_count DESC",
+        sla_breached: "c.sla_deadline ASC NULLS LAST",
         awaiting_verification: "c.verification_deadline ASC NULLS LAST",
-        recent:                "c.updated_at DESC",
-        oldest:                "c.updated_at ASC",
+        recent: "c.updated_at DESC",
+        oldest: "c.updated_at ASC",
     };
     const orderBy = orderMap[sort] ?? "c.updated_at DESC";
-    const offset  = (page - 1) * limit;
+    const offset = (page - 1) * limit;
 
     const where = `WHERE ${conditions.join(" AND ")}`;
 
@@ -323,11 +376,9 @@ async function findMyComplaintSummary(reporterId) {
     return rows[0];
 }
 
-// ─── Duplicate guard ──────────────────────────────────────────────────────────
-
 async function findDuplicateCandidates({ lat, lng, categoryId }) {
     const delta = 0.001;
-    const sql   = `
+    const sql = `
         SELECT ${COMPLAINT_COLS}
         ${COMPLAINT_JOINS}
         WHERE c.status NOT IN ('resolved')
@@ -336,11 +387,17 @@ async function findDuplicateCandidates({ lat, lng, categoryId }) {
           AND c.longitude BETWEEN $4 AND $5
         ORDER BY c.upvote_count DESC;
     `;
-    const { rows } = await query(sql, [categoryId, lat - delta, lat + delta, lng - delta, lng + delta]);
-    return rows.filter((r) => haversineMetres(lat, lng, r.latitude, r.longitude) <= 100);
+    const { rows } = await query(sql, [
+        categoryId,
+        lat - delta,
+        lat + delta,
+        lng - delta,
+        lng + delta,
+    ]);
+    return rows.filter(
+        (r) => haversineMetres(lat, lng, r.latitude, r.longitude) <= 100,
+    );
 }
-
-// ─── Upvotes ──────────────────────────────────────────────────────────────────
 
 async function hasUserUpvoted(complaintId, userId) {
     const sql = `SELECT 1 FROM complaint_upvotes WHERE complaint_id=$1 AND user_id=$2 LIMIT 1;`;
@@ -372,13 +429,10 @@ async function deleteUpvote(client, complaintId, userId) {
         );
         return rows[0]?.upvote_count ?? 0;
     }
-    return null; // no upvote to delete
+    return null;
 }
 
-// ─── Dashboard ────────────────────────────────────────────────────────────────
-
 async function findDashboardData(userId, { lat, lng, nearbyRadius = 2000 }) {
-    // Summary counts
     const summarySQL = `
         SELECT
             COUNT(*) FILTER (WHERE reporter_id=$1 AND status IN ('reported','in_progress','reopened')) ::INT AS my_active,
@@ -387,7 +441,6 @@ async function findDashboardData(userId, { lat, lng, nearbyRadius = 2000 }) {
     `;
     const { rows: sumRows } = await query(summarySQL, [userId]);
 
-    // Recent 3 of my complaints
     const myRecentSQL = `
         SELECT ${COMPLAINT_COLS},
                (SELECT url FROM complaint_photos WHERE complaint_id = c.id ORDER BY position ASC LIMIT 1) AS cover_photo
@@ -398,7 +451,6 @@ async function findDashboardData(userId, { lat, lng, nearbyRadius = 2000 }) {
     `;
     const { rows: myRecent } = await query(myRecentSQL, [userId]);
 
-    // Pending verifications near user (within nearbyRadius)
     let nearbyPending = [];
     if (lat && lng) {
         const delta = nearbyRadius / 111_000;
@@ -413,11 +465,20 @@ async function findDashboardData(userId, { lat, lng, nearbyRadius = 2000 }) {
             ORDER BY c.verification_deadline ASC NULLS LAST
             LIMIT 5;
         `;
-        const { rows } = await query(nearbySQL, [userId, lat - delta, lat + delta, lng - delta, lng + delta]);
-        nearbyPending = rows.filter((r) => haversineMetres(lat, lng, r.latitude, r.longitude) <= nearbyRadius);
+        const { rows } = await query(nearbySQL, [
+            userId,
+            lat - delta,
+            lat + delta,
+            lng - delta,
+            lng + delta,
+        ]);
+        nearbyPending = rows.filter(
+            (r) =>
+                haversineMetres(lat, lng, r.latitude, r.longitude) <=
+                nearbyRadius,
+        );
     }
 
-    // Recent activity (status changes involving me as reporter)
     const activitySQL = `
         SELECT
             csh.to_status,

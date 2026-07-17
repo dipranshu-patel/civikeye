@@ -1,6 +1,6 @@
 "use strict";
 
-const service      = require("./volunteer.service");
+const service = require("./volunteer.service");
 const asyncHandler = require("../../shared/utils/async-handler");
 const { sendSuccess } = require("../../shared/utils/respond");
 
@@ -12,7 +12,7 @@ const discoverTasks = asyncHandler(async (req, res) => {
 
 const claimTask = asyncHandler(async (req, res) => {
     const data = await service.claimTask({
-        taskId:      req.params.id,
+        taskId: req.params.id,
         volunteerId: req.user.userId,
     });
     return sendSuccess(res, data, 201);
@@ -20,15 +20,19 @@ const claimTask = asyncHandler(async (req, res) => {
 
 const completeTask = asyncHandler(async (req, res) => {
     const { note } = req.body;
-    const proofFile = req.file ?? null;   
+    const proofFile = req.file ?? null;
 
     if (!proofFile) {
         const AppError = require("../../shared/utils/app-error");
-        throw new AppError("PROOF_REQUIRED", "A proof photo is required to complete a task.", 422);
+        throw new AppError(
+            "PROOF_REQUIRED",
+            "A proof photo is required to complete a task.",
+            422,
+        );
     }
 
     const data = await service.submitTaskCompletion({
-        taskId:      req.params.id,
+        taskId: req.params.id,
         volunteerId: req.user.userId,
         note,
         proofFile,
@@ -38,7 +42,10 @@ const completeTask = asyncHandler(async (req, res) => {
 
 const getMyTasks = asyncHandler(async (req, res) => {
     const { tab = "active" } = req.query;
-    const data = await service.getMyTasks({ volunteerId: req.user.userId, tab });
+    const data = await service.getMyTasks({
+        volunteerId: req.user.userId,
+        tab,
+    });
     return sendSuccess(res, data);
 });
 

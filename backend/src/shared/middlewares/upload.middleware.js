@@ -1,23 +1,23 @@
 "use strict";
 
-const multer  = require("multer");
+const multer = require("multer");
 const { v2: cloudinary } = require("cloudinary");
 const AppError = require("../utils/app-error");
 
 cloudinary.config({
     cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-    api_key:    process.env.CLOUDINARY_API_KEY,
+    api_key: process.env.CLOUDINARY_API_KEY,
     api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
 const ALLOWED_MIME_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
-const MAX_FILES           = 4;
+const MAX_FILES = 4;
 const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024; // 10 MB
 
 const _multer = multer({
     storage: multer.memoryStorage(),
     limits: {
-        files:    MAX_FILES,
+        files: MAX_FILES,
         fileSize: MAX_FILE_SIZE_BYTES,
     },
     fileFilter(_req, file, cb) {
@@ -34,8 +34,8 @@ const _multer = multer({
     },
 });
 
-const uploadPhotos  = _multer.array("photos", MAX_FILES);
-const uploadSingle  = (fieldName) => _multer.single(fieldName);
+const uploadPhotos = _multer.array("photos", MAX_FILES);
+const uploadSingle = (fieldName) => _multer.single(fieldName);
 
 function handleUploadError(err, _req, _res, next) {
     if (!err) return next();
@@ -75,17 +75,26 @@ function uploadBufferToCloudinary(buffer, options = {}) {
     return new Promise((resolve, reject) => {
         const stream = cloudinary.uploader.upload_stream(
             {
-                folder:        options.folder ?? "civikeye/complaints",
+                folder: options.folder ?? "civikeye/complaints",
                 resource_type: "image",
                 transformation: [
-                    { width: 1280, height: 960, crop: "limit", quality: "auto:good" },
+                    {
+                        width: 1280,
+                        height: 960,
+                        crop: "limit",
+                        quality: "auto:good",
+                    },
                 ],
                 ...options,
             },
             (error, result) => {
                 if (error) {
                     return reject(
-                        new AppError("UPLOAD_FAILED", error.message ?? "Cloudinary upload failed.", 502),
+                        new AppError(
+                            "UPLOAD_FAILED",
+                            error.message ?? "Cloudinary upload failed.",
+                            502,
+                        ),
                     );
                 }
                 resolve({ url: result.secure_url, publicId: result.public_id });

@@ -1,10 +1,10 @@
 "use strict";
 
-const repo     = require("./notifications.repository");
+const repo = require("./notifications.repository");
 const AppError = require("../../shared/utils/app-error");
 
 async function listNotifications({ userId, page = 1, limit = 20 }) {
-    page  = Math.max(1, parseInt(page)  || 1);
+    page = Math.max(1, parseInt(page) || 1);
     limit = Math.min(50, parseInt(limit) || 20);
 
     const [rows, total, unread] = await Promise.all([
@@ -15,8 +15,8 @@ async function listNotifications({ userId, page = 1, limit = 20 }) {
 
     return {
         notifications: rows.map(formatNotification),
-        pagination:    { page, limit, total },
-        unreadCount:   unread,
+        pagination: { page, limit, total },
+        unreadCount: unread,
     };
 }
 
@@ -28,7 +28,11 @@ async function getUnreadCount(userId) {
 async function markOneRead({ notificationId, userId }) {
     const row = await repo.markOneRead({ notificationId, userId });
     if (!row) {
-        throw new AppError("NOTIFICATION_NOT_FOUND", "Notification not found.", 404);
+        throw new AppError(
+            "NOTIFICATION_NOT_FOUND",
+            "Notification not found.",
+            404,
+        );
     }
     return { id: row.id, isRead: row.is_read };
 }
@@ -40,15 +44,15 @@ async function markAllRead(userId) {
 
 function formatNotification(row) {
     return {
-        id:         row.id,
-        type:       row.type,
-        title:      row.title,
-        body:       row.body,
-        data:       row.data ?? {},
+        id: row.id,
+        type: row.type,
+        title: row.title,
+        body: row.body,
+        data: row.data ?? {},
         entityType: row.entity_type ?? null,
-        entityId:   row.entity_id   ?? null,
-        isRead:     row.is_read,
-        createdAt:  row.created_at,
+        entityId: row.entity_id ?? null,
+        isRead: row.is_read,
+        createdAt: row.created_at,
     };
 }
 

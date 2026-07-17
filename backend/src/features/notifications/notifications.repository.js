@@ -39,7 +39,7 @@ async function markOneRead({ notificationId, userId }) {
          RETURNING id, is_read`,
         [notificationId, userId],
     );
-    return rows[0] ?? null;   
+    return rows[0] ?? null;
 }
 
 async function markAllRead(userId) {
@@ -50,7 +50,7 @@ async function markAllRead(userId) {
          RETURNING id`,
         [userId],
     );
-    return rows.length;  
+    return rows.length;
 }
 
 module.exports = {

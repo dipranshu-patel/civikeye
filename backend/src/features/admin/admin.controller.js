@@ -1,6 +1,6 @@
 "use strict";
 
-const service      = require("./admin.service");
+const service = require("./admin.service");
 const asyncHandler = require("../../shared/utils/async-handler");
 const { sendSuccess } = require("../../shared/utils/respond");
 
@@ -11,11 +11,17 @@ const getDashboard = asyncHandler(async (_req, res) => {
 
 const getAuditLogs = asyncHandler(async (req, res) => {
     const { search, action, entityType, dateFrom, dateTo } = req.query;
-    const page  = parseInt(req.query.page,  10) || 1;
+    const page = parseInt(req.query.page, 10) || 1;
     const limit = parseInt(req.query.limit, 10) || 20;
 
     const data = await service.getAuditLogs({
-        search, action, entityType, dateFrom, dateTo, page, limit,
+        search,
+        action,
+        entityType,
+        dateFrom,
+        dateTo,
+        page,
+        limit,
     });
     return sendSuccess(res, data);
 });

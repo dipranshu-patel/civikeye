@@ -1,13 +1,15 @@
 "use strict";
 
-const { query, withTransaction }                            = require("../../shared/db/query");
-const { uploadBufferToCloudinary }                          = require("../../shared/middlewares/upload.middleware");
-const { notify, notifyNearbyCitizens }                      = require("../../shared/utils/notify");
+const { query, withTransaction } = require("../../shared/db/query");
+const {
+    uploadBufferToCloudinary,
+} = require("../../shared/middlewares/upload.middleware");
+const { notify, notifyNearbyCitizens } = require("../../shared/utils/notify");
 
 const POINTS = {
     community_fix: parseInt(process.env.POINTS_COMMUNITY_FIX ?? "25", 10),
-    verification:  parseInt(process.env.POINTS_VERIFICATION  ?? "5",  10),
-    report:        parseInt(process.env.POINTS_REPORT        ?? "10", 10),
+    verification: parseInt(process.env.POINTS_VERIFICATION ?? "5", 10),
+    report: parseInt(process.env.POINTS_REPORT ?? "10", 10),
 };
 
 const TASK_COLS = `
@@ -52,12 +54,17 @@ async function createVolunteerTask(client, complaintId) {
 }
 
 async function findOpenTasks({ search, page, limit }) {
-    const conditions = [`vt.status = 'open'`, `c.status IN ('reported', 'reopened')`];
-    const values     = [];
-    let   idx        = 1;
+    const conditions = [
+        `vt.status = 'open'`,
+        `c.status IN ('reported', 'reopened')`,
+    ];
+    const values = [];
+    let idx = 1;
 
     if (search) {
-        conditions.push(`(c.title ILIKE $${idx} OR c.public_code ILIKE $${idx} OR c.address_text ILIKE $${idx})`);
+        conditions.push(
+            `(c.title ILIKE $${idx} OR c.public_code ILIKE $${idx} OR c.address_text ILIKE $${idx})`,
+        );
         values.push(`%${search}%`);
         idx++;
     }
@@ -97,11 +104,13 @@ async function claimTask({ taskId, volunteerId }) {
 
         const task = taskRows[0] ?? null;
 
-        if (!task)                                        return { error: "TASK_NOT_FOUND" };
-        if (task.status !== "open")                       return { error: "TASK_NOT_OPEN" };
-        if (task.already_claimed)                         return { error: "ALREADY_CLAIMED" };
-        if (task.issue_type !== "community_fixable")     return { error: "NOT_COMMUNITY_FIXABLE" };
-        if (task.reporter_id === volunteerId)             return { error: "REPORTER_CANNOT_CLAIM" };
+        if (!task) return { error: "TASK_NOT_FOUND" };
+        if (task.status !== "open") return { error: "TASK_NOT_OPEN" };
+        if (task.already_claimed) return { error: "ALREADY_CLAIMED" };
+        if (task.issue_type !== "community_fixable")
+            return { error: "NOT_COMMUNITY_FIXABLE" };
+        if (task.reporter_id === volunteerId)
+            return { error: "REPORTER_CANNOT_CLAIM" };
 
         await client.query(
             `UPDATE volunteer_tasks SET status = 'claimed' WHERE id = $1`,
@@ -116,13 +125,13 @@ async function claimTask({ taskId, volunteerId }) {
         );
 
         await notify(client, {
-            userId:     volunteerId,
-            type:       "TASK_CLAIMED",
-            title:      "Task claimed!",
-            body:       "You've claimed a volunteer task. Head to the location and fix it!",
-            data:       { taskId, complaintId: task.complaint_id },
+            userId: volunteerId,
+            type: "TASK_CLAIMED",
+            title: "Task claimed!",
+            body: "You've claimed a volunteer task. Head to the location and fix it!",
+            data: { taskId, complaintId: task.complaint_id },
             entityType: "task",
-            entityId:   taskId,
+            entityId: taskId,
         });
 
         return { task, assignment: assignRows[0] };
@@ -130,12 +139,13 @@ async function claimTask({ taskId, volunteerId }) {
 }
 
 async function submitTaskCompletion({ taskId, volunteerId, note, proofFile }) {
-    let proofUrl = null, proofPublicId = null;
+    let proofUrl = null,
+        proofPublicId = null;
     if (proofFile) {
         const uploaded = await uploadBufferToCloudinary(proofFile.buffer, {
             folder: "civikeye/volunteer-proof",
         });
-        proofUrl      = uploaded.url;
+        proofUrl = uploaded.url;
         proofPublicId = uploaded.publicId;
     }
 
@@ -153,8 +163,8 @@ async function submitTaskCompletion({ taskId, volunteerId, note, proofFile }) {
         const assignment = assignRows[0] ?? null;
 
         if (!assignment) return { error: "ASSIGNMENT_NOT_FOUND" };
-        if (assignment.status !== "active") return { error: "ASSIGNMENT_NOT_ACTIVE" };
-
+        if (assignment.status !== "active")
+            return { error: "ASSIGNMENT_NOT_ACTIVE" };
 
         await client.query(
             `UPDATE volunteer_task_assignments
@@ -185,49 +195,62 @@ async function submitTaskCompletion({ taskId, volunteerId, note, proofFile }) {
             `INSERT INTO complaint_status_history
                  (complaint_id, from_status, to_status, actor_id, actor_role, note)
              VALUES ($1, 'reported', 'pending_verification', $2, 'citizen', $3)`,
-            [assignment.complaint_id, volunteerId, note ?? "Volunteer submitted resolution proof."],
+            [
+                assignment.complaint_id,
+                volunteerId,
+                note ?? "Volunteer submitted resolution proof.",
+            ],
         );
 
         const { rows: cRows } = await client.query(
             `SELECT reporter_id, title, latitude, longitude, public_code
-             FROM complaints WHERE id = $1`, [assignment.complaint_id],
+             FROM complaints WHERE id = $1`,
+            [assignment.complaint_id],
         );
         const comp = cRows[0];
 
         await notify(client, {
-            userId:     volunteerId,
-            type:       "TASK_SUBMITTED",
-            title:      "Fix submitted for verification",
-            body:       "Your resolution has been submitted. Community verification has started.",
-            data:       { taskId, complaintId: assignment.complaint_id },
+            userId: volunteerId,
+            type: "TASK_SUBMITTED",
+            title: "Fix submitted for verification",
+            body: "Your resolution has been submitted. Community verification has started.",
+            data: { taskId, complaintId: assignment.complaint_id },
             entityType: "task",
-            entityId:   taskId,
+            entityId: taskId,
         });
 
         if (comp) {
             await notify(client, {
-                userId:     comp.reporter_id,
-                type:       "COMPLAINT_PENDING_VERIFICATION",
-                title:      "Community is verifying your complaint",
-                body:       `A volunteer has submitted a fix for "${comp.title}". Community is now verifying it.`,
-                data:       { publicCode: comp.public_code, complaintId: assignment.complaint_id },
+                userId: comp.reporter_id,
+                type: "COMPLAINT_PENDING_VERIFICATION",
+                title: "Community is verifying your complaint",
+                body: `A volunteer has submitted a fix for "${comp.title}". Community is now verifying it.`,
+                data: {
+                    publicCode: comp.public_code,
+                    complaintId: assignment.complaint_id,
+                },
                 entityType: "complaint",
-                entityId:   assignment.complaint_id,
+                entityId: assignment.complaint_id,
             });
 
             if (note?.trim()) {
-                const preview = note.trim().length > 100
-                    ? note.trim().slice(0, 100) + "…"
-                    : note.trim();
+                const preview =
+                    note.trim().length > 100
+                        ? note.trim().slice(0, 100) + "…"
+                        : note.trim();
                 await notify(client, {
-                    userId:     comp.reporter_id,
-                    type:       "COMPLAINT_ACTIVITY",
-                    title:      "New update on your complaint",
-                    body:       `The volunteer left a note: “${preview}”`,
-                    data:       { publicCode: comp.public_code, complaintId: assignment.complaint_id,
-                                  note: note.trim(), actorRole: "volunteer" },
+                    userId: comp.reporter_id,
+                    type: "COMPLAINT_ACTIVITY",
+                    title: "New update on your complaint",
+                    body: `The volunteer left a note: “${preview}”`,
+                    data: {
+                        publicCode: comp.public_code,
+                        complaintId: assignment.complaint_id,
+                        note: note.trim(),
+                        actorRole: "volunteer",
+                    },
                     entityType: "complaint",
-                    entityId:   assignment.complaint_id,
+                    entityId: assignment.complaint_id,
                 });
             }
 
@@ -235,24 +258,31 @@ async function submitTaskCompletion({ taskId, volunteerId, note, proofFile }) {
                 excludeUserIds: [comp.reporter_id, volunteerId],
                 lat: parseFloat(comp.latitude),
                 lon: parseFloat(comp.longitude),
-                type:       "VERIFICATION_NEEDED",
-                title:      "Verification needed near you",
-                body:       `A complaint near you needs community verification: "${comp.title}"`,
-                data:       { publicCode: comp.public_code, complaintId: assignment.complaint_id },
+                type: "VERIFICATION_NEEDED",
+                title: "Verification needed near you",
+                body: `A complaint near you needs community verification: "${comp.title}"`,
+                data: {
+                    publicCode: comp.public_code,
+                    complaintId: assignment.complaint_id,
+                },
                 entityType: "complaint",
-                entityId:   assignment.complaint_id,
+                entityId: assignment.complaint_id,
             });
         }
 
-        return { assignmentId: assignment.id, complaintId: assignment.complaint_id, proofUrl };
+        return {
+            assignmentId: assignment.id,
+            complaintId: assignment.complaint_id,
+            proofUrl,
+        };
     });
 }
 
 async function findMyTasks({ volunteerId, tab }) {
     const TAB_ASSIGNMENT_STATUS = {
-        active:               ["active"],
+        active: ["active"],
         pending_verification: ["pending_verification"],
-        completed:            ["completed"],
+        completed: ["completed"],
     };
 
     const statuses = TAB_ASSIGNMENT_STATUS[tab] ?? ["active"];
@@ -397,7 +427,10 @@ async function getLeaderboard({ page, limit }) {
     return rows;
 }
 
-async function awardPoints(client, { userId, complaintId, taskId, points, type }) {
+async function awardPoints(
+    client,
+    { userId, complaintId, taskId, points, type },
+) {
     if (complaintId && type !== "community_fix") {
         const { rows: existing } = await client.query(
             `SELECT id FROM contributions WHERE user_id = $1 AND complaint_id = $2 AND type = $3 LIMIT 1`,
@@ -439,34 +472,42 @@ async function finalizeTaskOnResolution(client, complaintId) {
     );
 
     await awardPoints(client, {
-        userId:      volunteer_id,
+        userId: volunteer_id,
         complaintId,
-        taskId:      task_id,
-        points:      POINTS.community_fix,
-        type:        "community_fix",
+        taskId: task_id,
+        points: POINTS.community_fix,
+        type: "community_fix",
     });
 
     await notify(client, {
-        userId:     volunteer_id,
-        type:       "FIX_VERIFIED",
-        title:      "🎉 Your fix was accepted!",
-        body:       "The community verified your fix. The complaint has been resolved!",
-        data:       { taskId: task_id, complaintId, pointsEarned: POINTS.community_fix },
+        userId: volunteer_id,
+        type: "FIX_VERIFIED",
+        title: "🎉 Your fix was accepted!",
+        body: "The community verified your fix. The complaint has been resolved!",
+        data: {
+            taskId: task_id,
+            complaintId,
+            pointsEarned: POINTS.community_fix,
+        },
         entityType: "task",
-        entityId:   task_id,
+        entityId: task_id,
     });
 
     await notify(client, {
-        userId:     volunteer_id,
-        type:       "COMMUNITY_FIX_POINTS_EARNED",
-        title:      `+${POINTS.community_fix} points earned!`,
-        body:       `You earned ${POINTS.community_fix} points for resolving a community complaint. Keep it up!`,
-        data:       { points: POINTS.community_fix, taskId: task_id, complaintId },
+        userId: volunteer_id,
+        type: "COMMUNITY_FIX_POINTS_EARNED",
+        title: `+${POINTS.community_fix} points earned!`,
+        body: `You earned ${POINTS.community_fix} points for resolving a community complaint. Keep it up!`,
+        data: { points: POINTS.community_fix, taskId: task_id, complaintId },
         entityType: "task",
-        entityId:   task_id,
+        entityId: task_id,
     });
 
-    return { volunteerId: volunteer_id, taskId: task_id, pointsAwarded: POINTS.community_fix };
+    return {
+        volunteerId: volunteer_id,
+        taskId: task_id,
+        pointsAwarded: POINTS.community_fix,
+    };
 }
 
 module.exports = {

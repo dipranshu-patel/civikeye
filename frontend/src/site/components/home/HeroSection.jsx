@@ -3,7 +3,7 @@ import heroIllustration from "../../assets/images/hero-illustration.png";
 
 export default function HeroSection() {
     return (
-        <section className="relative w-full pt-0 pb-24 overflow-hidden z-10">
+        <section className="relative w-full pt-24 lg:pt-0 pb-24 overflow-hidden z-10">
             <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex flex-col lg:flex-row items-center justify-between gap-12 lg:gap-0">
                     <div className="w-full lg:w-[47%] text-center lg:text-left">
@@ -17,7 +17,7 @@ export default function HeroSection() {
                         <p className="mt-8 text-lg md:text-xl text-stone-500 max-w-2xl mx-auto lg:mx-0 leading-relaxed font-medium">
                             CivikEye is the public ledger for city issues.
                             Citizens report, communities prioritize, authorities
-                            resolve — and every step is verifiable, time-bound,
+                            resolve - and every step is verifiable, time-bound,
                             and transparent.
                         </p>
 
@@ -37,7 +37,7 @@ export default function HeroSection() {
                         </div>
                     </div>
 
-                    <div className="w-full lg:w-[45%] relative">
+                    <div className="hidden lg:block w-full lg:w-[45%] relative">
                         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[110%] h-[110%] bg-orange-100/60 rounded-full blur-3xl -z-10"></div>
 
                         <div

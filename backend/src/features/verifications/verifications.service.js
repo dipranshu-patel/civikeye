@@ -1,6 +1,6 @@
 "use strict";
 
-const repo     = require("./verifications.repository");
+const repo = require("./verifications.repository");
 const AppError = require("../../shared/utils/app-error");
 const { radiusKm } = require("../../config/verification");
 
@@ -15,14 +15,18 @@ async function getMyVerifications({ user, tab, filter, search }) {
         );
     }
 
-    const summary = await repo.getVerificationSummary(userId, latitude, longitude);
+    const summary = await repo.getVerificationSummary(
+        userId,
+        latitude,
+        longitude,
+    );
 
     if (tab === "history") {
         const history = await repo.findVerificationHistory(userId);
         return {
             summary: formatSummary(summary),
-            tab:     "history",
-            items:   history.map(formatHistoryItem),
+            tab: "history",
+            items: history.map(formatHistoryItem),
         };
     }
 
@@ -33,15 +37,15 @@ async function getMyVerifications({ user, tab, filter, search }) {
         userId,
         userLat: latitude,
         userLon: longitude,
-        filter:  safeFilter,
+        filter: safeFilter,
         search,
     });
 
     return {
         summary: formatSummary(summary),
-        tab:     "pending",
-        filter:  safeFilter,
-        items:   pending.map(formatPendingItem),
+        tab: "pending",
+        filter: safeFilter,
+        items: pending.map(formatPendingItem),
     };
 }
 
@@ -65,7 +69,12 @@ async function castVote({ complaintId, user, vote, comment }) {
         );
     }
 
-    const eligibility = await repo.checkEligibility(complaintId, userId, latitude, longitude);
+    const eligibility = await repo.checkEligibility(
+        complaintId,
+        userId,
+        latitude,
+        longitude,
+    );
 
     if (!eligibility) {
         throw new AppError("COMPLAINT_NOT_FOUND", "Complaint not found.", 404);
@@ -111,18 +120,23 @@ async function castVote({ complaintId, user, vote, comment }) {
         );
     }
 
-    const result = await repo.castVoteAndResolve({ complaintId, verifierId: userId, vote, comment });
+    const result = await repo.castVoteAndResolve({
+        complaintId,
+        verifierId: userId,
+        vote,
+        comment,
+    });
 
     return {
-        voteId:     result.vote.id,
-        vote:       result.vote.vote,
-        castAt:     result.vote.created_at,
-        tally:      result.tally,
-        minVotes:   result.minVotes,
+        voteId: result.vote.id,
+        vote: result.vote.vote,
+        castAt: result.vote.created_at,
+        tally: result.tally,
+        minVotes: result.minVotes,
         resolution: result.resolution
             ? {
-                  newStatus:   result.resolution.status,
-                  resolvedAt:  result.resolution.resolved_at ?? null,
+                  newStatus: result.resolution.status,
+                  resolvedAt: result.resolution.resolved_at ?? null,
                   reopenCount: result.resolution.reopen_count,
               }
             : null,
@@ -131,8 +145,8 @@ async function castVote({ complaintId, user, vote, comment }) {
 
 function formatSummary(row) {
     return {
-        pendingCount:        row.pending_count        ?? 0,
-        completedCount:      row.completed_count      ?? 0,
+        pendingCount: row.pending_count ?? 0,
+        completedCount: row.completed_count ?? 0,
         approvalAccuracyPct: row.approval_accuracy_pct
             ? parseFloat(row.approval_accuracy_pct)
             : null,
@@ -140,61 +154,69 @@ function formatSummary(row) {
 }
 
 function formatPendingItem(row) {
-    const total    = row.total_votes;
+    const total = row.total_votes;
     const confirms = row.confirm_count;
-    const rejects  = row.reject_count;
-    const pct      = total > 0 ? Math.round((confirms / total) * 100) : 0;
+    const rejects = row.reject_count;
+    const pct = total > 0 ? Math.round((confirms / total) * 100) : 0;
 
-    const deadline = row.verification_deadline ? new Date(row.verification_deadline) : null;
+    const deadline = row.verification_deadline
+        ? new Date(row.verification_deadline)
+        : null;
     const hoursLeft = deadline
         ? Math.max(0, Math.ceil((deadline - Date.now()) / 3_600_000))
         : null;
 
     return {
-        id:                     row.id,
-        publicCode:             row.public_code,
-        title:                  row.title,
-        description:            row.description ?? null,
-        category:               row.category_name,
-        department:             row.department_name,
-        addressText:            row.address_text ?? null,
-        coverPhoto:             row.cover_photo ?? null,
-        verificationStartedAt:  row.verification_started_at,
-        verificationDeadline:   row.verification_deadline,
-        hoursUntilDeadline:     hoursLeft,
-        slaDead:                row.sla_deadline ?? null,
+        id: row.id,
+        publicCode: row.public_code,
+        title: row.title,
+        description: row.description ?? null,
+        category: row.category_name,
+        department: row.department_name,
+        addressText: row.address_text ?? null,
+        coverPhoto: row.cover_photo ?? null,
+        verificationStartedAt: row.verification_started_at,
+        verificationDeadline: row.verification_deadline,
+        hoursUntilDeadline: hoursLeft,
+        slaDead: row.sla_deadline ?? null,
         tally: {
             total,
             confirms,
             rejects,
             confirmPct: pct,
-            minVotes:   repo.MIN_VOTES,
+            minVotes: repo.MIN_VOTES,
         },
         distanceKm: parseFloat(parseFloat(row.distance_km).toFixed(2)),
     };
 }
 
 function formatHistoryItem(row) {
-    const total    = row.total_votes;
+    const total = row.total_votes;
     const confirms = row.confirm_count;
-    const pct      = total > 0 ? Math.round((confirms / total) * 100) : 0;
+    const pct = total > 0 ? Math.round((confirms / total) * 100) : 0;
 
     return {
-        voteId:       row.vote_id,
-        myVote:       row.vote,
-        comment:      row.comment ?? null,
-        votedAt:      row.voted_at,
+        voteId: row.vote_id,
+        myVote: row.vote,
+        comment: row.comment ?? null,
+        votedAt: row.voted_at,
         complaint: {
-            id:         row.complaint_id,
+            id: row.complaint_id,
             publicCode: row.public_code,
-            title:      row.title,
-            status:     row.status,
+            title: row.title,
+            status: row.status,
             addressText: row.address_text ?? null,
-            category:   row.category_name,
+            category: row.category_name,
             department: row.department_name,
             coverPhoto: row.cover_photo ?? null,
         },
-        tally: { total, confirms, rejects: row.reject_count, confirmPct: pct, minVotes: repo.MIN_VOTES },
+        tally: {
+            total,
+            confirms,
+            rejects: row.reject_count,
+            confirmPct: pct,
+            minVotes: repo.MIN_VOTES,
+        },
     };
 }
 

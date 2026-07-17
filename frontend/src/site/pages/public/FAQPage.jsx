@@ -32,11 +32,7 @@ const faqSections = [
             },
             {
                 question: "What happens after I submit a complaint?",
-                answer: "Your complaint is posted to the demo app immediately. Other users can see it, upvote it, or comment. Over time, volunteers or simulated departments can work on it, update the status, and eventually mark it as resolved after community verification.",
-            },
-            {
-                question: "Can I edit or delete my complaint?",
-                answer: "Yes. You can view, edit, or delete your own complaints anytime from your account. Changes are logged so other users can see the history of edits.",
+                answer: "Your complaint is posted to the demo app immediately. Other users can see it or upvote it. Over time, volunteers or simulated departments can work on it, update the status, and eventually mark it as resolved after community verification.",
             },
         ],
     },
@@ -45,7 +41,7 @@ const faqSections = [
         faqs: [
             {
                 question: "How does CivikEye prevent fake or spam complaints?",
-                answer: "The system only allows one complaint per location within a 50m radius — nearby reports automatically suggest existing issues for upvoting instead of duplication. Suspected spam is reviewed before being displayed. Users are encouraged to verify their identity to build trust.",
+                answer: "The system only allows one complaint per location within a 100m radius - nearby reports automatically suggest existing issues for upvoting instead of duplication. Users are encouraged to verify their identity to build trust.",
             },
             {
                 question: "How is authority accountability shown?",
@@ -66,7 +62,7 @@ const faqSections = [
             },
             {
                 question: "How is my location data used?",
-                answer: "Your location is used to place your complaint on the map and group similar issues together. You can choose to be precise or just give a general area. Location data is protected but the complaint's location is shown publicly to help others find related issues nearby.",
+                answer: "Your location is used to place your complaint on the system and group similar issues together. You can choose to be precise or just give a general area. Location data is protected but the complaint's location is shown publicly to help others find related issues nearby.",
             },
         ],
     },

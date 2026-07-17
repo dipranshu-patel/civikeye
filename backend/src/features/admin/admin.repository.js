@@ -63,10 +63,18 @@ async function getAuditLogSummary() {
     return rows[0];
 }
 
-async function findAuditLogs({ search, action, entityType, dateFrom, dateTo, page, limit }) {
+async function findAuditLogs({
+    search,
+    action,
+    entityType,
+    dateFrom,
+    dateTo,
+    page,
+    limit,
+}) {
     const conditions = [];
-    const values     = [];
-    let   idx        = 1;
+    const values = [];
+    let idx = 1;
 
     if (search) {
         conditions.push(`(
@@ -98,7 +106,7 @@ async function findAuditLogs({ search, action, entityType, dateFrom, dateTo, pag
         idx++;
     }
 
-    const where  = conditions.length ? `WHERE ${conditions.join(" AND ")}` : "";
+    const where = conditions.length ? `WHERE ${conditions.join(" AND ")}` : "";
     const offset = (page - 1) * limit;
 
     const sql = `

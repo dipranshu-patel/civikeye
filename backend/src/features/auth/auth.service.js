@@ -44,7 +44,14 @@ async function register({ fullName, email, password, latitude, longitude }) {
     const lat = parseFloat(latitude);
     const lng = parseFloat(longitude);
 
-    if (isNaN(lat) || isNaN(lng) || lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+    if (
+        isNaN(lat) ||
+        isNaN(lng) ||
+        lat < -90 ||
+        lat > 90 ||
+        lng < -180 ||
+        lng > 180
+    ) {
         throw new AppError(
             "INVALID_COORDINATES",
             "The provided location coordinates are invalid.",
@@ -267,7 +274,6 @@ async function sendOtp({ email }) {
         await sendOtpEmail(normalisedEmail, otp);
     } catch (emailErr) {
         await repo.deleteEmailVerification(verificationRow.id).catch(() => {
-
             console.error(
                 "[sendOtp] Failed to delete orphaned email_verifications row:",
                 verificationRow.id,
@@ -344,7 +350,10 @@ const RESET_TTL_MS = (function () {
 })();
 
 async function forgotPassword({ email }) {
-    const { sendPasswordResetEmail, EmailError } = require("../../shared/utils/email");
+    const {
+        sendPasswordResetEmail,
+        EmailError,
+    } = require("../../shared/utils/email");
 
     const normalisedEmail = email.trim().toLowerCase();
 
@@ -358,9 +367,15 @@ async function forgotPassword({ email }) {
     const tokenHash = sha256(rawToken);
     const expiresAt = new Date(Date.now() + RESET_TTL_MS);
 
-    await repo.createPasswordResetToken({ userId: user.id, tokenHash, expiresAt });
+    await repo.createPasswordResetToken({
+        userId: user.id,
+        tokenHash,
+        expiresAt,
+    });
 
-    const frontendUrl = (process.env.FRONTEND_URL ?? "https://civikeye.online").replace(/\/$/, "");
+    const frontendUrl = (
+        process.env.FRONTEND_URL ?? "https://civikeye.online"
+    ).replace(/\/$/, "");
     const resetUrl = `${frontendUrl}/reset-password?token=${rawToken}`;
 
     if (process.env.SKIP_EMAIL === "true") {

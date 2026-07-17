@@ -87,7 +87,6 @@ export default function ReportComplaint() {
                 const { latitude, longitude } = position.coords;
 
                 try {
-                    // 1. Check for similar complaints
                     const similarRes =
                         await complaintsService.getSimilarComplaints(
                             latitude,
@@ -105,7 +104,6 @@ export default function ReportComplaint() {
                         return;
                     }
 
-                    // 2. No similar complaints found, proceed to create
                     const formData = new FormData();
                     formData.append("title", title);
                     formData.append("description", description);

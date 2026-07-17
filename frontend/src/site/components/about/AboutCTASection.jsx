@@ -26,7 +26,7 @@ export default function AboutCTASection() {
 
                 <p className="font-[var(--font-inter)] text-[17px] text-stone-500 leading-relaxed max-w-[520px] mb-10">
                     Public infrastructure deserves public transparency. Start
-                    with one issue — and watch what changes when an entire city
+                    with one issue - and watch what changes when an entire city
                     can see it.
                 </p>
 

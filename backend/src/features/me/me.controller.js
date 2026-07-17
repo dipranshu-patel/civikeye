@@ -1,8 +1,12 @@
 "use strict";
 
 const service = require("./me.service");
-const { validateAddress, validateProfileUpdate, validateChangePassword } = require("./me.validation");
-const asyncHandler  = require("../../shared/utils/async-handler");
+const {
+    validateAddress,
+    validateProfileUpdate,
+    validateChangePassword,
+} = require("./me.validation");
+const asyncHandler = require("../../shared/utils/async-handler");
 const { sendSuccess } = require("../../shared/utils/respond");
 
 const getProfile = asyncHandler(async (req, res) => {
@@ -12,16 +16,21 @@ const getProfile = asyncHandler(async (req, res) => {
 
 const updateProfile = asyncHandler(async (req, res) => {
     const errors = validateProfileUpdate(req.body);
-    if (errors.length > 0) return res.status(422).json({ success: false, errors });
+    if (errors.length > 0)
+        return res.status(422).json({ success: false, errors });
 
     const { fullName, email } = req.body;
-    const result = await service.updateProfile(req.user.userId, { fullName, email });
+    const result = await service.updateProfile(req.user.userId, {
+        fullName,
+        email,
+    });
     return sendSuccess(res, { user: result });
 });
 
 const updateLocation = asyncHandler(async (req, res) => {
     const errors = validateAddress(req.body);
-    if (errors.length > 0) return res.status(422).json({ success: false, errors });
+    if (errors.length > 0)
+        return res.status(422).json({ success: false, errors });
 
     const updated = await service.updateLocation(req.user.userId, req.body);
     return sendSuccess(res, { user: updated });
@@ -39,7 +48,8 @@ const updatePreferences = asyncHandler(async (req, res) => {
 
 const changePassword = asyncHandler(async (req, res) => {
     const errors = validateChangePassword(req.body);
-    if (errors.length > 0) return res.status(422).json({ success: false, errors });
+    if (errors.length > 0)
+        return res.status(422).json({ success: false, errors });
 
     const result = await service.changePassword(req.user.userId, req.body);
     return sendSuccess(res, result);
@@ -50,20 +60,36 @@ const deleteAccount = asyncHandler(async (req, res) => {
     return sendSuccess(res, result);
 });
 
-
 const requestEmailChange = asyncHandler(async (req, res) => {
     const { newEmail } = req.body;
     if (!newEmail || typeof newEmail !== "string") {
-        return res.status(422).json({ success: false, errors: [{ field: "newEmail", message: "A valid new email address is required." }] });
+        return res
+            .status(422)
+            .json({
+                success: false,
+                errors: [
+                    {
+                        field: "newEmail",
+                        message: "A valid new email address is required.",
+                    },
+                ],
+            });
     }
-    const result = await service.requestEmailChange(req.user.userId, { newEmail });
+    const result = await service.requestEmailChange(req.user.userId, {
+        newEmail,
+    });
     return sendSuccess(res, result);
 });
 
 const confirmEmailChange = asyncHandler(async (req, res) => {
     const { otp } = req.body;
     if (!otp) {
-        return res.status(422).json({ success: false, errors: [{ field: "otp", message: "OTP is required." }] });
+        return res
+            .status(422)
+            .json({
+                success: false,
+                errors: [{ field: "otp", message: "OTP is required." }],
+            });
     }
     const result = await service.confirmEmailChange(req.user.userId, { otp });
     return sendSuccess(res, { user: result });

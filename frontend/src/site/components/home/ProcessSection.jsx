@@ -2,7 +2,7 @@ export default function ProcessSection() {
     const steps = [
         {
             title: "Report",
-            desc: "Snap a photo, drop a pin. Auto-detect duplicates within 100m so issues consolidate, not multiply.",
+            desc: "Snap a photo, drop an address. Auto-detect duplicates within 100m so issues consolidate, not multiply.",
         },
         {
             title: "Prioritize",
@@ -10,7 +10,7 @@ export default function ProcessSection() {
         },
         {
             title: "Resolve",
-            desc: "Authorities or vetted volunteers fix it and upload before/after proof to the public record.",
+            desc: "Authorities or volunteers fix it and upload before/after proof to the public record.",
         },
         {
             title: "Verify",
